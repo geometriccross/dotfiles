@@ -102,3 +102,7 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
+
+if ! ps x -u $(whoami) | grep '.bus-daemon' > /dev/null; then
+   dbus-launch true
+fi

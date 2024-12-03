@@ -115,3 +115,7 @@ if ! shopt -oq posix; then
     . /etc/bash_completion
   fi
 fi
+
+if ! ps x -u $(whoami) | grep '.bus-daemon' > /dev/null; then
+   dbus-launch true
+fi
