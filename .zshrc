@@ -103,6 +103,33 @@ source $ZSH/oh-my-zsh.sh
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-if ! ps x -u $(whoami) | grep '.bus-daemon' > /dev/null; then
-   dbus-launch true
-fi
+function install_nvim () {
+   if ! nvim -v > /dev/null; then
+      echo Neovim is not installed.
+      echo start install...
+      
+      # Refer this https://github.com/geometriccross/kickstart.nvim
+      sudo bash -c "add-apt-repository ppa:neovim-ppa/unstable -y \
+         && sudo apt update && sudo apt install make gcc ripgrep unzip git xclip neovim"
+   fi
+}
+
+function install_kickstart () {
+   if [ ! -e ~/.config/nvim ]; then
+      echo kickstart.vim is not installed.
+      echo Start install kickstart.nvim
+      git clone git@github.com:geometriccross/kickstart.nvim.git ~/.config/nvim
+   fi   
+}
+
+function keep_alive_wsl () {
+   # Please refer this issue. https://github.com/microsoft/WSL/discussions/9245
+   if ! ps x -u $(whoami) | grep '.bus-daemon' > /dev/null; then
+      dbus-launch true
+   fi  
+}
+
+install_nvim
+install_kickstart
+keep_alive_wsl
+
