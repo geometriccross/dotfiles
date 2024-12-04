@@ -88,20 +88,22 @@ source $ZSH/oh-my-zsh.sh
 #   export EDITOR='nvim'
 # fi
 
-# Compilation flags
-# export ARCHFLAGS="-arch $(uname -m)"
+function set_theme (){
+   # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+   # Initialization code that may require console input (password prompts, [y/n]
+   # confirmations, etc.) must go above this block; everything else may go below.
+   if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+     source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+   fi
+   
+   local theme_path=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+   if [ ! -e $theme_path ]; then
+      git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $theme_path 
+   fi
 
-# Set personal aliases, overriding those provided by Oh My Zsh libs,
-# plugins, and themes. Aliases can be placed here, though Oh My Zsh
-# users are encouraged to define aliases within a top-level file in
-# the $ZSH_CUSTOM folder, with .zsh extension. Examples:
-# - $ZSH_CUSTOM/aliases.zsh
-# - $ZSH_CUSTOM/macos.zsh
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+   ZSH_THEME="powerlevel10k/powerlevel10k"
+   [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh 
+}
 
 function install_nvim () {
    if ! nvim -v > /dev/null; then
