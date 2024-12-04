@@ -4,3 +4,4 @@
 # Allow
 !.zshrc
 !.bashrc
+!.p10k.zsh
