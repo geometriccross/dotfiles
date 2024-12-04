@@ -88,7 +88,7 @@ source $ZSH/oh-my-zsh.sh
 #   export EDITOR='nvim'
 # fi
 
-function set_theme (){
+function set_theme () {
    # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
    # Initialization code that may require console input (password prompts, [y/n]
    # confirmations, etc.) must go above this block; everything else may go below.
@@ -97,7 +97,7 @@ function set_theme (){
    fi
    
    local theme_path=${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
-   if [ ! -e $theme_path ]; then
+   if [[ ! -e $theme_path ]]; then
       git clone --depth=1 https://github.com/romkatv/powerlevel10k.git $theme_path 
    fi
 
@@ -117,11 +117,12 @@ function install_nvim () {
 }
 
 function install_kickstart () {
-   if [ ! -e ~/.config/nvim ]; then
+   local path="${HOME}/.config/nvim"
+   if [[ ! -e $path ]]; then
       echo kickstart.vim is not installed.
       echo Start install kickstart.nvim
-      git clone git@github.com:geometriccross/kickstart.nvim.git ~/.config/nvim
-   fi   
+      git clone git@github.com:geometriccross/kickstart.nvim.git $path
+   fi 
 }
 
 function keep_alive_wsl () {
