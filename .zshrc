@@ -15,6 +15,7 @@ function set_theme () {
    [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh 
 }
 
+# ---------- Setup Editor ----------
 function install_nvim () {
    if ! nvim -v > /dev/null; then
       echo Neovim is not installed.
@@ -35,6 +36,7 @@ function install_kickstart () {
    fi 
 }
 
+# ---------- Utiity ---------- 
 function keep_alive_wsl () {
    # Please refer this issue. https://github.com/microsoft/WSL/discussions/9245
    if ! ps x -u $(whoami) | grep '.bus-daemon' > /dev/null; then
