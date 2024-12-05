@@ -1,4 +1,4 @@
-function set_theme () {
+function set_theme() {
    # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
    # Initialization code that may require console input (password prompts, [y/n]
    # confirmations, etc.) must go above this block; everything else may go below.
@@ -16,7 +16,7 @@ function set_theme () {
 }
 
 # ---------- Setup Editor ----------
-function install_nvim () {
+function install_nvim() {
    if ! nvim -v > /dev/null; then
       echo Neovim is not installed.
       echo start install...
@@ -27,7 +27,7 @@ function install_nvim () {
    fi
 }
 
-function install_kickstart () {
+function install_kickstart() {
    local path="${HOME}/.config/nvim"
    if [[ ! -e $path ]]; then
       echo kickstart.vim is not installed.
@@ -37,7 +37,7 @@ function install_kickstart () {
 }
 
 # ---------- Utiity ---------- 
-function keep_alive_wsl () {
+function keep_alive_wsl() {
    # Please refer this issue. https://github.com/microsoft/WSL/discussions/9245
    if ! ps x -u $(whoami) | grep '.bus-daemon' > /dev/null; then
       dbus-launch true
