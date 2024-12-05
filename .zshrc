@@ -70,9 +70,9 @@ plugins=(git)
 source $ZSH/oh-my-zsh.sh
 
 set_theme
-install_nvim 
-install_kickstart 
-keep_alive_wsl 
+install_nvim & 
+install_kickstart & 
+keep_alive_wsl & 
+setup_conda &
 
-export LANG=en_US.UTF-8
-
+wait
