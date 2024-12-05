@@ -5,3 +5,8 @@
 !.zshrc
 !.bashrc
 !.p10k.zsh
+!.shellspec
+
+!install.sh
+!spec
+!spec/*
