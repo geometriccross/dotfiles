@@ -1,3 +1,5 @@
+export LANG=en_US.UTF-8
+
 function set_theme() {
    # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
    # Initialization code that may require console input (password prompts, [y/n]
@@ -13,6 +15,12 @@ function set_theme() {
 
    ZSH_THEME="powerlevel10k/powerlevel10k"
    [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh 
+
+   # setup oh-my-zsh
+   # this segment need to run after setup of powerlevel10k
+   export ZSH="$HOME/.oh-my-zsh"
+   plugins=(git)
+   source $ZSH/oh-my-zsh.sh
 }
 
 # ---------- Setup Editor ----------
@@ -58,7 +66,6 @@ function setup_conda() {
    fi
 }
 
-export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
 if [[ -n $SSH_CONNECTION ]]; then
@@ -66,10 +73,6 @@ if [[ -n $SSH_CONNECTION ]]; then
 else
   export EDITOR='nvim'
 fi
-
-export ZSH="$HOME/.oh-my-zsh"
-plugins=(git)
-source $ZSH/oh-my-zsh.sh
 
 set_theme
 install_nvim & 
