@@ -1,10 +1,9 @@
 # Ignore
-*
+./*
 
 # Allow
 !.zshrc
 !.bashrc
 !.p10k.zsh
 !install.sh
-!spec/*
-!spec/*.sh
+!/spec
