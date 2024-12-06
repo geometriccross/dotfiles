@@ -1,12 +1,14 @@
-Describe 'install.sh function test'
-    Include ./install.sh
-    
-    It 'check filtering_path can filter path'
+Include ./install.sh
+
+Describe 'filtering_path test'
+    It 'can filter path'
         When call filtering_path hoge
         The output should equal hoge 
     End
+End
 
-    It 'create link'
+Describe 'create_link test'
+    It 'can create link'
         temp=$(mktemp -d)
         When call create_link ${temp} hoge
         The path ${temp}/hoge should be symlink
