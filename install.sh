@@ -1,16 +1,10 @@
 #!/bin/bash
 
-filtering_path() {
-	echo ${1:-$(cat -)} \
-		| grep -v ".gitignore" \
-		| grep -v "install.sh" \
-		| grep -v /
-}
+dest=${1:=.}
+shift
 
-create_link() {
-	dest=${1:?Destination has not passed}
-	shift
-
-	echo ${1:-$(cat -)} \
-		| xargs -I FILE ln -s FILE ${dest}/FILE 
-}
+ls -aF . \
+	| grep -v ".gitignore" \
+	| grep -v "install.sh" \
+	| grep -v / \
+	| xargs -I FILE ln -s FILE ${dest}/FILE 
