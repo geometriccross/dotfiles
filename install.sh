@@ -1,6 +1,6 @@
 #!/bin/bash
 
-dest=${1:=.}
+dest=${1:=~}
 shift
 
 ls -aF . \
