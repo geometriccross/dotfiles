@@ -1,9 +1,13 @@
 #!/bin/bash
 
-base_dir=$(cd $(dirname ${BASH_SOURCE:-$0}); pwd)
+base_dir=$(cd "$(dirname "${BASH_SOURCE:-$0}")" || "${HOME}"; pwd)
 
-ls -aF ${base_dir} \
-	| grep -v ".gitignore" \
-	| grep -v "install.sh" \
-	| grep -v / \
-	| xargs -I FILE ln -s ${base_dir}/FILE ${1:-${HOME}}/FILE 
+for file in ./.*
+do
+	case "${file}" in
+		./.git*) ;;
+		./.shellspec) ;;
+		*) echo ln -s "${base_dir}/FILE" "${1:-${HOME}}/FILE" ;;
+	esac
+done
+
