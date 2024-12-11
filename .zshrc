@@ -28,26 +28,7 @@ function set_theme() {
    source $ZSH/oh-my-zsh.sh
 }
 
-# ---------- Setup Editor ----------
-function install_nvim() {
-   if ! nvim -v > /dev/null; then
-      echo Neovim is not installed.
-      echo start install...
-      
-      # Refer this https://github.com/geometriccross/kickstart.nvim
-      sudo bash -c "add-apt-repository ppa:neovim-ppa/unstable -y \
-         && sudo apt update && sudo apt install make gcc ripgrep unzip git xclip neovim"
-   fi
-}
 
-function install_kickstart() {
-   local path="${HOME}/.config/nvim"
-   if [[ ! -e $path ]]; then
-      echo kickstart.vim is not installed.
-      echo Start install kickstart.nvim
-      git clone git@github.com:geometriccross/kickstart.nvim.git $path
-   fi 
-}
 
 # ---------- Utiity ---------- 
 function keep_alive_wsl() {
