@@ -22,7 +22,7 @@ process_env_is() {
 }
 
 # ---------- Setup Editor ----------
-function install_nvim() {
+install_nvim() {
 	if ! nvim -v > /dev/null; then
 		echo Neovim is not installed.
 		echo start install...
@@ -40,7 +40,7 @@ function install_nvim() {
 	fi
 }
 
-function install_kickstart() {
+install_kickstart() {
 	local path="${HOME}/.config/nvim"
 	if [[ ! -e $path ]]; then
 		echo kickstart.vim is not installed.
