@@ -23,3 +23,17 @@ Describe 'process_env_is test'
 	End
 End
 
+Describe 'run_with_prompt test'
+	Context 'when call run_with_prompt'
+		It 'can return correct prompt'
+			When call run_with_prompt test_app echo test_app installing...
+			The stdout should equal "$(cat <<- EOF
+				test_app is not installed.
+				Start install test_app.
+				test_app installing...
+				Install test_app success!
+			EOF
+			)"
+		End
+	End
+End

@@ -53,6 +53,16 @@ install_kickstart() {
 	fi
 }
 
+run_with_prompt() {
+	app_name="${1}" && shift
+
+	echo "${app_name}" is not installed.
+	echo Start install "${app_name}".
+
+	# this act like "cdr" in lisp
+	"${@}" && echo Install "${app_name}" success!
+}
+
 main() {
 	base_dir=$(cd "$(dirname "${BASH_SOURCE:-$0}")" || "${HOME}"; pwd)
 	case $(process_env_is) in
