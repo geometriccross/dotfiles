@@ -36,7 +36,7 @@ check_cmd_with_prompt() {
 	fi
 }
 
-run_with_prompt() {
+install_with_prompt() {
 	# change a color into blue
 	printf "\e[34m"
 	app_name="${1}" && shift

@@ -44,17 +44,17 @@ Describe 'check_cmd_with_prompt test'
 	End
 End
 
-Describe 'run_with_prompt test'
-	Context 'when call run_with_prompt'
+Describe 'install_with_prompt test'
+	Context 'when call install_with_prompt'
 		It 'can return correct prompt'
 			APP_NAME=test_app
-			When call run_with_prompt ${APP_NAME} echo ${APP_NAME} installing...
+			When call install_with_prompt ${APP_NAME} echo ${APP_NAME} installing...
 			The stdout should include "success"
 		End
 
 		It 'can return prompt if install failed'
 			APP_NAME=incorrect_app
-			When call run_with_prompt ${APP_NAME} ${APP_NAME}
+			When call install_with_prompt ${APP_NAME} ${APP_NAME}
 			The stderr should match pattern "*${APP_NAME}: not found"
 			The stdout should include "failed"
 		End
