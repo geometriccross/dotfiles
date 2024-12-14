@@ -25,6 +25,17 @@ sand_with_bar() {
 	echo =================== "${*}" ===================  
 }
 
+check_cmd_with_prompt() {
+	app_name="${1}" && shift
+	check_cmd="${1}" && shift
+
+	if ! "${check_cmd}" >/dev/null 2>/dev/null; then
+		echo "${app_name}" is not installed.
+	else
+		echo "${app_name}" is already installed. >/dev/stderr
+	fi
+}
+
 run_with_prompt() {
 	# change a color into blue
 	printf "\e[34m"
