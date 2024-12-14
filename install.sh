@@ -37,12 +37,7 @@ check_cmd_with_prompt() {
 }
 
 install_with_prompt() {
-	# change a color into blue
-	printf "\e[34m"
 	app_name="${1}" && shift
-
-	sand_with_bar "${app_name}"
-	echo "${app_name}" is not installed or invailed command. 
 	echo Start install "${app_name}".
 
 	if "${@}"; then
@@ -51,6 +46,18 @@ install_with_prompt() {
 		sand_with_bar Installing "${app_name}" is failed.
 	fi
 
+}
+
+install_wizard() {
+	app_name="${1}" && shift
+	check_cmd="${1}" && shift
+	
+	# change a color into blue
+	printf "\e[34m"
+	sand_with_bar "${app_name}"
+
+	check_cmd_with_prompt "${app_name}" "${check_cmd}" \
+		&& install_with_prompt "${app_name}" "${@}"
 	printf "\e[0m"
 }
 
