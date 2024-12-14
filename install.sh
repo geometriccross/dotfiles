@@ -27,12 +27,11 @@ sand_with_bar() {
 
 check_cmd_with_prompt() {
 	app_name="${1}" && shift
-	check_cmd="${1}" && shift
 
-	if ! "${check_cmd}" >/dev/null 2>/dev/null; then
-		echo "${app_name}" is not installed.
+	if eval "${*}" >/dev/null 2>/dev/null; then
+		echo "${app_name}" is already installed.
 	else
-		echo "${app_name}" is already installed. >/dev/stderr
+		echo "${app_name}" is not installed. >&2
 	fi
 }
 

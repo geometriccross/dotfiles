@@ -33,13 +33,26 @@ End
 Describe 'check_cmd_with_prompt test'
 	Context 'when call function'
 		It 'if command is not exist'
-			When call check_cmd_with_prompt incorrect_cmd hoge
-			The stdout should include "not installed"
+			target="incorrect_cmd"
+			check_cmd="hoge"
+			When call check_cmd_with_prompt "${target}" "${check_cmd}"
+			The stderr should include "not installed"
 		End
 
 		It 'if command is exist'
-			When call check_cmd_with_prompt echo echo
-			The stderr should include "already installed"
+			target="test"
+			check_cmd="echo"
+			When call check_cmd_with_prompt test echo
+			The stdout should include "already installed"
+		End
+
+		It 'when call with here document'
+			When call check_cmd_with_prompt test "$(cat <<- EOF
+				echo A
+			EOF
+			)"
+
+			The stdout should include "already installed"
 		End
 	End
 End
