@@ -20,6 +20,29 @@ process_env_is() {
 	fi
 }
 
+sand_with_bar() {
+	# between \e[ and color number is necessary to keep space
+	echo =================== "${*}" ===================  
+}
+
+run_with_prompt() {
+	# change a color into blue
+	printf "\e[34m"
+	app_name="${1}" && shift
+
+	sand_with_bar "${app_name}"
+	echo "${app_name}" is not installed or invailed command. 
+	echo Start install "${app_name}".
+
+	if "${@}"; then
+		sand_with_bar Install "${app_name}" success!
+	else
+		sand_with_bar Installing "${app_name}" is failed.
+	fi
+
+	printf "\e[0m"
+}
+
 # ---------- Setup Editor ----------
 install_nvim() {
 	if ! nvim -v >/dev/null; then
@@ -51,30 +74,6 @@ install_kickstart() {
 		echo kickstart.vim is already installed.
 	fi
 }
-
-sand_with_bar() {
-	# between \e[ and color number is necessary to keep space
-	echo =================== "${*}" ===================  
-}
-
-run_with_prompt() {
-	# change a color into blue
-	printf "\e[34m"
-	app_name="${1}" && shift
-
-	sand_with_bar "${app_name}"
-	echo "${app_name}" is not installed or invailed command. 
-	echo Start install "${app_name}".
-
-	if "${@}"; then
-		sand_with_bar Install "${app_name}" success!
-	else
-		sand_with_bar Installing "${app_name}" is failed.
-	fi
-
-	printf "\e[0m"
-}
-
 main() {
 	base_dir=$(
 		cd "$(dirname "${BASH_SOURCE:-$0}")" || "${HOME}"
