@@ -39,12 +39,11 @@ install_with_prompt() {
 	app_name="${1}" && shift
 	echo Start install "${app_name}".
 
-	if "${@}"; then
+	if eval "${*}"; then
 		sand_with_bar Install "${app_name}" success!
 	else
-		sand_with_bar Installing "${app_name}" is failed.
+		sand_with_bar Installing "${app_name}" is failed. >&2
 	fi
-
 }
 
 install_wizard() {

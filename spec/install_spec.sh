@@ -60,16 +60,23 @@ End
 Describe 'install_with_prompt test'
 	Context 'when call install_with_prompt'
 		It 'can return correct prompt'
-			APP_NAME=test_app
-			When call install_with_prompt ${APP_NAME} echo ${APP_NAME} installing...
+			When call install_with_prompt test_app echo test_app installing...
 			The stdout should include "success"
 		End
 
 		It 'can return prompt if install failed'
-			APP_NAME=incorrect_app
-			When call install_with_prompt ${APP_NAME} ${APP_NAME}
-			The stderr should match pattern "*${APP_NAME}: not found"
-			The stdout should include "failed"
+			When call install_with_prompt incorrect_app hoge
+			The stdout should include incorrect_app
+			The stderr should include "failed"
+		End
+
+		It 'when call with here document, can success'
+			When call install_with_prompt test "$(cat <<- EOF
+				echo here document test
+			EOF
+			)"
+
+			The stdout should include "success"
 		End
 	End
 End
