@@ -82,14 +82,49 @@ main() {
 		EOF
 	)"
 
+	# install envrioment dependent packages
 	case $(process_env_is) in
 	container)
-		# Default powerline10k theme, no plugins installed
-		sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)"
+		# install oh-my-zsh in docker, quietly
+		sh -c "$(
+			cat <<-EOF
+				apt-get install -y wget \
+					&& wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh
+			EOF
+		)"
 		;;
 
-	wsl) ;;
-	on-premises) ;;
+	# case wsl or onpremises
+	*)
+		install_wizard "powerlevel10k" "test -d ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" "$(
+			cat <<-EOF
+				git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
+			EOF
+		)"
+
+		install_wizard "oh-my-zsh" "test ! -e $HOME/.oh-my-zsh" "$(
+			cat <<-EOF
+				sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+			EOF
+		)"
+
+		# install neovim and required packages
+		install_wizard "Neovim" "nvim -v" "$(
+			cat <<-EOF
+				curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+				sudo chmod u+x nvim.appimage
+				sudo ./nvim.appimage
+
+				sudo apt-get install -y make gcc ripgrep unzip git xclip
+			EOF
+		)"
+
+		install_wizard "Neovim settings" "test -d $HOME/config/nvim" "$(
+			cat <<-EOF
+				git clone https://github.com/geometriccross/nvim_settings.git $HOME/.config/nvim
+			EOF
+		)"
+		;;
 	esac
 
 	ln -s "${base_dir}/FILE" "${1:-${HOME}}/FILE"
