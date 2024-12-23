@@ -94,3 +94,20 @@ main() {
 
 	ln -s "${base_dir}/FILE" "${1:-${HOME}}/FILE"
 }
+
+# If DEBUG is true, the main function is not called, only loaded
+DEBUG=false
+while getopts ":d" opt; do
+	case ${opt} in
+	d)
+		DEBUG=true
+		;;
+	\?)
+		echo "Invalid option: $OPTARG" 1>&2
+		;;
+	esac
+done
+
+if [ "${DEBUG}" = false ]; then
+	main "$@"
+fi

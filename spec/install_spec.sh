@@ -1,4 +1,4 @@
-Include ./install.sh
+Include ./install.sh -d
 
 Describe 'filtering_path test'
 	Context 'when call filtering_path'
@@ -17,7 +17,7 @@ Describe 'process_env_is test'
 		End
 
 		It 'can return container'
-			When call docker run --rm -v "$(pwd)/install.sh:/install.sh" alpine sh -c ". install.sh; process_env_is"
+			When call docker run --rm -v "$(pwd)/install.sh:/install.sh" alpine sh -c ". install.sh -d; process_env_is"
 			The stdout should equal "container"
 		End
 	End
