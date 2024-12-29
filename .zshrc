@@ -30,14 +30,15 @@ function keep_alive_wsl() {
 
 # !! Contents within this block are managed by 'conda init' !!
 function setup_conda() {
-	local miniconda_path="$HOME/.miniconda"
+	# !! Contents within this block are managed by 'conda init' !!
+	local conda_setup="$(${HOME}'/.miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
 	if [ $? -eq 0 ]; then
-		"${miniconda_path}" shell.zsh hook shell.zsh 2> /dev/null
+		eval "$__conda_setup"
 	else
-		if [ -f "${miniconda_path}""/etc/profile.d/conda.sh" ]; then
-           . "${miniconda_path}""/etc/profile.d/conda.sh"
-    	else
-        	export PATH="${miniconda_path}""/bin":$PATH
+		if [ -f "${HOME}/.miniconda3/etc/profile.d/conda.sh" ]; then
+			. "${HOME}/.miniconda3/etc/profile.d/conda.sh"
+		else
+			export PATH="${HOME}/.miniconda3/bin:$PATH"
 		fi
 	fi
 }
