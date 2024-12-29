@@ -127,7 +127,9 @@ main() {
 		;;
 	esac
 
-	ln -s "${base_dir}/FILE" "${1:-${HOME}}/FILE"
+	if $?; then
+		ln -s "${base_dir}/FILE" "${1:-${HOME}}/FILE"
+	fi
 }
 
 # If DEBUG is true, the main function is not called, only loaded
