@@ -1,5 +1,3 @@
-export LANG=en_US.UTF-8
-
 # ==================== zsh setup ====================
 function set_theme() {
 	# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
@@ -60,3 +58,7 @@ keep_alive_wsl
 setup_conda
 set_editor_var
 
+# ==================== alias ====================
+alias v="nvim"
+alias vi="nvim"
+alias vim="nvim"
