@@ -63,7 +63,7 @@ main() {
 	esac
 
 	if $?; then
-		ln -s "${base_dir}/FILE" "${1:-${HOME}}/FILE"
+		filtering_path | xargs -I FILE ln -s "${base_dir}/FILE" "${1:-${HOME}}/FILE"
 	fi
 }
 
