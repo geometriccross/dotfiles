@@ -30,18 +30,16 @@ main() {
 	case $(process_env_is) in
 	container)
 		# install oh-my-zsh in docker, quietly
-		sh -c "$(
-			cat <<-EOF
-				apt-get install -y wget \
-					&& wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh
-			EOF
-		)"
+		apt-get install -y wget &&
+			wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh
 		;;
 
 	# case wsl or onpremises
 	*)
 		# install powerlevel10k
-		git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+		if ! test -d "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"; then
+			git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
+		fi
 
 		# install oh-my-zsh
 		if ! test -d "${HOME}/.oh-my-zsh"; then
@@ -49,7 +47,7 @@ main() {
 		fi
 
 		# install neovim
-		if not nvim -v; then
+		if ! nvim -v; then
 			curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
 			sudo chmod u+x nvim.appimage
 			sudo ./nvim.appimage
@@ -58,7 +56,7 @@ main() {
 		fi
 
 		# install neovim setting
-		if not test -d "${HOME}/.config/nvim"; then
+		if ! test -d "${HOME}/.config/nvim"; then
 			git clone https://github.com/geometriccross/nvim_settings.git "${HOME}/.config/nvim"
 		fi
 		;;
