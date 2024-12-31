@@ -1,5 +1,33 @@
 Include ./install.sh -d
 
+Describe 'bash behaivior check'
+	It 'eval here document'
+		When call eval "$(cat <<- EOF
+			echo 'GNU bash'
+		EOF
+		)"
+		The stdout should include "GNU bash"
+	End
+
+	It 'eval in function'
+		eval_in_function() {
+			eval "${*}" 
+		}
+
+		When call eval_in_function "$(cat <<- EOF
+			echo 'GNU bash'
+		EOF
+		)"
+		The stdout should include "GNU bash"
+	End
+
+	It 'eval in function with incorrect command'
+		When call eval_in_function "hoge"
+		The status should be failure
+		The stderr should include "not found"
+	End
+End
+
 Describe 'filtering_path test'
 	Context 'when call filtering_path'
 		It 'filtering path'
@@ -31,29 +59,25 @@ Describe 'sand_with_bar test'
 End
 
 Describe 'check_cmd_with_prompt test'
-	Context 'when call function'
-		It 'if command is not exist'
-			target="incorrect_cmd"
-			check_cmd="hoge"
-			When call check_cmd_with_prompt "${target}" "${check_cmd}"
-			The stderr should include "not installed"
-		End
+	It 'if app is not exist'
+		When call check_cmd_with_prompt 'incorrect app' 'hgoe' 
+		The stderr should include "not installed"
+		The status should be failure
+	End
 
-		It 'if command is exist'
-			target="test"
-			check_cmd="echo"
-			When call check_cmd_with_prompt test echo
-			The stdout should include "already installed"
-		End
+	It 'if app is exist'
+		When call check_cmd_with_prompt test echo
+		The status should be success
+		The stdout should include "already installed"
+	End
 
-		It 'when call with here document'
-			When call check_cmd_with_prompt test "$(cat <<- EOF
-				echo A
-			EOF
-			)"
+	It 'when call with here document'
+		When call check_cmd_with_prompt test "$(cat <<- EOF
+			echo A
+		EOF
+		)"
 
-			The stdout should include "already installed"
-		End
+		The stdout should include "already installed"
 	End
 End
 
@@ -68,6 +92,7 @@ Describe 'install_with_prompt test'
 			When call install_with_prompt incorrect_app hoge
 			The stdout should include incorrect_app
 			The stderr should include "failed"
+			The status should be failure
 		End
 
 		It 'when call with here document, can success'

@@ -32,6 +32,7 @@ check_cmd_with_prompt() {
 		echo "${app_name}" is already installed.
 	else
 		echo "${app_name}" is not installed. >&2
+		return 1
 	fi
 }
 
@@ -43,6 +44,7 @@ install_with_prompt() {
 		sand_with_bar Install "${app_name}" success!
 	else
 		sand_with_bar Installing "${app_name}" is failed. >&2
+		return 1
 	fi
 }
 
@@ -76,7 +78,7 @@ main() {
 		EOF
 	)"
 
-	install_wizard "Neovim settings" "test -d $HOME/config/nvim" "$(
+	install_wizard "Neovim settings" "test -d $HOME/.config/nvim" "$(
 		cat <<-EOF
 			git clone https://github.com/geometriccross/nvim_settings.git $HOME/.config/nvim
 		EOF
