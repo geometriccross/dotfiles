@@ -20,69 +20,11 @@ process_env_is() {
 	fi
 }
 
-sand_with_bar() {
-	# between \e[ and color number is necessary to keep space
-	echo =================== "${*}" ===================
-}
-
-check_cmd_with_prompt() {
-	app_name="${1}" && shift
-
-	if eval "${*}" >/dev/null 2>/dev/null; then
-		echo "${app_name}" is already installed.
-	else
-		echo "${app_name}" is not installed. >&2
-		return 1
-	fi
-}
-
-install_with_prompt() {
-	app_name="${1}" && shift
-	echo Start install "${app_name}".
-
-	if eval "${*}"; then
-		sand_with_bar Install "${app_name}" success!
-	else
-		sand_with_bar Installing "${app_name}" is failed. >&2
-		return 1
-	fi
-}
-
-install_wizard() {
-	app_name="${1}" && shift
-	check_cmd="${1}" && shift
-
-	# change a color into blue
-	printf "\e[34m"
-	sand_with_bar "${app_name}"
-
-	check_cmd_with_prompt "${app_name}" "${check_cmd}" &&
-		install_with_prompt "${app_name}" "${@}"
-	printf "\e[0m"
-}
-
 main() {
 	base_dir=$(
 		cd "$(dirname "${BASH_SOURCE:-$0}")" || "${HOME}"
 		pwd
 	)
-
-	# install neovim and required packages
-	install_wizard "Neovim" "nvim -v" "$(
-		cat <<-EOF
-			curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-				&& sudo chmod u+x nvim.appimage
-				&& sudo ./nvim.appimage
-
-			sudo apt install -y make gcc ripgrep unzip git xclip
-		EOF
-	)"
-
-	install_wizard "Neovim settings" "test -d $HOME/.config/nvim" "$(
-		cat <<-EOF
-			git clone https://github.com/geometriccross/nvim_settings.git $HOME/.config/nvim
-		EOF
-	)"
 
 	# install envrioment dependent packages
 	case $(process_env_is) in
@@ -98,34 +40,27 @@ main() {
 
 	# case wsl or onpremises
 	*)
-		install_wizard "powerlevel10k" "test -d ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k" "$(
-			cat <<-EOF
-				git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k
-			EOF
-		)"
+		# install powerlevel10k
+		git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k"
 
-		install_wizard "oh-my-zsh" "test ! -e $HOME/.oh-my-zsh" "$(
-			cat <<-EOF
-				sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-			EOF
-		)"
+		# install oh-my-zsh
+		if ! test -d "${HOME}/.oh-my-zsh"; then
+			sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+		fi
 
-		# install neovim and required packages
-		install_wizard "Neovim" "nvim -v" "$(
-			cat <<-EOF
-				curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
-				sudo chmod u+x nvim.appimage
-				sudo ./nvim.appimage
+		# install neovim
+		if not nvim -v; then
+			curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+			sudo chmod u+x nvim.appimage
+			sudo ./nvim.appimage
 
-				sudo apt-get install -y make gcc ripgrep unzip git xclip
-			EOF
-		)"
+			sudo apt-get install -y make gcc ripgrep unzip git xclip
+		fi
 
-		install_wizard "Neovim settings" "test -d $HOME/config/nvim" "$(
-			cat <<-EOF
-				git clone https://github.com/geometriccross/nvim_settings.git $HOME/.config/nvim
-			EOF
-		)"
+		# install neovim setting
+		if not test -d "${HOME}/.config/nvim"; then
+			git clone https://github.com/geometriccross/nvim_settings.git "${HOME}/.config/nvim"
+		fi
 		;;
 	esac
 
