@@ -43,6 +43,12 @@ function setup_conda() {
 	fi
 }
 
+function setup_pyenv() {
+	export PYENV_ROOT="$HOME/.pyenv"
+	[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+	eval "$(pyenv init - bash)"
+}
+
 function set_editor_var() {
 	# Preferred editor for local and remote sessions
 	if [[ -n $SSH_CONNECTION ]]; then
@@ -52,11 +58,10 @@ function set_editor_var() {
 	fi
 }
 
-export LANG=en_US.UTF-8
-
 set_theme
 keep_alive_wsl
 setup_conda
+setup_pyenv
 set_editor_var
 
 # ==================== alias ====================
