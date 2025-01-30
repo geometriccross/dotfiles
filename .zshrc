@@ -64,6 +64,9 @@ setup_conda
 setup_pyenv
 set_editor_var
 
+export LANG=ja_JP.UTF-8
+export LANGUAGE="ja_JP:ja"
+
 # ==================== alias ====================
 alias v="nvim"
 alias vi="nvim"
