@@ -23,3 +23,29 @@
       ansible.builtin.debug:
         msg: "Environment is {{ env_type }}"
 
+    - name: Install common package
+      ansible.builtin.package:
+        name:
+          - zsh
+          - wget
+          - curl
+          - git
+          - make
+          - gcc
+        state: present
+
+    - name: Change a shell to zsh
+      ansible.builtin.blockinfile:
+        destfile: /etc/shells
+        block: /usr/bin/zsh
+
+    - name: Install package if on baremetal env
+      ansible.builtin.package:
+        name:
+          - neovim
+          - ripgrep
+          - unzip
+          - xclip
+        state: present
+      when: env_type == "baremetal"
+
