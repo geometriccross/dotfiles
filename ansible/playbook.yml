@@ -2,3 +2,24 @@
 - name: First setup
   hosts: local
   become: true
+
+  tasks:
+    - name: Check inside container
+      ansible.builtin.command: "grep -qi 'docker' /proc/1/cgroup"
+      register: container_detect
+      changed_when: false
+      failed_when: false
+
+    - name: Set env type
+      ansible.builtin.set_fact:
+        env_type: >-
+          {% if container_detect.rc == 0 %}
+            container
+          {% else %}
+            baremetal
+          {% endif %}
+
+    - name: Disply env type
+      ansible.builtin.debug:
+        msg: "Environment is {{ env_type }}"
+
