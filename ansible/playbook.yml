@@ -1,5 +1,5 @@
 ---
-- name: First setup
+- name: Install packages
   hosts: localhost
   become: true
 
