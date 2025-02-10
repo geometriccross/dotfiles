@@ -58,8 +58,10 @@
 
     - name: Clone neovim setting repo
       when: env_type == "baremetal"
+      become: false
       ansible.builtin.git:
-        repo: "https://github.com/geometriccross/nvim_settings.git"
+        repo: https://github.com/geometriccross/nvim_settings.git
         dest: "{{ ansible_env.HOME }}/.config/nvim"
-        update: yes
+        version: main
+        update: true
 
