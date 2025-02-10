@@ -76,3 +76,23 @@
         version: main
         update: true
 
+- name: Create symbolic link on HOME dir
+  hosts: localhost
+  tasks:
+    - name: Get dotfiles pathes
+      ansible.builtin.find:
+        paths: "{{ playbook_dir }}"
+        patterns: '^\\..+'
+        file_type: any
+        recurse: false
+      register: dotfiles
+
+    - name: Create symbolic link except specific files
+      ansible.builtin.file:
+        src: "{{ item.path }}"
+        dest: "{{ ansible_env.HOME }}/{{ item.path | basename }}"
+        state: link
+        force: true
+      loop: "{{ dotfiles.files }}"
+      when: item.path | basename not in ['.git', '.shellspec']
+      become: false
