@@ -22,32 +22,44 @@
 
 - name: Install Neovim
   tasks:
-  - name: Check inside container
-    ansible.builtin.command: "grep -qi 'docker' /proc/1/cgroup"
-    register: container_detect
-    changed_when: false
-    failed_when: false
+    - name: Check inside container
+      ansible.builtin.command: "grep -qi 'docker' /proc/1/cgroup"
+      register: container_detect
+      changed_when: false
+      failed_when: false
 
-  - name: Set env type
-    ansible.builtin.set_fact:
-      env_type: >-
-        {% if container_detect.rc == 0 %}
-          container
-        {% else %}
-          baremetal
-        {% endif %}
+    - name: Set env type
+      ansible.builtin.set_fact:
+        env_type: >-
+          {% if container_detect.rc == 0 %}
+            container
+          {% else %}
+            baremetal
+          {% endif %}
 
-  - name: Disply env type
-    ansible.builtin.debug:
-      msg: "Environment is {{ env_type }}"
+    - name: Disply env type
+      ansible.builtin.debug:
+        msg: "Environment is {{ env_type }}"
 
-  - name: Install package if on baremetal env
-    when: env_type == "baremetal"
-    ansible.builtin.package:
-      name:
-        - neovim
-        - ripgrep
-        - unzip
-        - xclip
-      state: present
+    - name: Display "Skip task" if it inside container
+      when: env_type == "container"
+      ansible.builtin.debug:
+        msg: "Skip task"
+
+    - name: Install package if on baremetal env
+      when: env_type == "baremetal"
+      ansible.builtin.package:
+        name:
+          - neovim
+          - ripgrep
+          - unzip
+          - xclip
+        state: present
+
+    - name: Clone neovim setting repo
+      when: env_type == "baremetal"
+      ansible.builtin.git:
+        repo: "https://github.com/geometriccross/nvim_settings.git"
+        dest: "{{ ansible_env.HOME }}/.config/nvim"
+        update: yes
 
