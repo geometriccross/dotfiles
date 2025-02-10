@@ -1,6 +1,6 @@
 ---
 - name: First setup
-  hosts: local
+  hosts: localhost
   become: true
 
   tasks:
@@ -31,7 +31,9 @@
       become: true
       changed_when: true
       ansible.builtin.command: zsh tmp/installer.zsh
+
 - name: Install Neovim
+  hosts: localhost
   tasks:
     - name: Check inside container
       ansible.builtin.command: "grep -qi 'docker' /proc/1/cgroup"
