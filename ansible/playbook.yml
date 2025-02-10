@@ -1,0 +1,4 @@
+---
+- name: First setup
+  hosts: local
+  become: true
