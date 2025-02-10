@@ -20,6 +20,17 @@
         destfile: /etc/shells
         block: /usr/bin/zsh
 
+    - name: Get zplug installer
+      ansible.builtin.get_url:
+        url: https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh
+        mode: '744'
+        dest: /tmp
+        force: true
+
+    - name: Run zplug installer
+      become: true
+      changed_when: true
+      ansible.builtin.command: zsh tmp/installer.zsh
 - name: Install Neovim
   tasks:
     - name: Check inside container
