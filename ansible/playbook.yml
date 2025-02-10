@@ -22,7 +22,7 @@
 
     - name: Get zplug installer
       ansible.builtin.get_url:
-        url: https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh
+        url: https://raw.githubusercontent.com/zplug/installer/master/installer.zsh
         mode: '744'
         dest: /tmp
         force: true
