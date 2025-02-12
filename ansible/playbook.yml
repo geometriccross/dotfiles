@@ -54,13 +54,17 @@
       ansible.builtin.debug:
         msg: "Environment is {{ env_type }}"
 
+    - name: Get cgroup
+      ansible.builtin.command: "cat /proc/1/cgroup"
+      register: cgroup
+      changed_when: false
+
     - name: Display "Skip task" if it inside container
       when: env_type == "container"
       ansible.builtin.debug:
         msg: "Skip task"
 
-    - name: Install package if on baremetal env
-      when: env_type == "baremetal"
+
       ansible.builtin.package:
         name:
           - neovim
@@ -68,15 +72,16 @@
           - unzip
           - xclip
         state: present
+      when: env_type == "baremetal"
 
     - name: Clone neovim setting repo
-      when: env_type == "baremetal"
       become: false
       ansible.builtin.git:
         repo: https://github.com/geometriccross/nvim_settings.git
         dest: "{{ ansible_env.HOME }}/.config/nvim"
         version: main
         update: true
+      when: env_type == "baremetal"
 
 - name: Create symbolic link on HOME dir
   hosts: localhost
