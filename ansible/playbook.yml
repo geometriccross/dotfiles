@@ -1,0 +1,105 @@
+---
+- name: Install packages
+  hosts: localhost
+  become: true
+
+  tasks:
+    - name: Install common package
+      ansible.builtin.package:
+        name:
+          - zsh
+          - wget
+          - curl
+          - git
+          - make
+          - gcc
+        state: present
+
+    - name: Change a shell to zsh
+      ansible.builtin.blockinfile:
+        destfile: /etc/shells
+        block: /usr/bin/zsh
+
+    - name: Get zplug installer
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/zplug/installer/master/installer.zsh
+        mode: '744'
+        dest: /tmp
+        force: true
+
+    - name: Run zplug installer
+      become: true
+      changed_when: true
+      ansible.builtin.command: zsh tmp/installer.zsh
+
+- name: Install Neovim
+  hosts: localhost
+  tasks:
+    - name: Check inside container
+      ansible.builtin.command: "grep -qi 'docker' /proc/1/cgroup"
+      register: container_detect
+      changed_when: false
+      failed_when: false
+
+    - name: Set env type
+      ansible.builtin.set_fact:
+        env_type: >-
+          {% if container_detect.rc == 0 %}
+            container
+          {% else %}
+            baremetal
+          {% endif %}
+
+    - name: Disply env type
+      ansible.builtin.debug:
+        msg: "Environment is {{ env_type }}"
+
+    - name: Get cgroup
+      ansible.builtin.command: "cat /proc/1/cgroup"
+      register: cgroup
+      changed_when: false
+
+    - name: Display "Skip task" if it inside container
+      when: env_type == "container"
+      ansible.builtin.debug:
+        msg: "Skip task"
+
+
+      ansible.builtin.package:
+        name:
+          - neovim
+          - ripgrep
+          - unzip
+          - xclip
+        state: present
+      when: env_type == "baremetal"
+
+    - name: Clone neovim setting repo
+      become: false
+      ansible.builtin.git:
+        repo: https://github.com/geometriccross/nvim_settings.git
+        dest: "{{ ansible_env.HOME }}/.config/nvim"
+        version: main
+        update: true
+      when: env_type == "baremetal"
+
+- name: Create symbolic link on HOME dir
+  hosts: localhost
+  tasks:
+    - name: Get dotfiles pathes
+      ansible.builtin.find:
+        paths: "{{ playbook_dir }}"
+        patterns: '^\\..+'
+        file_type: any
+        recurse: false
+      register: dotfiles
+
+    - name: Create symbolic link except specific files
+      ansible.builtin.file:
+        src: "{{ item.path }}"
+        dest: "{{ ansible_env.HOME }}/{{ item.path | basename }}"
+        state: link
+        force: true
+      loop: "{{ dotfiles.files }}"
+      when: item.path | basename not in ['.git', '.shellspec']
+      become: false
