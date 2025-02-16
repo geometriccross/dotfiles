@@ -11,10 +11,11 @@ zplug "chrissicool/zsh-256color"
 zplug "mrowa44/emojify", as:command
 zplug romkatv/powerlevel10k, as:theme, depth:1
 
+zplug 'zplug/zplug', hook-build:'zplug --self-manage'
+
 zplug check || zplug install
 zplug load
 
-# ZSH_THEME="powerlevel10k/powerlevel10k"
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh 
 
 # ====== check current shell is running in WSL ======
