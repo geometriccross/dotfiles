@@ -1,12 +1,21 @@
 # ==================== zsh setup ====================
-ZSH_THEME="powerlevel10k/powerlevel10k"
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh 
+source ~/.zplug/init.zsh
 
-# setup oh-my-zsh
-# this segment need to run after setup of powerlevel10k
-export ZSH="$HOME/.oh-my-zsh"
-plugins=(git)
-source $ZSH/oh-my-zsh.sh
+zplug "zsh-users/zsh-completions"
+zplug "zsh-users/zsh-autosuggestions"
+zplug "zsh-users/zsh-syntax-highlighting"
+zplug "zsh-users/zsh-history-substring-search"
+zplug "mafredri/zsh-async"
+
+zplug "chrissicool/zsh-256color"
+zplug "mrowa44/emojify", as:command
+zplug romkatv/powerlevel10k, as:theme, depth:1
+
+zplug check || zplug install
+zplug load
+
+# ZSH_THEME="powerlevel10k/powerlevel10k"
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh 
 
 # ====== check current shell is running in WSL ======
 tail -f /dev/null &
