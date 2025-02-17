@@ -29,6 +29,7 @@
 
     - name: Run zplug installer
       become: true
+      become_user: "{{ user }}"
       changed_when: true
       ansible.builtin.command: zsh /tmp/installer.zsh
 
