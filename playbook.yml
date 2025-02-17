@@ -50,9 +50,7 @@
     - name: Get dotfiles pathes
       ansible.builtin.find:
         paths: "{{ playbook_dir }}/dot"
-        patterns: '\.*'
         file_type: file
-        recurse: false
       register: dotfiles
 
     - name: Create symbolic link except specific files
@@ -62,5 +60,4 @@
         state: link
         force: true
       loop: "{{ dotfiles.files }}"
-      when: item.path | basename not in ['.git', '.shellspec']
       become: false
