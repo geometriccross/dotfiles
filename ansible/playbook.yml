@@ -35,36 +35,7 @@
 - name: Install Neovim
   hosts: localhost
   tasks:
-    - name: Check inside container
-      ansible.builtin.command: "grep -qi 'docker' /proc/1/cgroup"
-      register: container_detect
-      changed_when: false
-      failed_when: false
-
-    - name: Set env type
-      ansible.builtin.set_fact:
-        env_type: >-
-          {% if container_detect.rc == 0 %}
-            container
-          {% else %}
-            baremetal
-          {% endif %}
-
-    - name: Disply env type
-      ansible.builtin.debug:
-        msg: "Environment is {{ env_type }}"
-
-    - name: Get cgroup
-      ansible.builtin.command: "cat /proc/1/cgroup"
-      register: cgroup
-      changed_when: false
-
-    - name: Display "Skip task" if it inside container
-      when: env_type == "container"
-      ansible.builtin.debug:
-        msg: "Skip task"
-
-
+    - name: Install packages
       ansible.builtin.package:
         name:
           - neovim
@@ -72,7 +43,6 @@
           - unzip
           - xclip
         state: present
-      when: env_type == "baremetal"
 
     - name: Clone neovim setting repo
       become: false
@@ -81,7 +51,6 @@
         dest: "{{ ansible_env.HOME }}/.config/nvim"
         version: main
         update: true
-      when: env_type == "baremetal"
 
 - name: Create symbolic link on HOME dir
   hosts: localhost
