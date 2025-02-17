@@ -51,8 +51,8 @@
     - name: Get dotfiles pathes
       ansible.builtin.find:
         paths: "{{ playbook_dir }}"
-        patterns: '^\\..+'
-        file_type: any
+        patterns: '\.*'
+        file_type: file
         recurse: false
       register: dotfiles
 
