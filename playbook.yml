@@ -30,7 +30,7 @@
     - name: Run zplug installer
       become: true
       changed_when: true
-      ansible.builtin.command: zsh tmp/installer.zsh
+      ansible.builtin.command: zsh /tmp/installer.zsh
 
 - name: Install Neovim
   hosts: localhost
