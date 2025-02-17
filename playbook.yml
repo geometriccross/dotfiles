@@ -38,7 +38,7 @@
       become_user: "{{ user }}"
       ansible.builtin.git:
         repo: https://github.com/geometriccross/nvim_settings.git
-        dest: "{{ ansible_env.HOME }}/.config/nvim"
+        dest: "/home/{{ user }}/.config/nvim"        
         version: main
         update: true
 
@@ -58,7 +58,7 @@
     - name: Create symbolic link except specific files
       ansible.builtin.file:
         src: "{{ item.path }}"
-        dest: "{{ ansible_env.HOME }}/{{ item.path | basename }}"
+        dest: "/home/{{ user }}/{{ item.path | basename }}"
         state: link
         force: true
       loop: "{{ dotfiles.files }}"
