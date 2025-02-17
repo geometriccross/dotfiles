@@ -51,6 +51,7 @@
       ansible.builtin.find:
         paths: "{{ playbook_dir }}/dot"
         file_type: file
+        hidden: true
       register: dotfiles
 
     - name: Create symbolic link except specific files
