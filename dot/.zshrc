@@ -1,5 +1,6 @@
 # ==================== zsh setup ====================
-source ~/.zplug/init.zsh
+# right is a path when install zplug with package manager
+source ~/.zplug/init.zsh || source /usr/share/zplug/init.zsh
 
 zplug "zsh-users/zsh-completions"
 zplug "zsh-users/zsh-autosuggestions"
