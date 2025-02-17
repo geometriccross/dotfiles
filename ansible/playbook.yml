@@ -52,7 +52,7 @@
         version: main
         update: true
 
-- name: Create symbolic link on HOME dir
+- name: Setup dotfiles
   hosts: localhost
   tasks:
     - name: Get dotfiles pathes
