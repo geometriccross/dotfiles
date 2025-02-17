@@ -50,7 +50,7 @@
   tasks:
     - name: Get dotfiles pathes
       ansible.builtin.find:
-        paths: "{{ playbook_dir }}"
+        paths: "{{ playbook_dir }}/dot"
         patterns: '\.*'
         file_type: file
         recurse: false
