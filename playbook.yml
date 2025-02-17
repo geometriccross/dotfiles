@@ -2,7 +2,7 @@
 - name: Install packages
   hosts: localhost
   become: true
-
+  become_user: "{{ user }}"
   tasks:
     - name: Install common package
       ansible.builtin.package:
@@ -23,6 +23,8 @@
 
 - name: Install Neovim
   hosts: localhost
+  become: true
+  become_user: "{{ user }}"
   tasks:
     - name: Install packages
       ansible.builtin.package:
@@ -43,6 +45,8 @@
 
 - name: Setup dotfiles
   hosts: localhost
+  become: true
+  become_user: "{{ user }}"
   tasks:
     - name: Get dotfiles pathes
       ansible.builtin.find:
