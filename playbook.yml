@@ -2,7 +2,6 @@
 - name: Install packages
   hosts: localhost
   become: true
-  become_user: "{{ user }}"
   tasks:
     - name: Install common package
       ansible.builtin.package:
@@ -23,10 +22,9 @@
 
 - name: Install Neovim
   hosts: localhost
-  become: true
-  become_user: "{{ user }}"
   tasks:
     - name: Install packages
+      become: true
       ansible.builtin.package:
         name:
           - neovim
@@ -36,7 +34,8 @@
         state: present
 
     - name: Clone neovim setting repo
-      become: false
+      become: true
+      become_user: "{{ user }}"
       ansible.builtin.git:
         repo: https://github.com/geometriccross/nvim_settings.git
         dest: "{{ ansible_env.HOME }}/.config/nvim"
