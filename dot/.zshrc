@@ -46,3 +46,6 @@ alias push=". push.sh"
 # get the directory where .zshrc is located from linked .zshrc in home dir
 export MY_MODULES=$(readlink -f "${HOME}/.zshrc" | xargs dirname | xargs dirname)/modules
 export PATH="${MY_MODULES}:${PATH}"
+
+# conda bin path
+export CONDA_BINARY_PATH="${HOME}/.miniconda3/bin/conda"
