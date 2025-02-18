@@ -22,18 +22,6 @@ zplug load
 # ====== check current shell is running in WSL ======
 tail -f /dev/null &
 
-# =================== conda setup ===================
-local conda_setup="$(${HOME}'/.miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-	eval "$conda_setup"
-else
-	if [ -f "${HOME}/.miniconda3/etc/profile.d/conda.sh" ]; then
-		. "${HOME}/.miniconda3/etc/profile.d/conda.sh"
-	else
-		export PATH="${HOME}/.miniconda3/bin:$PATH"
-	fi
-fi
-
 # ================ ssh editor setup =================
 if [[ -n $SSH_CONNECTION ]]; then
 	export EDITOR='vim'
