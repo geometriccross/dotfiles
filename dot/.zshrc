@@ -22,6 +22,19 @@ zplug load
 # ====== check current shell is running in WSL ======
 tail -f /dev/null &
 
+# ================== micromamba setup ===================
+# !! Contents within this block are managed by 'micromamba shell init' !!
+unalias micromamba 2>/dev/null
+export MAMBA_EXE='/home/geometriccross/.local/bin/micromamba';
+export MAMBA_ROOT_PREFIX='/home/geometriccross/.micromamba';
+__mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__mamba_setup"
+else
+    alias micromamba="$MAMBA_EXE"  # Fallback on help from micromamba activate
+fi
+unset __mamba_setup
+
 # ================ ssh editor setup =================
 if [[ -n $SSH_CONNECTION ]]; then
 	export EDITOR='vim'
