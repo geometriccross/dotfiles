@@ -22,6 +22,21 @@ zplug load
 # ====== check current shell is running in WSL ======
 tail -f /dev/null &
 
+# ================== conda setup ===================
+local conda_setup_without_env_activate="$('/home/geometriccross/.miniconda3/bin/conda' 'shell.zsh' 'hook' | head -n -1  2> /dev/null)"
+if [ $? -eq 0 ]; then
+	echo evaled
+    eval "$conda_setup_without_env_activate"
+else
+    if [ -f "/home/geometriccross/.miniconda3/etc/profile.d/conda.sh" ]; then
+		echo profile
+        . "/home/geometriccross/.miniconda3/etc/profile.d/conda.sh"
+    else
+		echo exported
+        export PATH="/home/geometriccross/.miniconda3/bin:$PATH"
+    fi
+fi
+
 # ================ ssh editor setup =================
 if [[ -n $SSH_CONNECTION ]]; then
 	export EDITOR='vim'
@@ -46,6 +61,3 @@ alias push=". push.sh"
 # get the directory where .zshrc is located from linked .zshrc in home dir
 export MY_MODULES=$(readlink -f "${HOME}/.zshrc" | xargs dirname | xargs dirname)/modules
 export PATH="${MY_MODULES}:${PATH}"
-
-# conda bin path
-export CONDA_BINARY_PATH="${HOME}/.miniconda3/bin/conda"
