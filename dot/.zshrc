@@ -25,14 +25,11 @@ tail -f /dev/null &
 # ================== conda setup ===================
 local conda_setup_without_env_activate="$('/home/geometriccross/.miniconda3/bin/conda' 'shell.zsh' 'hook' | head -n -1  2> /dev/null)"
 if [ $? -eq 0 ]; then
-	echo evaled
     eval "$conda_setup_without_env_activate"
 else
     if [ -f "/home/geometriccross/.miniconda3/etc/profile.d/conda.sh" ]; then
-		echo profile
         . "/home/geometriccross/.miniconda3/etc/profile.d/conda.sh"
     else
-		echo exported
         export PATH="/home/geometriccross/.miniconda3/bin:$PATH"
     fi
 fi
