@@ -22,18 +22,6 @@ zplug load
 # ====== check current shell is running in WSL ======
 tail -f /dev/null &
 
-# ================== conda setup ===================
-local conda_setup_without_env_activate="$('/home/geometriccross/.miniconda3/bin/conda' 'shell.zsh' 'hook' | head -n -1  2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$conda_setup_without_env_activate"
-else
-    if [ -f "/home/geometriccross/.miniconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/geometriccross/.miniconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/geometriccross/.miniconda3/bin:$PATH"
-    fi
-fi
-
 # ================ ssh editor setup =================
 if [[ -n $SSH_CONNECTION ]]; then
 	export EDITOR='vim'
