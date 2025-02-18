@@ -1,5 +1,5 @@
 ---
-- name: Install packages
+- name: System change
   hosts: localhost
   become: true
 
@@ -22,6 +22,13 @@
         destfile: /etc/shells
         block: /usr/bin/zsh
 
+    - name: Add user in Sudoers
+      ansible.builtin.blockinfile:
+        create: true
+        mode: '440'
+        destfile: "/etc/sudoers.d/{{ user }}"
+        block: "{{ user }}    ALL=NOPASSWD: ALL"
+
 - name: Install Neovim
   hosts: localhost
   tasks:
@@ -40,7 +47,7 @@
       become_user: "{{ user }}"
       ansible.builtin.git:
         repo: https://github.com/geometriccross/nvim_settings.git
-        dest: "/home/{{ user }}/.config/nvim"        
+        dest: "/home/{{ user }}/.config/nvim"
         version: main
         update: true
 
