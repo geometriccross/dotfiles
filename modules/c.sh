@@ -2,7 +2,7 @@
 
 # conda setup
 if [ -z "${CONDA_DEFAULT_ENV}" ]; then
-	conda activate
+	micromamba activate
 else
-	conda deactivate
+	micromamba deactivate
 fi
