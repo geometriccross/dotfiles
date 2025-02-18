@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # move fastq file into passed path
+# if fastq are inside in folder, it would removed
 dir_name="${1}"
 : "${dir_name:=.}"
 
