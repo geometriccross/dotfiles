@@ -54,6 +54,7 @@ alias c=". c.sh"
 alias cec=". cec.sh"
 alias pop=". pop.sh"
 alias push=". push.sh"
+alias newfile=". newfile.sh"
 
 # ==================== add path ====================
 # get the directory where .zshrc is located from linked .zshrc in home dir
