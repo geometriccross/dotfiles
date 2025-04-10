@@ -46,9 +46,14 @@ fi
 export LANG="en_US.UTF-8"
 
 # ==================== alias ====================
+alias src="source ~/.zshrc"
+
 alias v="nvim"
 alias vi="nvim"
 alias vim="nvim"
+
+alias mamba="micromamba"
+alias conda="micromamba"
 
 alias c=". c.sh"
 alias cec=". cec.sh"
