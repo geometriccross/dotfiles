@@ -55,9 +55,11 @@ alias cec=". cec.sh"
 alias pop=". pop.sh"
 alias push=". push.sh"
 alias newfile=". newfile.sh"
+alias update-nvim=". update-nvim.sh"
 
 # ==================== add path ====================
 # get the directory where .zshrc is located from linked .zshrc in home dir
 export MY_MODULES=$(readlink -f "${HOME}/.zshrc" | xargs dirname | xargs dirname)/modules
 export PATH="${MY_MODULES}:${PATH}"
+export PATH="$PATH:/opt/nvim/" # globally expose nvim
 export BROWSER="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
