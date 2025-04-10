@@ -19,6 +19,8 @@ zplug load
 
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh 
 
+source ~/.env # SET MANUALY
+
 # ====== check current shell is running in WSL ======
 tail -f /dev/null &
 
