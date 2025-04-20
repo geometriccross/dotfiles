@@ -68,4 +68,10 @@ done
 export MY_MODULES=$(readlink -f "${HOME}/.zshrc" | xargs dirname | xargs dirname)/modules
 export PATH="${MY_MODULES}:${PATH}"
 export PATH="$PATH:/opt/nvim/" # globally expose nvim
-export BROWSER="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+BROWSER_32="/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe"
+BROWSER_64="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
+if [ -x "$BROWSER_64" ]; then
+    export BROWSER="$BROWSER_64"
+elif [ -x "$BROWSER_32" ]; then
+    export BROWSER="$BROWSER_32"
+fi
