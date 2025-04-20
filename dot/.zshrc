@@ -59,13 +59,10 @@ alias v="nvim"
 alias vi="nvim"
 alias vim="nvim"
 
-alias c=". c.sh"
-alias cec=". cec.sh"
-alias pop=". pop.sh"
-alias push=". push.sh"
-alias newfile=". newfile.sh"
-alias update-nvim=". update-nvim.sh"
-
+for script in modules/*.sh; do
+    name=$(basename "$script" .sh)
+    alias "$name"=". $script"
+done
 # ==================== add path ====================
 # get the directory where .zshrc is located from linked .zshrc in home dir
 export MY_MODULES=$(readlink -f "${HOME}/.zshrc" | xargs dirname | xargs dirname)/modules
