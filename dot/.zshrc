@@ -59,7 +59,7 @@ alias v="nvim"
 alias vi="nvim"
 alias vim="nvim"
 
-for script in modules/*.sh; do
+for script in modules/**/*.sh; do
     name=$(basename "$script" .sh)
     alias "$name"=". $script"
 done
