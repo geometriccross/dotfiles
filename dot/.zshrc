@@ -52,22 +52,11 @@ fi
 # ================= lang setup ==================
 export LANG="en_US.UTF-8"
 
-# ==================== alias ====================
-alias s="source $HOME/.zshrc"
-
-alias v="nvim"
-alias vi="nvim"
-alias vim="nvim"
-
-for script in modules/**/*.sh; do
-    name=$(basename "$script" .sh)
-    alias "$name"=". $script"
-done
 # ==================== add path ====================
 # get the directory where .zshrc is located from linked .zshrc in home dir
 export MY_MODULES=$(readlink -f "${HOME}/.zshrc" | xargs dirname | xargs dirname)/modules
 export PATH="${MY_MODULES}:${PATH}"
-export PATH="$PATH:/opt/nvim/nvim" # globally expose nvim
+export PATH="$PATH:/opt/nvim/" # globally expose nvim
 BROWSER_32="/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe"
 BROWSER_64="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
 if [ -x "$BROWSER_64" ]; then
@@ -75,3 +64,15 @@ if [ -x "$BROWSER_64" ]; then
 elif [ -x "$BROWSER_32" ]; then
     export BROWSER="$BROWSER_32"
 fi
+
+# ==================== alias ====================
+alias s="source $HOME/.zshrc"
+
+alias v="nvim"
+alias vi="nvim"
+alias vim="nvim"
+
+for script in $MY_MODULES/**/*.sh; do
+    name=$(basename "$script" .sh)
+    alias "$name"=". $script"
+done
