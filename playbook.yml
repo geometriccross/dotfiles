@@ -58,8 +58,9 @@
   tasks:
     - name: Get dotfiles pathes
       ansible.builtin.find:
+        # playbook_dir is the root directory where this repository is cloned
         paths: "{{ playbook_dir }}/dot"
-        file_type: file
+        file_type: any
         hidden: true
       register: dotfiles
 
