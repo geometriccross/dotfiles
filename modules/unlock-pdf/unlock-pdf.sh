@@ -1,13 +1,20 @@
 #!/bin/bash
 
-script_dir="$(dirname "$0" | xargs realpath)"
+while getopts p:h: flag; do
+	case "${flag}" in
+	p) pdf_path=${OPTARG} ;;
+	h) pdf_hash=${OPTARG} ;;
+	*)
+		echo 'unlock-pdf.sh -p [path to locked pdf] -h [pdf password]'
+		;;
+	esac
+done
 
-docker build "$script_dir" -t unlock-pdf
-echo "$1" |
-    xargs basename |
-    xargs -I {} docker run --rm \
-        --gpus all \
-        --mount type=bind,source="$1",target=/{} \
-        --mount type=bind,source="$script_dir/__container_inside_script.sh",target=/script.sh \
-        unlock-pdf \
-        /script.sh "/{}"
+docker images --format '{{.Repository}}' |
+	grep unlock-pdf >/dev/null ||
+	docker image build . -f ./modules/unlock-pdf/Dockerfile -t unlock-pdf:latest -q >/dev/null
+
+docker run --rm \
+	-v "$(dirname "$pdf_path")":/work \
+	unlock-pdf:latest \
+	qpdf --password="$pdf_hash" "/work/$(basename "$pdf_path")" "/work/unlocked_$(basename "$pdf_path")"
