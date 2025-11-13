@@ -119,3 +119,5 @@ fi
 if ! ps x -u $(whoami) | grep '.bus-daemon' > /dev/null; then
    dbus-launch true
 fi
+
+. "$HOME/.local/bin/env"
