@@ -1,6 +1,9 @@
-if [[ -d ~/.zsh.d ]]
-then
-	ZDOTDIR=~/.zsh.d
+if [ -d "$HOME/.zsh.d" ]; then
+	for file in "$HOME"/.zsh.d/*; do
+		if [ -f "$file" ] && [ "$(basename "$file")" != "." ] && [ "$(basename "$file")" != ".." ]; then
+		source "$file"
+		fi
+	done
 fi
 
 # ==================== zsh setup ====================
