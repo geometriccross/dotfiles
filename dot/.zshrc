@@ -23,4 +23,3 @@ zplug check || zplug install
 zplug load
 
 [[ ! -f ~/.zsh.d/.p10k.zsh ]] || source ~/.zsh.d/.p10k.zsh 
-
