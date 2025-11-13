@@ -32,15 +32,22 @@
 - name: Install Neovim
   hosts: localhost
   tasks:
-    - name: Install packages
+    - name: Install Dependency packages
       become: true
       ansible.builtin.package:
         name:
-          - neovim
           - ripgrep
           - unzip
           - xclip
         state: present
+
+    - name: Install Neovim appimage
+      become: true
+      ansible.builtin.get_url:
+        url: https://github.com/neovim/neovim/releases/download/nightly/nvim-linux-x86_64.appimage
+        force: true
+        mode: '0755'
+        dest: /opt/nvim//nvim
 
     - name: Clone neovim setting repo
       become: true
