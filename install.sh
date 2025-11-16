@@ -39,9 +39,13 @@ grep -q "^/usr/bin/zsh$" /etc/shells ||
 	log_info "Adding zsh to /etc/shells..." &&
 	echo "/usr/bin/zsh" | sudo tee -a /etc/shells >/dev/null
 
-[ "$SHELL" != "/usr/bin/zsh" ] &&
+[[ "$SHELL" != *"zsh"* ]] &&
 	log_info "Changing default shell to zsh..." &&
 	chsh -s /usr/bin/zsh
+
+[[ ! -e $HOME/.zplug ]] &&
+	curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh &&
+	log_info "Installing zplug..."
 
 # chell change
 SUDOERS_FILE="/etc/sudoers.d/$USER"
@@ -63,7 +67,7 @@ find "$DOTFILES_DIR"/dot -name ".*" -type f | while read -r file; do
 done
 
 # --- install aqua packages -------------------------------
-command -v aqua >/dev/null 2>&1 ||
+[[ ! -e $HOME/.local/share/aquaproj-aqua/bin/aqua ]] &&
 	log_info "Installing aqua..." &&
 	curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v4.0.2/aqua-installer | bash
 
