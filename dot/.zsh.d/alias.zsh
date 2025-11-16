@@ -16,5 +16,6 @@ alias gc="git commit"
 alias gp="git push"
 alias gl="git log"
 
-alias dup="devcontainer up --workspace-folder ."
+alias dup="devcontainer up --workspace-folder . --dotfiles-repository https://github.com/geometriccross/dotfiles.git --dotfiles-install-command ./install.sh"
 alias dexec="devcontainer exec --workspace-folder ."
+alias dbuild="devcontainer build --workspace-folder ."
