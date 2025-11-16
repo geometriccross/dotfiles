@@ -39,23 +39,23 @@ grep -q "^/usr/bin/zsh$" /etc/shells ||
 	log_info "Adding zsh to /etc/shells..." &&
 	echo "/usr/bin/zsh" | sudo tee -a /etc/shells >/dev/null
 
-[[ "$SHELL" != *"zsh"* ]] &&
+[[ "$SHELL" == *"zsh"* ]] ||
 	log_info "Changing default shell to zsh..." &&
 	chsh -s /usr/bin/zsh
 
-[[ ! -e $HOME/.zplug ]] &&
+[[ -e $HOME/.zplug ]] ||
 	curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh &&
 	log_info "Installing zplug..."
 
 # chell change
 SUDOERS_FILE="/etc/sudoers.d/$USER"
-[ ! -f "$SUDOERS_FILE" ] &&
+[ -f "$SUDOERS_FILE" ] ||
 	log_info "Adding user to sudoers..." &&
 	echo "$USER    ALL=NOPASSWD: ALL" | sudo tee "$SUDOERS_FILE" >/dev/null &&
 	sudo chmod 440 "$SUDOERS_FILE"
 
 # --- Dotfiles -------------------------------
-[ ! -d "$DOTFILES_DIR" ] &&
+[ -d "$DOTFILES_DIR" ] ||
 	log_info "Cloning dotfiles repository..." &&
 	git clone https://github.com/geometriccross/dotfiles.git "$DOTFILES_DIR"
 
@@ -67,7 +67,7 @@ find "$DOTFILES_DIR"/dot -name ".*" -type f | while read -r file; do
 done
 
 # --- install aqua packages -------------------------------
-[[ ! -e $HOME/.local/share/aquaproj-aqua/bin/aqua ]] &&
+[[ -e $HOME/.local/share/aquaproj-aqua/bin/aqua ]] ||
 	log_info "Installing aqua..." &&
 	curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v4.0.2/aqua-installer | bash
 
