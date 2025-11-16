@@ -10,6 +10,12 @@ else
 	export EDITOR='nvim'
 fi
 
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
+eval "$(direnv hook zsh)"
+
 
 # ================ modules =================
 # get the directory where .zshrc is located from linked .zshrc in home dir
