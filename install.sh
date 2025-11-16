@@ -28,13 +28,13 @@ log_info "Installing common packages..." &&
 	apt-get update &&
 	apt-get install -y \
 		zsh \
+		zplug \
 		wget \
 		curl \
 		git \
 		locales-all
 
 # --- System Setup -------------------------------
-# shell change
 log_info "Adding zsh to /etc/shells..." &&
 	grep -q "^/usr/bin/zsh$" /etc/shells ||
 	echo "/usr/bin/zsh" | tee -a /etc/shells >/dev/null
@@ -43,11 +43,6 @@ log_info "Changing default shell to zsh..." &&
 	[[ "$SHELL" == *"zsh"* ]] ||
 	chsh -s /usr/bin/zsh
 
-log_info "Installing zplug..." &&
-	[[ -e $HOME/.zplug ]] ||
-	curl -sL --proto-redir -all,https https://raw.githubusercontent.com/zplug/installer/master/installer.zsh | zsh
-
-# chell change
 SUDOERS_FILE="/etc/sudoers.d/$USER"
 log_info "Adding user to sudoers..." &&
 	[ -f "$SUDOERS_FILE" ] ||
