@@ -31,6 +31,7 @@ elif [ -x "$BROWSER_32" ]; then
     export BROWSER="$BROWSER_32"
 fi
 
-# aqua
-export PATH=${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH
+export PATH=${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH # aqua
+export PATH="/home/geometriccross/.pixi/bin:$PATH" # pixi
 source ~/.env # SET MANUALY
+
