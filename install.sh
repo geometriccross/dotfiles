@@ -57,8 +57,8 @@ log_info "Cloning dotfiles repository..." &&
 find "$DOTFILES_DIR"/dot -name ".*" -type f | while read -r file; do
 	# リンク先のパスを一度変数に格納する
 	target="$HOME/$(basename "$file")"
-	ln -sf "$file" "$target"
-	log_info "Created symlink: $file -> $target"
+	ln -s "$file" "$target" &&
+		log_info "Created symlink: $file -> $target"
 done
 
 # --- install aqua packages -------------------------------
