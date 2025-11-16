@@ -54,17 +54,9 @@ log_info "Cloning dotfiles repository..." &&
 	[ -d "$DOTFILES_DIR" ] ||
 	git clone https://github.com/geometriccross/dotfiles.git "$DOTFILES_DIR"
 
-SOURCE_DIR="$DOTFILES_DIR"/dot
-find "$SOURCE_DIR" -name ".*" -type f | while read -r file; do
-	# SOURCE_DIRからの相対パスを計算する
-	# /root/.dotfiles/dot/.zsh.d/.p10k.zsh -> .zsh.d/.p10k.zsh
-	relative_path="${file#"$SOURCE_DIR"/}"
-	target="$HOME/$relative_path"
-
-	mkdir -p "$(dirname "$target")"
-	ln -sf "$file" "$target" &&
-		log_info "Created symlink: $file -> $target"
-done
+ln -sf "$DOTFILES_DIR"/dot/.zshrc "$HOME/.zshrc" && log_info "Created symlink: $SOURCE_DIR/.zshrc -> $HOME/.zshrc"
+ln -sf "DOTFILES_DIR"/dot/.bashrc "$HOME/.bashrc" && log_info "Created symlink: $SOURCE_DIR/.bashrc -> $HOME/.bashrc"
+ln -sf "DOTFILES_DIR"/dot/.zsh.d "$HOME/.zsh.d" && log_info "Created symlink: $SOURCE_DIR/.zsh.d -> $HOME/.zsh.d"
 
 # --- install aqua packages -------------------------------
 log_info "Installing aqua..." &&
