@@ -1,3 +1,5 @@
+DOTFILES_DIR=$(readlink -f "${HOME}/.zshrc" | xargs dirname | xargs dirname)
+
 # ================ language =================
 export LANG="en_US.UTF-8"
 
@@ -19,7 +21,7 @@ eval "$(direnv hook zsh)"
 
 # ================ modules =================
 # get the directory where .zshrc is located from linked .zshrc in home dir
-export MY_MODULES=$(readlink -f "${HOME}/.zshrc" | xargs dirname | xargs dirname)/modules
+export MY_MODULES=$DOTFILES_DIR/modules
 export PATH="${MY_MODULES}:${PATH}"
 for script in $MY_MODULES/**/*.sh; do
     name=$(basename "$script" .sh)
@@ -37,7 +39,10 @@ elif [ -x "$BROWSER_32" ]; then
     export BROWSER="$BROWSER_32"
 fi
 
-export PATH=${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH # aqua
+# aqua
+export PATH=${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH
+export AQUA_GLOBAL_CONFIG=$DOTFILES_DIR/aqua.yaml
+
 export PATH="/home/geometriccross/.pixi/bin:$PATH" # pixi
 
 source ~/.env # SET MANUALY

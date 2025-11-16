@@ -23,7 +23,7 @@ log_error() {
 	echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# --- System Setup -------------------------------
+# --- install common packages -------------------------------
 log_info "Installing common packages..." &&
 	sudo apt-get update &&
 	sudo apt-get install -y \
@@ -33,6 +33,7 @@ log_info "Installing common packages..." &&
 		git \
 		locales-all
 
+# --- System Setup -------------------------------
 # shell change
 grep -q "^/usr/bin/zsh$" /etc/shells ||
 	log_info "Adding zsh to /etc/shells..." &&
@@ -60,3 +61,10 @@ find "$DOTFILES_DIR"/dot -name ".*" -type f | while read -r file; do
 	ln -sf "$file" "$target"
 	echo "Created symlink: $file -> $target"
 done
+
+# --- install aqua packages -------------------------------
+command -v aqua >/dev/null 2>&1 ||
+	log_info "Installing aqua..." &&
+	curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v4.0.2/aqua-installer | bash
+
+aqua i -a
