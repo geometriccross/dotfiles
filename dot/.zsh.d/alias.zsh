@@ -4,5 +4,4 @@ alias v="nvim"
 alias vi="nvim"
 alias vim="nvim"
 
-. "$HOME/.local/bin/env"
 
