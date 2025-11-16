@@ -54,10 +54,15 @@ log_info "Cloning dotfiles repository..." &&
 	[ -d "$DOTFILES_DIR" ] ||
 	git clone https://github.com/geometriccross/dotfiles.git "$DOTFILES_DIR"
 
-find "$DOTFILES_DIR"/dot -name ".*" -type f | while read -r file; do
-	# リンク先のパスを一度変数に格納する
-	target="$HOME/$(basename "$file")"
-	ln -s "$file" "$target" &&
+SOURCE_DIR="$DOTFILES_DIR"/dot
+find "$SOURCE_DIR" -name ".*" -type f | while read -r file; do
+	# SOURCE_DIRからの相対パスを計算する
+	# /root/.dotfiles/dot/.zsh.d/.p10k.zsh -> .zsh.d/.p10k.zsh
+	relative_path="${file#"$SOURCE_DIR"/}"
+	target="$HOME/$relative_path"
+
+	mkdir -p "$(dirname "$target")"
+	ln -sf "$file" "$target" &&
 		log_info "Created symlink: $file -> $target"
 done
 
