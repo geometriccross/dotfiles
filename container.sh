@@ -1,8 +1,6 @@
 #!/bin/bash
 
 set -e
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
 
 # 色付き出力用
 GREEN='\033[0;32m'
