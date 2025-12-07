@@ -3,7 +3,13 @@
 set -e
 
 USER=$(whoami)
-DOTFILES_DIR="$HOME/.dotfiles"
+if [ -d "$HOME/.dotfiles" ]; then
+	DOTFILES_DIR="$HOME/.dotfiles"
+elif [ -d "$HOME/dotfiles" ]; then
+	DOTFILES_DIR="$HOME/dotfiles"
+else
+	DOTFILES_DIR="$HOME/.dotfiles"
+fi
 
 # 色付き出力用
 GREEN='\033[0;32m'
@@ -54,9 +60,9 @@ log_info "Cloning dotfiles repository..." &&
 	[ -d "$DOTFILES_DIR" ] ||
 	git clone https://github.com/geometriccross/dotfiles.git "$DOTFILES_DIR"
 
-ln -sf "$DOTFILES_DIR"/dot/.zshrc "$HOME/.zshrc" && log_info "Created symlink: $SOURCE_DIR/.zshrc -> $HOME/.zshrc"
-ln -sf "$DOTFILES_DIR"/dot/.bashrc "$HOME/.bashrc" && log_info "Created symlink: $SOURCE_DIR/.bashrc -> $HOME/.bashrc"
-ln -sf "$DOTFILES_DIR"/dot/.zsh.d "$HOME/.zsh.d" && log_info "Created symlink: $SOURCE_DIR/.zsh.d -> $HOME/.zsh.d"
+ln -sf "$DOTFILES_DIR"/dot/.zshrc "$HOME/.zshrc" && log_info "Created symlink: $DOTFILES_DIR/dot/.zshrc -> $HOME/.zshrc"
+ln -sf "$DOTFILES_DIR"/dot/.bashrc "$HOME/.bashrc" && log_info "Created symlink: $DOTFILES_DIR/dot/.bashrc -> $HOME/.bashrc"
+ln -sf "$DOTFILES_DIR"/dot/.zsh.d "$HOME/.zsh.d" && log_info "Created symlink: $DOTFILES_DIR/dot/.zsh.d -> $HOME/.zsh.d"
 
 # --- install aqua packages -------------------------------
 log_info "Installing aqua..." &&
