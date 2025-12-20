@@ -58,6 +58,7 @@ mkdir -p $DOTFILES_DIR
 
 log_info "Cloning dotfiles repository..." &&
 	[ -d $DOTFILES_DIR ] &&
+	git clone git@github.com:geometriccross/dotfiles.git $DOTFILES_DIR ||
 	git clone https://github.com/geometriccross/dotfiles.git $DOTFILES_DIR
 
 log_info "Add path to /etc/zsh/zshenv for ZDOTDIR..." &&
