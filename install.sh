@@ -1,11 +1,6 @@
 #!/bin/bash
 
-set -e
 
-USER=$(whoami)
-DOTFILES_DIR="$HOME/.dotfiles"
-
-# 色付き出力用
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
@@ -23,6 +18,7 @@ log_error() {
 	echo -e "${RED}[ERROR]${NC} $1"
 }
 
+
 # --- install common packages -------------------------------
 log_info "Installing common packages..." &&
 	sudo apt-get update &&
@@ -34,7 +30,10 @@ log_info "Installing common packages..." &&
 		git \
 		locales-all
 
+
 # --- System Setup -------------------------------
+USER=$(whoami)
+
 log_info "Adding zsh to /etc/shells..." &&
 	grep -q "^/usr/bin/zsh$" /etc/shells ||
 	echo "/usr/bin/zsh" | tee -a /etc/shells >/dev/null
@@ -49,15 +48,24 @@ log_info "Adding user to sudoers..." &&
 	echo "$USER    ALL=NOPASSWD: ALL" | tee "$SUDOERS_FILE" >/dev/null &&
 	chmod 440 "$SUDOERS_FILE"
 
-# --- Dotfiles -------------------------------
-ZDOTDIR=$HOME/.config/zsh
-log_info "Cloning dotfiles repository..." &&
-	[ -d "$DOTFILES_DIR" ] ||
-	git clone https://github.com/geometriccross/dotfiles.git "$DOTFILES_DIR"
 
-ln -sf "$DOTFILES_DIR"/dot/.zshrc "$HOME/.zshrc" && log_info "Created symlink: $SOURCE_DIR/.zshrc -> $HOME/.zshrc"
-ln -sf "$DOTFILES_DIR"/dot/.bashrc "$HOME/.bashrc" && log_info "Created symlink: $SOURCE_DIR/.bashrc -> $HOME/.bashrc"
-ln -sf "$DOTFILES_DIR"/dot/.zsh.d "$HOME/.zsh.d" && log_info "Created symlink: $SOURCE_DIR/.zsh.d -> $HOME/.zsh.d"
+# --- Dotfiles -------------------------------
+XDG_CONFIG_HOME=$HOME/.config
+DOTFILES_DIR=$XDG_CONFIG_HOME/dotfiles
+
+mkdir -p $DOTFILES_DIR
+
+log_info "Cloning dotfiles repository..." &&
+	[ -d $DOTFILES_DIR ] &&
+	git clone https://github.com/geometriccross/dotfiles.git $DOTFILES_DIR
+
+log_info "Add path to /etc/zsh/zshenv for ZDOTDIR..." &&
+	grep -q "export ZDOTDIR=$DOTFILES_DIR" /etc/zsh/zshenv ||
+	echo "export ZDOTDIR=$DOTFILES_DIR" | sudo tee -a /etc/zsh/zshenv >/dev/null
+
+log_info "Sync zsh files" &&
+	cp -rsv $DOTFILES_DIR/zsh $XDG_CONFIG_HOME
+
 
 # --- install aqua packages -------------------------------
 log_info "Installing aqua..." &&

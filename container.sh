@@ -20,16 +20,24 @@ log_error() {
 	echo -e "${RED}[ERROR]${NC} $1"
 }
 
-DOTFILES_DIR="$HOME/.dotfiles"
 
 # --- Dotfiles -------------------------------
-log_info "Cloning dotfiles repository..." &&
-	[ -d "$DOTFILES_DIR" ] ||
-	git clone https://github.com/geometriccross/dotfiles.git "$DOTFILES_DIR"
+XDG_CONFIG_HOME=$HOME/.config
+DOTFILES_DIR=$XDG_CONFIG_HOME/dotfiles
 
-ln -sf "$DOTFILES_DIR"/dot/.zshrc "$HOME/.zshrc" && log_info "Created symlink: $SOURCE_DIR/.zshrc -> $HOME/.zshrc"
-ln -sf "$DOTFILES_DIR"/dot/.bashrc "$HOME/.bashrc" && log_info "Created symlink: $SOURCE_DIR/.bashrc -> $HOME/.bashrc"
-ln -sf "$DOTFILES_DIR"/dot/.zsh.d "$HOME/.zsh.d" && log_info "Created symlink: $SOURCE_DIR/.zsh.d -> $HOME/.zsh.d"
+mkdir -p $DOTFILES_DIR
+
+log_info "Cloning dotfiles repository..." &&
+	[ -d $DOTFILES_DIR ] &&
+	git clone https://github.com/geometriccross/dotfiles.git $DOTFILES_DIR
+
+log_info "Add path to /etc/zsh/zshenv for ZDOTDIR..." &&
+	grep -q "export ZDOTDIR=$DOTFILES_DIR" /etc/zsh/zshenv ||
+	echo "export ZDOTDIR=$DOTFILES_DIR" | sudo tee -a /etc/zsh/zshenv >/dev/null
+
+log_info "Sync zsh files" &&
+	cp -rsv $DOTFILES_DIR/zsh $XDG_CONFIG_HOME
+
 
 # --- install aqua packages -------------------------------
 log_info "Installing aqua..." &&
