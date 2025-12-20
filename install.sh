@@ -50,6 +50,7 @@ log_info "Adding user to sudoers..." &&
 	chmod 440 "$SUDOERS_FILE"
 
 # --- Dotfiles -------------------------------
+ZDOTDIR=$HOME/.config/zsh
 log_info "Cloning dotfiles repository..." &&
 	[ -d "$DOTFILES_DIR" ] ||
 	git clone https://github.com/geometriccross/dotfiles.git "$DOTFILES_DIR"
