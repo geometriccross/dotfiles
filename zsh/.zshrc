@@ -1,11 +1,3 @@
-if [ -d "$HOME/.zsh.d" ]; then
-	for file in "$HOME"/.zsh.d/*; do
-		if [ -f "$file" ] && [ "$(basename "$file")" != "." ] && [ "$(basename "$file")" != ".." ]; then
-		source "$file"
-		fi
-	done
-fi
-
 # ==================== zsh setup ====================
 # right is a path when install zplug with package manager
 source ~/.zplug/init.zsh || source /usr/share/zplug/init.zsh
