@@ -18,11 +18,11 @@ zplug "mafredri/zsh-async"
 
 zplug "chrissicool/zsh-256color"
 zplug "mrowa44/emojify", as:command
-zplug romkatv/powerlevel10k, as:theme, depth:1
 
 zplug 'zplug/zplug', hook-build:'zplug --self-manage'
 
 zplug check || zplug install
 zplug load
 
-[[ ! -f ~/.zsh.d/.p10k.zsh ]] || source ~/.zsh.d/.p10k.zsh 
+. "$HOME/.local/bin/env"
+eval "$(starship init zsh)"
