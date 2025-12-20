@@ -62,8 +62,8 @@ log_info "Cloning dotfiles repository..." &&
 	git clone https://github.com/geometriccross/dotfiles.git $DOTFILES_DIR
 
 log_info "Add path to /etc/zsh/zshenv for ZDOTDIR..." &&
-	grep -q "export ZDOTDIR=$DOTFILES_DIR" /etc/zsh/zshenv ||
-	echo "export ZDOTDIR=$DOTFILES_DIR" | sudo tee -a /etc/zsh/zshenv >/dev/null
+	grep -q "export ZDOTDIR=$XDG_CONFIG_HOME/zsh" /etc/zsh/zshenv ||
+	echo "export ZDOTDIR=$XDG_CONFIG_HOME/zsh" | sudo tee -a /etc/zsh/zshenv >/dev/null
 
 log_info "Sync zsh files" &&
 	cp -rsv $DOTFILES_DIR/zsh $XDG_CONFIG_HOME

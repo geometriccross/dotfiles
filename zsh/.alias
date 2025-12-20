@@ -1,4 +1,4 @@
-alias s="source ${XDG_CONFIG_HOME:-$HOME}/zsh/.zshrc"
+alias s="source ${ZDOTDIR:-{$XDG_CONFIG_HOME:-$HOME}/.zshrc"
 
 alias v="nvim"
 alias vi="nvim"
