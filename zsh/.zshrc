@@ -30,6 +30,8 @@ zinit self-update
 
 # prompt setting
 eval "$(starship init zsh)"
+
+
 # ==================== load my custom files  ====================
 . "$HOME/.local/bin/env"
 
