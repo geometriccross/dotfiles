@@ -8,3 +8,4 @@
 !.p10k.zsh
 !install.sh
 !/spec
+.zcompdump
