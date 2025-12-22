@@ -1,29 +1,36 @@
-# ==================== zsh setup ====================
-# right is a path when install zplug with package manager
-source ~/.zplug/init.zsh || source /usr/share/zplug/init.zsh
-
-zplug "zsh-users/zsh-completions"
-zplug "zsh-users/zsh-autosuggestions"
-zplug "zsh-users/zsh-syntax-highlighting"
-zplug "zsh-users/zsh-history-substring-search"
-zplug "mafredri/zsh-async"
-
-zplug "chrissicool/zsh-256color"
-zplug "mrowa44/emojify", as:command
-
-zplug 'zplug/zplug', hook-build:'zplug --self-manage'
-
-zplug check || zplug install
-zplug load
-
-. "$HOME/.local/bin/env"
-eval "$(starship init zsh)"
-
 export XDG_DATA_HOME=$HOME/.local/share
 export XDG_CONFIG_HOME=$HOME/.config
 export XDG_STATE_HOME=$HOME/.local/state
 export XDG_CACHE_HOME=$HOME/.cache
 
+# ==================== zsh setup ====================
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
+[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+source "${ZINIT_HOME}/zinit.zsh"
+autoload -Uz _zinit
+(( ${+_comps} )) && _comps[zinit]=_zinit
+
+zinit light-mode for \
+    zdharma-continuum/zinit-annex-as-monitor \
+    zdharma-continuum/zinit-annex-bin-gem-node \
+    zdharma-continuum/zinit-annex-patch-dl \
+    zdharma-continuum/zinit-annex-rust
+
+zinit load "mafredri/zsh-async"
+zinit load "zsh-users/zsh-completions"
+zinit load "zsh-users/zsh-autosuggestions"
+zinit load "zsh-users/zsh-syntax-highlighting"
+zinit load "zsh-users/zsh-history-substring-search"
+zinit load "chrissicool/zsh-256color"
+zinit load "mrowa44/emojify"
+
+zinit self-update
+
+. "$HOME/.local/bin/env"
+eval "$(starship init zsh)"
+
 for file in $XDG_CONFIG_HOME/zsh/.*; do
 	[[ $file != *".zshrc"* ]] && source $file
 done
+

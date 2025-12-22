@@ -1,28 +1,25 @@
-DOTFILES_DIR=$(readlink -f "${HOME}/.zshrc" | xargs dirname | xargs dirname)
-
 # ================ language =================
 export LANGUAGE=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 # ================ editor setup =================
-export PATH="$PATH:/opt/nvim/" # globally expose nvim
 if [[ -n $SSH_CONNECTION ]]; then
 	export EDITOR='vim'
 else
 	export EDITOR='nvim'
 fi
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# export NVM_DIR="$HOME/.nvm"
+# [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 eval "$(direnv hook zsh)"
 
 
 # ================ modules =================
 # get the directory where .zshrc is located from linked .zshrc in home dir
-export MY_MODULES=$DOTFILES_DIR/modules
+export MY_MODULES=$XDG_CONFIG_HOME/dotfiles/modules
 export PATH="${MY_MODULES}:${PATH}"
 for script in $MY_MODULES/**/*.sh; do
     name=$(basename "$script" .sh)
@@ -42,7 +39,7 @@ fi
 
 # aqua
 export PATH=${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH
-export AQUA_GLOBAL_CONFIG=$DOTFILES_DIR/aqua.yaml
+export AQUA_GLOBAL_CONFIG=$XDG_CONFIG_HOME/dotfiles/aqua.yaml
 
 export PATH="/home/geometriccross/.pixi/bin:$PATH" # pixi
 
