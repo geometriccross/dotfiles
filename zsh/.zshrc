@@ -3,6 +3,7 @@ export XDG_CONFIG_HOME=$HOME/.config
 export XDG_STATE_HOME=$HOME/.local/state
 export XDG_CACHE_HOME=$HOME/.cache
 
+
 # ==================== zsh setup ====================
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
@@ -27,8 +28,10 @@ zinit load "mrowa44/emojify"
 
 zinit self-update
 
-. "$HOME/.local/bin/env"
+# prompt setting
 eval "$(starship init zsh)"
+# ==================== load my custom files  ====================
+. "$HOME/.local/bin/env"
 
 for file in $XDG_CONFIG_HOME/zsh/.*; do
 	[[ $file != *".zshrc"* ]] && source $file
