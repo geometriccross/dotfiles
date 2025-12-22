@@ -25,12 +25,13 @@ log_info "Installing common packages..." &&
 	sudo apt-get update &&
 	sudo apt-get install -y \
 		zsh \
-		zplug \
 		wget \
 		curl \
 		git \
 		locales-all
 
+# zinit
+bash -c "$(curl --fail --show-error --silent --location https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh)"
 
 # --- System Setup -------------------------------
 USER=$(whoami)
