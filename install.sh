@@ -33,6 +33,9 @@ log_info "Installing common packages..." &&
 # zinit
 bash -c "$(curl --fail --show-error --silent --location https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh)"
 
+# starship
+sudo curl -sS https://starship.rs/install.sh | sh
+
 # --- System Setup -------------------------------
 USER=$(whoami)
 
