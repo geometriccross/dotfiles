@@ -16,3 +16,4 @@ packages:
 - name: junegunn/fzf@v0.66.1
 - name: sst/opencode@v1.1.4
 - name: nodejs/node@v25.2.1
+- name: jesseduffield/lazygit@v0.58.0
