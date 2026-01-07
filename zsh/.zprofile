@@ -41,7 +41,8 @@ fi
 export PATH=${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH
 export AQUA_GLOBAL_CONFIG=$XDG_CONFIG_HOME/dotfiles/aqua.yaml
 
-export PATH="/home/geometriccross/.pixi/bin:$PATH" # pixi
+export PATH=$HOME/.pixi/bin:$PATH # pixi
+export PATH=$HOME/.opencode/bin:$PATH # opencode
 
 source ~/.env # SET MANUALY
 . "$HOME/.local/bin/env"
