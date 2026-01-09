@@ -36,6 +36,6 @@ eval "$(starship init zsh)"
 . "$HOME/.local/bin/env"
 
 for file in $XDG_CONFIG_HOME/zsh/.*; do
-	[[ $file != *".zshrc"* ]] && source $file
+	[[ $file != *.zshrc ]] && [[ $file != *.zsh_history ]] && [[ -f $file ]] && source $file
 done
 
