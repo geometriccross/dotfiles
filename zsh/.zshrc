@@ -9,8 +9,6 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
 
 zinit light-mode for \
     zdharma-continuum/zinit-annex-as-monitor \
@@ -27,6 +25,11 @@ zinit load "chrissicool/zsh-256color"
 zinit load "mrowa44/emojify"
 
 zinit self-update
+
+autoload -Uz compinit
+compinit
+# Zinitが読み込んだ補完定義を確実に反映させるコマンド（推奨）
+zinit cdreplay -q
 
 # prompt setting
 eval "$(starship init zsh)"
