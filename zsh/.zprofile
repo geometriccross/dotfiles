@@ -46,3 +46,6 @@ export PATH=$HOME/.opencode/bin:$PATH # opencode
 
 source ~/.env # SET MANUALY
 . "$HOME/.local/bin/env"
+
+# homebrew
+eval "$(/opt/homebrew/bin/brew shellenv zsh)"
