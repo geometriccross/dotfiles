@@ -17,3 +17,4 @@ packages:
 - name: sst/opencode@v1.1.4
 - name: nodejs/node@v25.2.1
 - name: jesseduffield/lazygit@v0.58.0
+- name: astral-sh/uv@0.9.24
