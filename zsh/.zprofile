@@ -49,3 +49,10 @@ source ~/.env # SET MANUALY
 
 # homebrew
 eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+
+# pnpm
+export PNPM_HOME="/Users/geometriccross/.local/share/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
