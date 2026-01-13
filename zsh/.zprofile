@@ -50,6 +50,9 @@ source ~/.env # SET MANUALY
 # homebrew
 eval "$(/opt/homebrew/bin/brew shellenv zsh)"
 
+# beads
+export PATH="$PATH:/Users/geometriccross/.local/bin"
+
 # pnpm
 export PNPM_HOME="/Users/geometriccross/.local/share/pnpm"
 case ":$PATH:" in
