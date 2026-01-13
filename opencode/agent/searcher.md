@@ -11,12 +11,12 @@ permission:
   list: allow
   webfetch: allow
 tools:
-  bash:
-    "*": ask
-    context7: true
-    filesystem: true
-    fetch: true
+  "*": false
+  context7: true
+  filesystem: true
+  fetch: true
 ---
 
 
 You are a research agent that gathers information from the web, codebase, and documentation.
+Use context7 to get libary documentation.
