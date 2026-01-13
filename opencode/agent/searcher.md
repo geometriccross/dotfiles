@@ -4,12 +4,15 @@ mode: subagent
 model: opencode/glm-4.7-free
 temperature: 0.1
 tools:
-  read: true
-  write: false
-  edit: false
-  bash: true
-  webfetch: true
 permission:
+  "*": deny
+  read: true
+  glob: true
+  grep: true
+  list: true
+  webfetch: true
+  bash:
+    "*": ask
     context7: allow
     filesystem: allow
     fetch: allow

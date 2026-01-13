@@ -1,7 +1,7 @@
 ---
 description: Review uncommitted changes
 mode: subagent
-model: github-copilot/claude-sonnet-4.5
+model: opencode/glm-4.7-free
 temperature: 0.05
 reasoningEffort: high
 textVerbosity: low

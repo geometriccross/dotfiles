@@ -1,19 +1,14 @@
 ---
-description: Review uncommitted changes
+description: Translate languages
 mode: subagent
 model: github-copilot/gpt-5-mini
 temperature: 0.05
-reasoningEffort: high
+reasoningEffort: low
 textVerbosity: low
 tools:
-  write: false
-  edit: false
-  bash: false
-  webfetch: false
+  "*": deny
 permission:
-  edit: deny
-  bash: deny
-  webfetch: deny
+  "*": deny
 ---
 
 Translate the inputs [$ARGUMENTS] to the target language.
