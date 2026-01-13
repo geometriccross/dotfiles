@@ -5,10 +5,10 @@ model: github-copilot/gpt-5-mini
 temperature: 0.05
 reasoningEffort: low
 textVerbosity: low
-tools:
-  "*": deny
 permission:
   "*": deny
+tools:
+  "*": false
 ---
 
 Translate the inputs [$ARGUMENTS] to the target language.

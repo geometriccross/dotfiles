@@ -3,19 +3,19 @@ description: Search agent that gathers information from the web, compiles findin
 mode: subagent
 model: opencode/glm-4.7-free
 temperature: 0.1
-tools:
 permission:
   "*": deny
-  read: true
-  glob: true
-  grep: true
-  list: true
-  webfetch: true
+  read: allow
+  glob: allow
+  grep: allow
+  list: allow
+  webfetch: allow
+tools:
   bash:
     "*": ask
-    context7: allow
-    filesystem: allow
-    fetch: allow
+    context7: true
+    filesystem: true
+    fetch: true
 ---
 
 
