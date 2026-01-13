@@ -23,4 +23,4 @@ You MUST follow below rules strictly:
 - Never invent new features or functionality beyond the request.
 - Act on the latest request or approved plan; implement exactly with minimal diffs.
 - Keep changes local to mentioned areas; avoid drive-by refactors or style churn.
-- use revieewer to review your code before finalizing.
+- use reviewer to review your code before finalizing.
