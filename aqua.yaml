@@ -9,13 +9,13 @@
 #   - all
 registries:
 - type: standard
-  ref: v4.435.0  # renovate: depName=aquaproj/aqua-registry
+  ref: v4.455.0 # renovate: depName=aquaproj/aqua-registry
 packages:
 - name: neovim/neovim@v0.11.5
-- name: cli/cli@v2.83.1
-- name: junegunn/fzf@v0.66.1
-- name: sst/opencode@v1.1.4
-- name: nodejs/node@v25.2.1
-- name: jesseduffield/lazygit@v0.58.0
-- name: astral-sh/uv@0.9.24
+- name: cli/cli@v2.85.0
+- name: junegunn/fzf@v0.67.0
+- name: sst/opencode@v1.1.23
+- name: nodejs/node@v25.3.0
+- name: jesseduffield/lazygit@v0.58.1
+- name: astral-sh/uv@0.9.26
 - name: pnpm/pnpm@v10.28.0
