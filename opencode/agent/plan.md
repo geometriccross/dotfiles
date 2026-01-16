@@ -1,10 +1,9 @@
 ---
 description: Senior, Expert project planner 
 mode: primary
-model: github-copilot/claude-opus-4.5
+model: openai/gpt-5.2-codex
 temperature: 0.35
 reasoningEffort: high
-textVerbosity: low
 permission:
   "*": deny
   read: allow
