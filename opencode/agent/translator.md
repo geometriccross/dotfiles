@@ -3,7 +3,6 @@ description: Translate languages
 mode: subagent
 model: github-copilot/gpt-5-mini
 temperature: 0.05
-reasoningEffort: low
 textVerbosity: low
 permission:
   "*": deny
