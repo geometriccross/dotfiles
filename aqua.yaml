@@ -19,3 +19,4 @@ packages:
 - name: jesseduffield/lazygit@v0.58.1
 - name: astral-sh/uv@0.9.26
 - name: pnpm/pnpm@v10.28.0
+- name: tree-sitter/tree-sitter@v0.26.3
