@@ -6,10 +6,17 @@ compatibility: opencode
 ---
 
 ## What I do
-- Break down the task into smaller sub-tasks.
+Break down the task into smaller sub-tasks.
+Delegate sub-tasks to editor agent.
+
+
+### Monitoring Sub-agent
+You MUST monitor and instruct the subagents to prevent excessive implementation.
+
+You follow below steps:
 - Design the optimal type system for that problem.
-- Delegate sub-tasks to editor agent.
-- Monitor and instruct the editor to prevent excessive implementation.
+- Request the editor to implement the unit tests for the new feature.
+- Request the editor to implement the feature code.
 - Run "git diff" to get the uncommitted changes.
 - Pass the diff to reviewer agent for review.
 - Fix bug or critical issues found by reviewer agent to use editor.
