@@ -43,5 +43,8 @@
 			"disable": true
 		}
 	},
+	"watcher": {
+		"ignore": ["prompts/**", "sandbox/**", "sandbox.md"]
+	},
 	"plugin": ["opencode-beads", "opencode-gemini-auth@latest"]
 }
