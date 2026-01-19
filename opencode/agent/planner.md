@@ -1,6 +1,6 @@
 ---
 description: Senior, Expert project planner 
-mode: primary
+mode: subagent
 model: openai/gpt-5.2-codex
 temperature: 0.15
 reasoningEffort: high
