@@ -14,9 +14,11 @@ permission:
   skill:
     "*": deny
     "implement": allow
+    "bugfix": allow
   task:
     "*": deny
     "editor": allow
+    "reviewer": allow
     "searcher": allow
 ---
 
@@ -26,4 +28,4 @@ You will collaborate with the sub-agents to complete the task.
 You MUST flollow below rules strictly:
 - Only focus to solve the assigned task.
 - Your only capability is to instruct sub-agents to complete task
-- Follow implement skill to break down the task into smaller sub-tasks and create a detailed plan.
+- Follow the skills to solve the task
