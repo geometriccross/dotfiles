@@ -1,6 +1,6 @@
 ---
 name: implement
-description: The guide book for implementing new features
+description: The workflow for implementing new features via sub-agents.
 license: MIT
 compatibility: opencode
 ---
@@ -9,17 +9,13 @@ compatibility: opencode
 Break down the task into smaller sub-tasks.
 Delegate sub-tasks to editor agent.
 
-
-### Monitoring Sub-agent
-You MUST monitor and instruct the subagents to prevent excessive implementation.
-
-You follow below steps:
-- Design the optimal type system for that problem.
-- Request the editor to implement the unit tests for the new feature.
-- Request the editor to implement the feature code.
-- Run "git diff" to get the uncommitted changes.
-- Pass the diff to reviewer agent for review.
-- Fix bug or critical issues found by reviewer agent to use editor.
+1. Design Types:    Define the type system or interface for the requested feature.
+2. Implement Tests: Instruct `editor` to write unit tests based on the design.
+3. Implement Code:  Instruct `editor` to write the code to pass the tests.
+4. Review:
+   - Run `git diff` to capture changes.
+   - Ask `reviewer` to check the diff.
+   - If bugs are found, instruct `editor` to fix them.
 
 
 ## When to use me
