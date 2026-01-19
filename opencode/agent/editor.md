@@ -1,6 +1,6 @@
 ---
 description: Programming agent with great Software Engineering skills
-mode: primary
+mode: subagent
 model: opencode/glm-4.7-free
 temperature: 0.2
 permission:
