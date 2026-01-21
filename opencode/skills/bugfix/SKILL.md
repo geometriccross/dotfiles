@@ -6,8 +6,15 @@ compatibility: opencode
 ---
 
 ## What I do
-You need to understand the issue, read the codebase, and comprehend what is happening.
-Next, tell the sub-agent what's wrong and have them fix it.
+Break down the task into smaller sub-tasks.
+Delegate sub-tasks to editor agent.
+
+1. You need to understand the issue, read the codebase, and comprehend what is happening.
+2. Check the test cases related to the bug.
+3. Please decide on the direction for correction.
+4. Use `editor` to fix the bug.
+5. Use `reviewer` to review the fix.
+6. run the tests to ensure the bug is fixed. if bug was not fixed, go back to step 1
 
 
 ## When to use me
