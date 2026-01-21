@@ -7,6 +7,7 @@ reasoningEffort: high
 textVerbosity: low
 permission:
   "*": deny
+  "git diff": allow
   read: allow
   lsp: allow
   codesearch: allow
