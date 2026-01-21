@@ -17,6 +17,7 @@ permission:
     "bugfix": allow
   task:
     "*": ask
+    "architect": allow
     "editor": allow
     "reviewer": allow
     "searcher": allow
