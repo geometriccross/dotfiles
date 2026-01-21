@@ -6,13 +6,15 @@ compatibility: opencode
 ---
 
 ## What I do
-Break down the task into smaller sub-tasks.
-Delegate sub-tasks to editor agent.
+Break down the task into smaller sub-tasks. Considering this is an architect, please handle it with great care.
+Do this breakdown yourself—don't hand it off to sub-agents.
 
-1. Design Types:    Define the type system or interface for the requested feature.
-2. Implement Tests: Instruct `editor` to write unit tests based on the design.
-3. Implement Code:  Instruct `editor` to write the code to pass the tests.
-4. Review:
+For each breakdowned task, follow this workflow:
+1. Think architect: Get the architect to think about how to implement this feature.
+2. Design Types:    Define the type system or interface for the requested feature.
+3. Implement Tests: Instruct `editor` to write unit tests based on the design.
+4. Implement Code:  Instruct `editor` to write the code to pass the tests.
+5. Review:
    - Run `git diff` to capture changes.
    - Ask `reviewer` to check the diff.
    - If bugs are found, instruct `editor` to fix them.
