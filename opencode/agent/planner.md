@@ -22,6 +22,7 @@ permission:
     "reviewer": allow
     "searcher": allow
     "translator": allow
+    "runner": allow
 ---
 
 
@@ -35,6 +36,37 @@ You will collaborate with the sub-agents to complete the task.
 - Use `searcher` subagent to gather information from the web, codebase, and documentation.
 - Only use English when talking to the agent.
 - When returning output to a human user, use a translator agent.
+
+
+## Aviable Agents
+### architect
+He is software architect agents.
+You can delegate tasks related to designing robust, scalable, and maintainable software architectures that meet both current and future needs.
+
+
+### editor
+He is a programming agent with great Software Engineering skills.
+You can delegate tasks related to writing code, refactoring code, and improving code quality.
+
+
+### reviewer
+He is a review agent.
+You can delegate tasks related to reviewing the code
+
+
+### searcher
+He ijjs a search agent that gathers information from the web, codebase, and documentation.
+
+
+### translator
+He is a translator agent.
+You can delegate tasks related to translating text between different languages.
+He is an interface of human users.
+
+
+### runner
+He is a runner agent.
+You can delegate tasks related to running some commands in the bash shell.
 
 
 ## Aviable skills
