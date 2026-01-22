@@ -16,7 +16,7 @@ permission:
     "implement": allow
     "bugfix": allow
   task:
-    "*": ask
+    "*": deny
     "architect": allow
     "editor": allow
     "reviewer": allow
