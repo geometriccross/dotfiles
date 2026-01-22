@@ -6,7 +6,6 @@ temperature: 0.15
 reasoningEffort: high
 permission:
   "*": deny
-  read: allow
   task:
     "*": deny
     "searcher": allow

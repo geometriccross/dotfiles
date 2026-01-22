@@ -9,7 +9,6 @@ permission:
   glob: allow
   grep: allow
   list: allow
-  webfetch: allow
 tools:
   "*": false
   context7: true

@@ -5,10 +5,10 @@ model: github-copilot/claude-opus-4.5
 temperature: 0.15
 reasoningEffort: high
 permission:
-  "*": ask
+  "*": deny
   read: allow
   bash:
-    "*": ask
+    "*": deny
     "bd *": allow
     "git diff": allow
   skill:
