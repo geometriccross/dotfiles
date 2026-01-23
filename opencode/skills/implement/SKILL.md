@@ -12,10 +12,9 @@ Do this breakdown yourself—don't hand it off to sub-agents.
 For each breakdowned task, follow this workflow:
 1. Think architect: Get the architect to think about how to implement this feature.
 2. Design Types:    Define the type system or interface for the requested feature.
-3. Implement Tests: Instruct `editor` to write unit tests based on the design.
+3. Implement Tests: Instruct `editor` to write unit tests based on the design. You MUST follow TDD style.
 4. Implement Code:  Instruct `editor` to write the code to pass the tests.
 5. Review:
-   - Run `git diff` to capture changes.
    - Ask `reviewer` to check the diff.
    - If bugs are found, instruct `editor` to fix them.
 
