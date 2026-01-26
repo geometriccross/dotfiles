@@ -1,7 +1,7 @@
 ---
 description: Command Runner
 mode: subagent
-model: github-copilot/gpt-5-mini
+model: zai-coding-plan/glm-4.7
 temperature: 0.05
 reasoningEffort: low
 permission:

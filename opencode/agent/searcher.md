@@ -1,7 +1,7 @@
 ---
 description: Search agent that gathers information from the web, compiles findings, and presents them clearly.
 mode: subagent
-model: opencode/glm-4.7-free
+model: zai-coding-plan/glm-4.7
 temperature: 0.01
 permission:
   "*": deny

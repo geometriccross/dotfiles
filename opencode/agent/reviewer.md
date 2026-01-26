@@ -1,7 +1,7 @@
 ---
 description: Review uncommitted changes
 mode: subagent
-model: opencode/glm-4.7-free
+model: zai-coding-plan/glm-4.7
 temperature: 0.05
 reasoningEffort: high
 textVerbosity: low
