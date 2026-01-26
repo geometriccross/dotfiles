@@ -9,7 +9,7 @@ permission:
   "*": deny
   bash:
     "*": deny
-    "git diff": allow
+    "git diff*": allow
   read: allow
   lsp: allow
   codesearch: allow
