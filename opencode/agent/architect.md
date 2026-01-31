@@ -7,7 +7,6 @@ reasoningEffort: high
 permission:
   "*": deny
   task:
-    "*": deny
     "searcher": allow
 ---
 

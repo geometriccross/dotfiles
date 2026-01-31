@@ -6,9 +6,10 @@ temperature: 0.05
 reasoningEffort: high
 textVerbosity: low
 permission:
-  "*": deny
   bash:
-    "*": deny
+    "tree *": allow
+    "grep *": allow
+    "ls *": allow
     "git diff *": allow
     "git status *": allow
   read: allow

@@ -4,13 +4,13 @@ mode: subagent
 model: zai-coding-plan/glm-4.7
 temperature: 0.01
 permission:
-  "*": deny
   read: allow
   glob: allow
   grep: allow
   list: allow
+  bash: deny
+  edit: deny
 tools:
-  "*": false
   context7: true
   filesystem: true
   fetch: true

@@ -3,26 +3,11 @@ description: Programming agent with great Software Engineering skills
 mode: subagent
 model: openai/gpt-5.2-codex
 temperature: 0.2
-tools:
-  "*": false
-  read: true
-  edit: true
-  write: true
-  patch: true
-  grep: true
-  glob: true
-  list: true
-  webfetch: true
-  bash: true
 permission:
-  "*": deny
+  read: allow
   edit: allow
-  bash:
-    "*": deny
-    "bd *": allow
-  webfetch: allow
+  bash: deny
   task:
-    "*": deny
     "searcher": allow
 ---
 

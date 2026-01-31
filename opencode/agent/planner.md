@@ -5,18 +5,15 @@ model: openai/gpt-5.2
 temperature: 0.15
 reasoningEffort: high
 permission:
-  "*": deny
+  edit: deny
   read: allow
   bash:
-    "*": deny
     "bd *": allow
     "git diff": allow
   skill:
-    "*": deny
     "implement": allow
     "bugfix": allow
   task:
-    "*": deny
     "architect": allow
     "editor": allow
     "reviewer": allow

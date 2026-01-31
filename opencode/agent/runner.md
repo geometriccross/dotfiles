@@ -5,12 +5,15 @@ model: zai-coding-plan/glm-4.7
 temperature: 0.05
 reasoningEffort: low
 permission:
-  "*": deny
   bash:
-    "*": ask
-    "ls*": allow
-    "cat*": allow
-    "grep*": allow
+    "echo *": deny
+    "ls *": allow
+    "cat *": allow
+    "grep *": allow
+    "*<*": deny
+    "*<<*": deny
+    "*>*": deny
+    "*>>*": deny
 ---
 
 
