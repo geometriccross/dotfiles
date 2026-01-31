@@ -1,7 +1,7 @@
 ---
 description: Review uncommitted changes
 mode: subagent
-model: zai-coding-plan/glm-4.7
+model: openai/gpt-5.2-codex
 temperature: 0.05
 reasoningEffort: high
 textVerbosity: low
@@ -9,7 +9,8 @@ permission:
   "*": deny
   bash:
     "*": deny
-    "git diff*": allow
+    "git diff *": allow
+    "git status *": allow
   read: allow
   lsp: allow
   codesearch: allow
