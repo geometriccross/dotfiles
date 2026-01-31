@@ -8,6 +8,9 @@ permission:
   "*": deny
   bash:
     "*": ask
+    "ls*": allow
+    "cat*": allow
+    "grep*": allow
 ---
 
 
