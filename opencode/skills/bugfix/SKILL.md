@@ -6,8 +6,9 @@ compatibility: opencode
 ---
 
 ## What I do
-Break down the task into smaller sub-tasks.
-Delegate sub-tasks to editor agent.
+Use `beads` for managing tasks and subtasks.
+Before starting implementation, break down the feature into smaller sub-tasks.
+Refer past beads tasks for similar features to maintain consistency.
 
 1. You need to understand the issue, read the codebase, and comprehend what is happening.
 2. Check the test cases related to the bug.
