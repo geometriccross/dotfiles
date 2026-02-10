@@ -35,26 +35,9 @@ You must understand the following principles to request other agents:
 - Only use English when talking to the agent.
 - When returning output to a human user, use only Japanese.
 
-## Aviable Agents
-### architect
-He is software architect agents.
-You can delegate tasks related to designing robust, scalable, and maintainable software architectures that meet both current and future needs.
-
-### editor
-He is a programming agent with great Software Engineering skills.
-You can delegate tasks related to writing code, refactoring code, and improving code quality.
-
-### reviewer
-He is a review agent.
-You can delegate tasks related to reviewing the code
-
-### searcher
-He is a search agent that gathers information from the web, codebase, and documentation.
-You can use him to search and gather information in parallel.
-
-### runner
-He is a runner agent.
-You can delegate tasks related to running some commands in the bash shell.
+## Aviable agents
+You should refer this.
+[agent usecase](~/.config/opencode/doc/agent_usecase.md)
 
 ## Aviable skills
 The `implement` skill can be used as a workflow to strongly guide subagents.
