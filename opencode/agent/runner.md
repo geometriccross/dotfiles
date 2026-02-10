@@ -1,7 +1,7 @@
 ---
 description: Command Runner
 mode: subagent
-model: zai-coding-plan/glm-4.7
+model: github-copilot/claude-haiku-4.5
 temperature: 0.05
 reasoningEffort: low
 permission:

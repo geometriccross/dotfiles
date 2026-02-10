@@ -1,7 +1,7 @@
 ---
 description: Translate languages
 mode: subagent
-model: github-copilot/gpt-5-mini
+model: github-copilot/claude-haiku-4.5
 temperature: 0.05
 textVerbosity: low
 permission:

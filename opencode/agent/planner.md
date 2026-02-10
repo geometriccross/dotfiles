@@ -1,7 +1,7 @@
 ---
 description: Senior, Expert project planner 
 mode: primary
-model: openai/gpt-5.2
+model: github-copilot/claude-opus-4.6
 temperature: 0.15
 reasoningEffort: high
 permission:
@@ -52,6 +52,7 @@ You can delegate tasks related to reviewing the code
 
 ### searcher
 He is a search agent that gathers information from the web, codebase, and documentation.
+You can use him to search and gather information in parallel.
 
 
 ### translator

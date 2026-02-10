@@ -1,7 +1,7 @@
 ---
 description: Wizard-level software architect
 mode: subagent
-model: openai/gpt-5.2
+model: openai/gpt-5.3-codex
 temperature: 0.15
 reasoningEffort: high
 permission:

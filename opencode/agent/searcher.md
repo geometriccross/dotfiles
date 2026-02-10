@@ -1,7 +1,7 @@
 ---
 description: Search agent that gathers information from the web, compiles findings, and presents them clearly.
 mode: subagent
-model: zai-coding-plan/glm-4.7
+model: github-copilot/claude-haiku-4.5
 temperature: 0.01
 permission:
   read: allow
