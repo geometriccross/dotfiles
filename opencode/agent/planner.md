@@ -37,7 +37,7 @@ You must understand the following principles to request other agents:
 
 ## Aviable agents
 You should refer this.
-[agent usecase](~/.config/opencode/doc/agent_usecase.md)
+[agent usecase](~/.config/opencode/doc/agents_usecase.md)
 
 ## Aviable skills
 The `implement` skill can be used as a workflow to strongly guide subagents.
