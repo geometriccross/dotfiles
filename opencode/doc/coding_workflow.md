@@ -1,5 +1,5 @@
 # CODING WORKFLOW
-1. Check documentation of any outer dependencies to use `searcher` agent if needed.  Understand industry-standard best practices.
+1. Use a searcher subagent to investigate codebase and external dependency documentation.
 2. Write a simple failing test for a small part of the feature
 3. Implement the bare minimum to make it pass
 4. Run tests to confirm they pass (Green)
