@@ -12,6 +12,7 @@ Refer past beads tasks for similar features to maintain consistency.
 # What I do?
 Reproduce the bug and verify what symptoms occur.
 Check the bug report, stack trace, and any relevant logs to understand the issue.
+Check the version, beads task history.
 Run the existing tests to confirm the bug and identify where it occurs.
 
 For bug fixing, follow this
