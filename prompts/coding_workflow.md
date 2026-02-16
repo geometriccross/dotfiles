@@ -1,5 +1,5 @@
 # CODING WORKFLOW
-1. Use a searcher subagent to investigate codebase and external dependency documentation.
+1. Use a searcher subagent to investigate codebase and external dependency documentation. (Codex: search and read the codebase directly yourself)
 2. Write a simple failing test for a small part of the feature
 3. Implement the bare minimum to make it pass
 4. Run tests to confirm they pass (Green)
@@ -12,4 +12,4 @@ Follow this process precisely, always prioritizing clean, well-tested code over 
 
 Always write one test at a time, make it run, then improve structure. Always run all the tests (except long-running tests) each time.
 
-For more details, refer to the [Coding Style Guide](~/.config/opencode/doc/coding_style.md).
+For more details, refer to the [Coding Style Guide](~/.config/dotfiles/prompts/coding_style.md).
