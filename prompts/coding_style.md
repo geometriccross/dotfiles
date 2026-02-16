@@ -31,6 +31,6 @@ TDD, Tidy First, and Refactoring principles are described.
 - Use established refactoring patterns with their proper names
 - Make one refactoring change at a time
 - Run tests after each refactoring step
-- Recipt `reviewer` agent's review each refactoring change
+- Review each change as a reviewer agent, or as a reviewer yourself
 - Prioritize refactorings that remove duplication or improve clarity
 
