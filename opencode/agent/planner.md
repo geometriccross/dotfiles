@@ -14,11 +14,10 @@ permission:
     "implement": allow
     "bugfix": allow
   task:
-    "architect": allow
-    "editor": allow
-    "reviewer": allow
     "searcher": allow
     "runner": allow
+tools:
+  "codex": true
 ---
 
 
@@ -36,21 +35,13 @@ You will collaborate with the sub-agents to complete the task.
 The `implement` skill can be used as a workflow to strongly guide subagents.
 The `bugfix` skill can be used as a workflow to strongly guide subagents to fix bugs.
 
-## Aviable sub-agents
+## Codex (MCP tool)
+For architecture design, code writing, and code review tasks, you MUST use the `codex` MCP tool instead of sub-agents.
+Codex acts as architect, editor, and reviewer as a single capable agent.
+
+## Available sub-agents
 This document outlines each sub-agent.
 Please refer to it when allocating tasks.
-
-### architect
-He is software architect agents.
-You can delegate tasks related to designing robust, scalable, and maintainable software architectures that meet both current and future needs.
-
-### editor
-He is a programming agent with great Software Engineering skills.
-You can delegate tasks related to writing code, refactoring code, and improving code quality.
-
-### reviewer
-He is a review agent.
-All matters concerning reviews should be left to him.
 
 ### searcher
 He is a search agent that gathers information from the web, codebase, and documentation.

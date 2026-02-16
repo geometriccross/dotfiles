@@ -38,6 +38,14 @@
 				"@modelcontextprotocol/server-filesystem",
 				"/Users/geometriccross/ghq/github.com/geometriccross"
 			]
+		},
+		"codex": {
+			"type": "local",
+			"enabled": true,
+			"command": [
+				"codex",
+				"mcp-server"
+			]
 		}
 	},
 	"agent": {
@@ -49,10 +57,13 @@
 		},
 		"explore": {
 			"disable": true
+		},
+		"general": {
+			"disable": true
 		}
 	},
 	"watcher": {
-		"ignore": ["prompts/**", "sandbox/**", "sandbox.md"]
+		"ignore": ["sandbox/**", "sandbox.md"]
 	},
 	"plugin": ["opencode-beads", "opencode-gemini-auth@latest"]
 }
