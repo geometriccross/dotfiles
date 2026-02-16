@@ -1,0 +1,23 @@
+# Codex CLI Configuration
+# This file is symlinked to ~/.codex/config.toml
+
+# Model selection
+model = "gpt-5.3-codex"
+model_reasoning_effort = "high"
+
+# Permissions
+sandbox_mode = "workspace-write"
+approval_policy = "never"
+
+# MCP Servers
+[mcp_servers.fetch]
+command = "docker"
+args = ["run", "-i", "--rm", "mcp/fetch"]
+
+[mcp_servers.context7]
+command = "pnpm"
+args = ["dlx", "@upstash/context7-mcp", "--api-key", "$CONTEXT7_API_KEY"]
+
+[mcp_servers.filesystem]
+command = "pnpm"
+args = ["dlx", "@modelcontextprotocol/server-filesystem", "/Users/geometriccross/ghq/github.com/geometriccross"]
