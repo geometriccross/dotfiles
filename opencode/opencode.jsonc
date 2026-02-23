@@ -45,7 +45,8 @@
 			"command": [
 				"codex",
 				"mcp-server"
-			]
+			],
+			"timeout": 360000
 		}
 	},
 	"agent": {
