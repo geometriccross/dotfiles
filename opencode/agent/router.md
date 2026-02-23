@@ -33,3 +33,7 @@ You can delegate tasks related to running some commands in the bash shell.
 
 ### coder
 He is a coding agent that writes codes.
+
+### writer
+He is a general sentence writer agent that writes human-friendly documents.
+He isn't a coding agent.
