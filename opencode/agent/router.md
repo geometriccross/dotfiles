@@ -31,6 +31,5 @@ You can use him to search and gather information in parallel.
 He is a command runner agent.
 You can delegate tasks related to running some commands in the bash shell.
 
-### Codex (MCP tool)
-For architecture design, code writing, and code review tasks, you MUST use the `codex` MCP tool instead of sub-agents.
-Codex acts as architect, editor, and reviewer as a single capable agent.
+### coder
+He is a coding agent that writes codes.

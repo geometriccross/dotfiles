@@ -38,15 +38,6 @@
 				"@modelcontextprotocol/server-filesystem",
 				"/Users/geometriccross/ghq/github.com/geometriccross"
 			]
-		},
-		"codex": {
-			"type": "local",
-			"enabled": true,
-			"command": [
-				"codex",
-				"mcp-server"
-			],
-			"timeout": 360000
 		}
 	},
 	"agent": {
