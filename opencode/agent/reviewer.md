@@ -12,6 +12,8 @@ permission:
   list: allow
   lsp: allow
   codesearch: allow
+  bash:
+    "git diff *": allow
   task:
     search: allow
 ---
