@@ -65,5 +65,5 @@
 	"watcher": {
 		"ignore": ["sandbox/**", "sandbox.md"]
 	},
-	"plugin": ["opencode-beads", "opencode-gemini-auth@latest"]
+	"plugin": ["opencode-gemini-auth@latest"]
 }

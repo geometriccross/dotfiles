@@ -8,7 +8,6 @@ permission:
   edit: deny
   read: allow
   bash:
-    "bd *": allow
     "git diff": allow
   skill:
     "implement": allow
