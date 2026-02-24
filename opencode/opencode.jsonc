@@ -28,16 +28,6 @@
 				"--api-key",
 				"$CONTEXT7_API_KEY"
 			]
-		},
-		"filesystem": {
-			"type": "local",
-			"enabled": true,
-			"command": [
-				"pnpm",
-				"dlx",
-				"@modelcontextprotocol/server-filesystem",
-				"/Users/geometriccross/ghq/github.com/geometriccross"
-			]
 		}
 	},
 	"agent": {
