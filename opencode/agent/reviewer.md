@@ -5,13 +5,8 @@ model: openai/gpt-5.3-codex
 temperature: 0.15
 reasoningEffort: high
 permission:
-  "*": deny
-  read: allow
-  glob: allow
-  grep: allow
-  list: allow
-  lsp: allow
-  codesearch: allow
+  edit: deny
+  todowrite: deny
   bash:
     "git diff *": allow
   task:

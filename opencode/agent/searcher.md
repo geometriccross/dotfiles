@@ -4,15 +4,11 @@ mode: subagent
 model: github-copilot/claude-haiku-4.5
 temperature: 0.01
 permission:
-  read: allow
-  glob: allow
-  grep: allow
-  list: allow
-  bash: deny
   edit: deny
+  bash: deny
+  todowrite: deny
 tools:
   context7: true
-  filesystem: true
   fetch: true
 ---
 

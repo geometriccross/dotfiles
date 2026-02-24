@@ -5,7 +5,10 @@ model: github-copilot/claude-haiku-4.5
 temperature: 0.05
 reasoningEffort: low
 permission:
+  edit: deny
+  todowrite: deny
   bash:
+    "*": ask
     "echo *": deny
     "ls *": allow
     "cat *": allow

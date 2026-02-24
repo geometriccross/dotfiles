@@ -5,9 +5,12 @@ model: github-copilot/claude-opus-4.6
 temperature: 0.15
 reasoningEffort: high
 permission:
-  "*": deny
-  todoread: allow
-  todowrite: allow
+  read: deny
+  edit: deny
+  glob: deny
+  grep: deny
+  list: deny
+  bash: deny
   task:
     router: allow
 ---

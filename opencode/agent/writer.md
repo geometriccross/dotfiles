@@ -1,19 +1,11 @@
 ---
 description: Human-friendly document writer
 mode: subagent
-model: openai/gpt-5.3-codex-spark
+model: github-copilot/claude-sonnet-4.5
 temperature: 0.3
 reasoningEffort: high
 permission:
-  "*": deny
-  edit: allow
-  read: allow
-  glob: allow
-  grep: allow
-  list: allow
-  lsp: allow
-  codesearch: allow
-  todoread: allow
+  bash: deny
   task:
     searcher: allow
 ---
