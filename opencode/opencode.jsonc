@@ -1,6 +1,5 @@
 {
-	"$schema": "https://opencode.ai/config.json",
-	"theme": "system",
+  "$schema": "https://opencode.ai/config.json",
 	"instructions": [
 		"~/.config/dotfiles/prompts/base_rule.md",
 		"~/.config/dotfiles/prompts/coding_style.md",
@@ -47,5 +46,5 @@
 	"watcher": {
 		"ignore": ["sandbox/**", "sandbox.md"]
 	},
-	"plugin": ["opencode-gemini-auth@latest"]
+	"plugin": []
 }
