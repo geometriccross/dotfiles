@@ -1,0 +1,51 @@
+{
+	"$schema": "https://opencode.ai/config.json",
+	"theme": "system",
+	"instructions": [
+		"~/.config/dotfiles/prompts/base_rule.md",
+		"~/.config/dotfiles/prompts/coding_style.md",
+		"~/.config/dotfiles/prompts/coding_workflow.md"
+	],
+	"mcp": {
+		"fetch": {
+			"type": "local",
+			"enabled": true,
+			"command": [ 
+				"docker",
+				"run",
+				"-i",
+				"--rm",
+				"mcp/fetch"
+			]
+		},
+		"context7": {
+			"type": "local",
+			"enabled": true,
+			"command": [
+				"pnpm",
+				"dlx",
+				"@upstash/context7-mcp",
+				"--api-key",
+				"$CONTEXT7_API_KEY"
+			]
+		}
+	},
+	"agent": {
+		"plan": {
+			"disable": true
+		},
+		"build": {
+			"disable": true
+		},
+		"explore": {
+			"disable": true
+		},
+		"general": {
+			"disable": true
+		}
+	},
+	"watcher": {
+		"ignore": ["sandbox/**", "sandbox.md"]
+	},
+	"plugin": []
+}
