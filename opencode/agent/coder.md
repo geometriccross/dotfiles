@@ -5,7 +5,8 @@ model: openai/gpt-5.3-codex
 temperature: 0.15
 reasoningEffort: high
 permission:
-read
+  read: allow
+  write: allow
   todowrite: deny
   bash: deny
 ---
