@@ -2,11 +2,13 @@
   "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.17.0/.schema/devbox.schema.json",
   "packages": [
     "qpdf@latest",
-    "hashcat@latest"
+    "hashcat@latest",
+	"python@latest",
+	"uv@latest"
   ],
   "shell": {
     "init_hook": [
-      "echo 'Welcome to devbox!' > /dev/null"
+	  ". $VENV_DIR/bin/activate"
     ],
     "scripts": {
       "test": [
