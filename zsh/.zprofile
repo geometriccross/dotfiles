@@ -74,3 +74,8 @@ else
 fi
 unset __mamba_setup
 
+# Rust
+. "$HOME/.cargo/env"
+
+# roswell
+export PATH="$HOME/.roswell/bin:$PATH"
