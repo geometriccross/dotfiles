@@ -22,3 +22,4 @@ packages:
 - name: tree-sitter/tree-sitter@v0.26.6
 - name: oven-sh/bun@bun-v1.3.10
 - name: openai/codex@rust-v0.112.0
+- name: shellspec/shellspec@0.28.1
