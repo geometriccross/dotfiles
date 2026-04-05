@@ -27,6 +27,16 @@
 				"--api-key",
 				"$CONTEXT7_API_KEY"
 			]
+		},
+		"playwright": {
+			"type": "local",
+			"enabled": true,
+			"command": [
+				"npx",
+				"-y",
+				"@playwright/mcp@latest",
+				"--headless"
+			]
 		}
 	},
 	"agent": {
