@@ -1,7 +1,7 @@
 ---
 description: Review the anything, code, plan, architecture design.
 mode: subagent
-model: openai/gpt-5.3-codex
+model: openai/gpt-5.4
 temperature: 0.15
 reasoningEffort: high
 permission:
