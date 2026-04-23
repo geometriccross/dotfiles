@@ -7,11 +7,7 @@ permission:
   edit: deny
   todowrite: deny
   bash:
-    "*": ask
-    "echo *": deny
-    "ls *": allow
-    "cat *": allow
-    "grep *": allow
+    "rm -rf *": deny
     "*<*": deny
     "*<<*": deny
     "*>*": deny
