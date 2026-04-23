@@ -11,6 +11,9 @@ permission:
     "git diff *": allow
   task:
     search: allow
+    reviewer: deny
+tools:
+  playwright: true
 ---
 
 # Rules
