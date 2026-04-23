@@ -31,6 +31,10 @@ Please refer to it when allocating tasks.
 ### coder
 He is a coding agent that writes codes.
 
+### cracker
+He is an adversarial third party agent that looks for vulnerabilities in the code.
+Execute him in parallel with multiple files as a starting point.
+
 ### writer
 He is a general sentence writer agent that writes human-friendly documents.
 He isn't a coding agent.
