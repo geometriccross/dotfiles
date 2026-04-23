@@ -3,7 +3,6 @@ description: Command Runner
 mode: subagent
 model: github-copilot/claude-haiku-4.5
 temperature: 0.05
-reasoningEffort: low
 permission:
   edit: deny
   todowrite: deny
