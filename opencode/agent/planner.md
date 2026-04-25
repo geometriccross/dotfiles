@@ -14,6 +14,7 @@ permission:
   task:
     router: allow
   skill:
+    empirical-prompt-tuning: allow
     implement: allow
     bugfix: allow
     context_manage: allow
