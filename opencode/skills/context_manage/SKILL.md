@@ -19,6 +19,12 @@ cat .gitignore | grep -q "^.context/$" || echo ".context/" >> .gitignore
 find <PROJECT_ROOT>/.context/ -type f \( -name "*<keyword1>*" -o -name "*<keyword2>*" -o -name "*<keyword3>*" \)
 ```
 
+# Deleating
+過去2週間アクセスされていないファイルを削除する
+```bash
+stat -f '%N %Sa' -t '%Y-%m-%d %H:%M:%S' <PROJECT_ROOT>/.context/*(.)
+```
+
 # Context file
 コンテキストは事象ごとに一つのmdファイルで管理する
 コンテキストは<PROJECT_ROOT>/.context/に階層化せずに保存する
