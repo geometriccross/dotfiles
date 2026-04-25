@@ -3,7 +3,7 @@ description: Coder
 mode: subagent
 
 model: openai/gpt-5.5
-temperature: 0.15
+temperature: 0.25
 reasoningEffort: low
 permission:
   read: allow
