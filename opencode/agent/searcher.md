@@ -8,6 +8,7 @@ permission:
   bash: deny
   todowrite: deny
   skill:
+    efficient-search: allow
     context_manage: allow
 tools:
   context7: true
