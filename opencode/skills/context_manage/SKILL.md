@@ -29,9 +29,9 @@ find <PROJECT_ROOT>/.context/ -type f \( -name "*<keyword1>*" -o -name "*<keywor
 ---
 name: <context_name>
 description: <context_description>
+---
 
 <context_content>
----
 ```
 
 ファイル名は<context_name_A>_<context_name_B>_<context_name_C>...のように何を表すかを繋げ、名前で簡単な階層をつける
