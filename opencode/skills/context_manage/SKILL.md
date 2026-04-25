@@ -26,3 +26,10 @@ description: <context_description>
 <context_content>
 ---
 ```
+
+ファイル名は<context_name_A>_<context_name_B>_<context_name_C>...のように何を表すかを繋げ、名前で簡単な階層をつける
+それぞれのcontext_nameは英語で、1 ~ 1.5単語で表す
+繋げられる最大数は3つまで
+大きいトピックなら繋げる数を少なく、 小さいトピックならその反対
+
+
