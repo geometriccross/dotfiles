@@ -1,7 +1,7 @@
 ---
 description: Senior, Expert project planner 
 mode: primary
-model: openai/gpt-5.4
+model: openai/gpt-5.5
 temperature: 0.15
 reasoningEffort: medium
 permission:

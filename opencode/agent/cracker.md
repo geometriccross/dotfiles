@@ -2,9 +2,9 @@
 description: Adversarial third parties looking for vulnerabilities
 mode: subagent
 
-model: openai/gpt-5.4-mini
+model: openai/gpt-5.5
 temperature: 0.5
-reasoningEffort: medium
+reasoningEffort: high
 permission:
   read: allow
   todoread: allow
