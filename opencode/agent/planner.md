@@ -13,6 +13,10 @@ permission:
   bash: deny
   task:
     router: allow
+  skill:
+    implement: allow
+    bugfix: allow
+    context_manage: allow
 ---
 
 # Who are you?

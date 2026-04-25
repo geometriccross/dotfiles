@@ -10,6 +10,8 @@ permission:
   write: allow
   todowrite: deny
   bash: deny
+  skill:
+    context_manage: allow
 ---
 
 

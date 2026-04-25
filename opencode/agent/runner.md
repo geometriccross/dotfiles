@@ -12,6 +12,8 @@ permission:
     "*<<*": deny
     "*>*": deny
     "*>>*": deny
+  skill:
+    context_manage: allow
 ---
 
 

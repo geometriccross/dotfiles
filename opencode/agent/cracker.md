@@ -9,6 +9,8 @@ permission:
   read: allow
   todoread: allow
   bash: allow
+  skill:
+    context_manage: allow
 ---
 
 Act as a hostile third party, conducting an exhaustive search for vulnerabilities throughout the application.

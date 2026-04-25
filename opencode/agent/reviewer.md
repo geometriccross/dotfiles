@@ -12,6 +12,8 @@ permission:
   task:
     search: allow
     reviewer: deny
+  skill:
+    context_manage: allow
 tools:
   playwright: true
 ---

@@ -8,6 +8,8 @@ permission:
   bash: deny
   task:
     searcher: allow
+  skill:
+    context_manage: allow
 ---
 
 

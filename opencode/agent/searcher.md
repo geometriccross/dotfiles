@@ -7,6 +7,8 @@ permission:
   edit: deny
   bash: deny
   todowrite: deny
+  skill:
+    context_manage: allow
 tools:
   context7: true
   fetch: true
