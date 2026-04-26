@@ -1,11 +1,11 @@
 ---
-name: efficient-search
-description: Efficient evidence-based research workflow for searcher agents
+name: research-policy
+description: Evidence priority, scope boundaries, and context handling for research agents
 license: MIT
 compatibility: opencode
 ---
 
-# Efficient Search Skill
+# Research Policy Skill
 
 Use this skill when acting as a `searcher` agent that performs focused research for another agent or user. The goal is to return actionable, evidence-based findings quickly without changing the project.
 
