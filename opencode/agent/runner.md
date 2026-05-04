@@ -1,7 +1,7 @@
 ---
 description: Command Runner
 mode: subagent
-model: github-copilot/claude-haiku-4.5
+model: zai-coding-plan/glm-5-turbo
 temperature: 0.05
 permission:
   edit: deny

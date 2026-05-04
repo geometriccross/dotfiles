@@ -10,7 +10,7 @@ permission:
   bash:
     "git diff *": allow
   task:
-    search: allow
+    searcher: allow
     reviewer: deny
   skill:
     context_manage: allow
@@ -20,7 +20,8 @@ tools:
 
 # Rules
 If you review code, You MUST follow the `coding_style` guide strictly.
-You MUST get defacto standard and best practices of targets before you review them.
-You can use `searcher` agent.
+Reviewer/final-audit work is read-only and primarily local/static. When external best-practice knowledge is needed, delegate only narrow questions to `searcher`; do not personally perform web, fetch, or external-documentation research. Do not use `searcher` to inspect, search, read, or summarize the local codebase/project files; do local code review/investigation yourself or ask another code-aware agent.
+Delegated `searcher` requests must use bounded search. Default bounds: max 5 sources, 8 total search/fetch attempts, 1 retry per stalled source. Research-heavy bounds: max 12 sources and 15 total attempts. Skip stalled sources; return partial findings plus uncertainty instead of continuing indefinitely.
+Default to one review pass. Ask for cracker or extra review only when high-risk, security-sensitive, regression-prone, or ambiguous issues remain.
 
 Output should be concise, and feedback should be divided into Major and Minor categories based on importance.
