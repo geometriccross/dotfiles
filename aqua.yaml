@@ -9,16 +9,16 @@
 #   - all
 registries:
 - type: standard
-  ref: v4.497.0 # renovate: depName=aquaproj/aqua-registry
+  ref: v4.505.0 # renovate: depName=aquaproj/aqua-registry
 packages:
 - name: neovim/neovim@v0.12.2
-- name: cli/cli@v2.91.0
-- name: junegunn/fzf@v0.71.0
-- name: sst/opencode@v1.14.21
+- name: cli/cli@v2.92.0
+- name: junegunn/fzf@v0.72.0
+- name: sst/opencode@v1.14.33
 - name: nodejs/node@v25.9.0
 - name: jesseduffield/lazygit@v0.61.1
-- name: pnpm/pnpm@v10.33.1
+- name: pnpm/pnpm@v11.0.4
 - name: tree-sitter/tree-sitter@v0.26.8
 - name: oven-sh/bun@bun-v1.3.13
-- name: openai/codex@rust-v0.123.0
+- name: openai/codex@rust-v0.128.0
 - name: shellspec/shellspec@0.28.1
