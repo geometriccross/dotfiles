@@ -2,8 +2,23 @@
 # This file is symlinked to ~/.codex/config.toml
 
 # Model selection
-model = "gpt-5.3-codex"
-model_reasoning_effort = "high"
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+
+# Default Main agent behavior
+developer_instructions = '''
+You are the default Main agent and should behave like a senior project planner/orchestrator.
+
+- For non-trivial tasks, plan first: clarify the goal, constraints, risks, verification path, and the smallest useful route before acting.
+- For trivial, low-risk informational tasks, answer or inspect/read directly without unnecessary delegation.
+- Use adaptive routing. Do not invoke all agents by default; delegate only when a subagent reduces concrete uncertainty, risk, implementation cost, or verification cost.
+- Keep custom agents as subagents. Route external documentation/web/API research to searcher; implementation to coder when delegation is useful; code review to reviewer; adversarial failure/regression design to cracker; command-only execution to runner; human-facing prose to writer.
+- Every subagent dispatch must include goal, assigned scope, role-relevant context only, acceptance criteria, stop condition, and expected output. Do not pass full conversation history by default.
+- Prefer the smallest useful subagent set, usually zero or one agent for simple work and one targeted reviewer pass after meaningful code changes unless extra review materially reduces risk.
+- If the same failure repeats twice, stop retrying, report the failure pattern, and revise the plan or route differently.
+- You may inspect/read, plan, coordinate, answer, run non-mutating verification, and dispatch subagents directly when that is the simplest appropriate route; do not treat planning as a prohibition on useful orchestration work.
+- Main/default must not directly create, modify, delete, rename, or overwrite files, and must not use file-mutating tools or commands directly for project changes. Delegate file changes to coder or another appropriate subagent with clear scope and acceptance criteria.
+'''
 
 # Permissions
 sandbox_mode = "workspace-write"
@@ -15,9 +30,27 @@ command = "docker"
 args = ["run", "-i", "--rm", "mcp/fetch"]
 
 [mcp_servers.context7]
-command = "pnpm"
-args = ["dlx", "@upstash/context7-mcp", "--api-key", "$CONTEXT7_API_KEY"]
+url = "https://mcp.context7.com/mcp"
 
-[mcp_servers.filesystem]
-command = "pnpm"
-args = ["dlx", "@modelcontextprotocol/server-filesystem", "/Users/geometriccross/ghq/github.com/geometriccross"]
+[mcp_servers.playwright]
+enabled = true
+command = "/usr/bin/env"
+args = ["PATH=/Users/geometriccross/.local/share/aquaproj-aqua/pkgs/http/nodejs.org/dist/v25.9.0/node-v25.9.0-darwin-arm64.tar.gz/node-v25.9.0-darwin-arm64/bin:/usr/bin:/bin", "/Users/geometriccross/.local/share/aquaproj-aqua/pkgs/http/nodejs.org/dist/v25.9.0/node-v25.9.0-darwin-arm64.tar.gz/node-v25.9.0-darwin-arm64/bin/node", "/Users/geometriccross/.local/share/aquaproj-aqua/pkgs/http/nodejs.org/dist/v25.9.0/node-v25.9.0-darwin-arm64.tar.gz/node-v25.9.0-darwin-arm64/lib/node_modules/npm/bin/npx-cli.js", "-y", "@playwright/mcp@0.0.73", "--headless"]
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+
+[projects."/Users/geometriccross"]
+trust_level = "trusted"
+
+[projects."/Users/geometriccross/.config/dotfiles"]
+trust_level = "trusted"
+
+[tui.model_availability_nux]
+"gpt-5.5" = 4
+
+[notice.model_migrations]
+"gpt-5.3-codex" = "gpt-5.4-mini-fast"
+"gpt-5.4" = "gpt-5.4-mini-fast"
+
+[plugins."github@openai-curated"]
+enabled = true

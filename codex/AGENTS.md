@@ -20,6 +20,19 @@ When writing code:
 - Act on the latest request or approved plan; implement exactly with minimal diffs.
 - Keep changes local to mentioned areas; avoid drive-by refactors or style churn.
 
+# Codex Migration Notes
+- Shared prompt behavior is intentionally delegated to the initialization rule above.
+- Per-agent role instructions are maintained as standalone Codex agent TOML files in `~/.config/dotfiles/codex/agents/*.toml`:
+  - `coder.toml` — coding workflow and local implementation rules.
+  - `reviewer.toml` — read-only review rules.
+  - `cracker.toml` — adversarial failure and regression test design rules.
+  - `searcher.toml` — external documentation and web research rules.
+  - `runner.toml` — command execution rules.
+  - `writer.toml` — human-friendly documentation writing rules.
+- Each agent TOML keeps concise selection guidance in `description`, full role prompts in inline `developer_instructions`, and role-specific `model_provider`/`model` settings.
+- Global Codex settings and MCP servers remain in `config.toml`; do not add obsolete `[agents.<name>]` or shared model config-file mappings there.
+- Some opencode-only behavior, such as disabling built-in opencode agents and watcher ignore rules, has no confirmed Codex equivalent here and is not enforced by this file.
+
 # Code Review
 When reviewing changes:
 - Focus on analysis rather than making changes.
