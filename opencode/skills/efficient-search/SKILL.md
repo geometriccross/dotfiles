@@ -22,6 +22,7 @@ This is a research/search technique only: do not modify files, implement code, o
 - Use this skill under the boundaries and evidence priorities defined by `research-policy`.
 - This skill does not decide whether a source is in scope or authoritative; it improves how to search already-allowed sources.
 - If source scope or priority is unclear, apply `research-policy` first.
+- When used by `searcher`, local codebase/project-file evidence examples in this skill do not apply; `searcher` must follow the external-only boundaries in `research-policy`.
 
 ## Search hypotheses
 

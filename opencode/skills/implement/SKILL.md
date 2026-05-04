@@ -11,7 +11,7 @@ Use this skill when implementing or changing product behavior. Do not use it for
 
 # Non-negotiable workflow
 
-1. Start by dispatching a `searcher` sub-agent to inspect the codebase and relevant dependency docs. Ask it to return existing patterns, test commands, likely files to edit, risks/unknowns, and the smallest safe first slice.
+1. Start by dispatching a `searcher` sub-agent only for external dependency/API documentation, official docs, release notes, external source repositories, schemas, and other non-local sources. Do not ask `searcher` to inspect, search, read, or summarize the local codebase/project files; the caller or another code-aware agent must perform codebase investigation.
 2. Before coding, reflect: is the chosen slice the smallest reversible behavior change? If not, narrow it.
 3. Use TDD in the smallest slices:
    - Write one failing test.
@@ -28,12 +28,10 @@ Use this skill when implementing or changing product behavior. Do not use it for
 
 When dispatching `searcher`, provide the user goal and ask for:
 
-- Existing implementation and test patterns.
-- Relevant dependency/API documentation findings.
-- Test commands and any long-running commands to avoid.
-- Likely files to edit, with rationale.
+- Relevant dependency/API documentation findings from external sources.
+- External constraints, version notes, schemas, release notes, and migration notes.
 - Risks, unknowns, and hidden assumptions.
-- The smallest safe first implementation slice.
+- Questions the code-aware caller/agent should verify in the local codebase.
 
 When dispatching `reviewer`, ask it to check correctness, TDD fit, Tidy First separation, missed edge cases, and whether the implementation exceeds the current slice. If dispatch is unavailable, perform and report this review yourself.
 
