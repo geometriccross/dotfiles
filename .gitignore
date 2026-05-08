@@ -9,16 +9,3 @@
 !install.sh
 !/spec
 .zcompdump
-/codex/auth.json
-/codex/history.jsonl
-/codex/installation_id
-/codex/models_cache.json
-/codex/log*
-/codex/.tmp
-/codex/tmp*
-/codex/state_5*
-/codex/sessions/*
-/codex/cache/*
-/codex/skills/.system
-/codex/plugins/cache/*
-/codex/shell_snapshots

@@ -1,0 +1,22 @@
+# files
+auth.json
+history.jsonl
+session_index.jsonl
+models_cache.json
+.codex-global-state.json*
+
+# folders
+vendor_imports
+sessions/
+cache/
+plugins/cache/*
+generated_images/
+installation_id
+shell_snapshots
+ambient-suggestions/
+skills/.system
+log*
+.tmp
+tmp*
+sqlite
+state_5*
