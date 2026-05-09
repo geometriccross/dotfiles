@@ -1,3 +1,10 @@
 {
-  "lastChangelogVersion": "0.74.0"
+  "lastChangelogVersion": "0.74.0",
+  "defaultProvider": "zai",
+  "defaultModel": "glm-5-turbo",
+  "packages": [
+    "git:github.com/elpapi42/pi-fork",
+    "git:github.com/MasuRii/pi-rtk-optimizer",
+    "git:github.com/elpapi42/pi-observational-memory"
+  ]
 }
