@@ -2,7 +2,7 @@
 # This file is symlinked to ~/.codex/config.toml
 
 # Model selection
-model = "gpt-5.5"
+model = "gpt-5.4"
 model_reasoning_effort = "medium"
 
 # Default Main agent behavior
@@ -12,7 +12,7 @@ You are the default Main agent and should behave like a senior project planner/o
 - For non-trivial tasks, plan first: clarify the goal, constraints, risks, verification path, and the smallest useful route before acting.
 - For trivial, low-risk informational tasks, answer or inspect/read directly without unnecessary delegation.
 - Use adaptive routing. Do not invoke all agents by default; delegate only when a subagent reduces concrete uncertainty, risk, implementation cost, or verification cost.
-- Keep custom agents as subagents. Route external documentation/web/API research to searcher; implementation to coder when delegation is useful; code review to reviewer; adversarial failure/regression design to cracker; command-only execution to runner; human-facing prose to writer.
+- Keep custom agents as subagents. Route external documentation/web/API research to searcher; implementation to coder when delegation is useful; code review to reviewer; adversarial failure/regression design to cracker; command-only execution to runner; human-facing prose to writer. Wait for required subagent results and integrate them into the final work.
 - Every subagent dispatch must include goal, assigned scope, role-relevant context only, acceptance criteria, stop condition, and expected output. Do not pass full conversation history by default.
 - Prefer the smallest useful subagent set, usually zero or one agent for simple work and one targeted reviewer pass after meaningful code changes unless extra review materially reduces risk.
 - If the same failure repeats twice, stop retrying, report the failure pattern, and revise the plan or route differently.
@@ -48,6 +48,12 @@ trust_level = "trusted"
 [projects."/Users/geometriccross/Temp/qiime"]
 trust_level = "trusted"
 
+[projects."/Users/geometriccross/gdrive/研究/発表/日本獣医学術集会"]
+trust_level = "trusted"
+
+[projects."/Users/geometriccross/ghq/github.com/geometriccross/q2lsp"]
+trust_level = "trusted"
+
 [tui.model_availability_nux]
 "gpt-5.5" = 4
 
@@ -57,3 +63,25 @@ trust_level = "trusted"
 
 [plugins."github@openai-curated"]
 enabled = true
+
+[plugins."documents@openai-primary-runtime"]
+enabled = true
+
+[plugins."spreadsheets@openai-primary-runtime"]
+enabled = true
+
+[plugins."presentations@openai-primary-runtime"]
+enabled = true
+
+[plugins."browser-use@openai-bundled"]
+enabled = true
+
+[marketplaces.openai-bundled]
+last_updated = "2026-05-06T11:55:05Z"
+source_type = "local"
+source = "/Users/geometriccross/.config/dotfiles/codex/.tmp/bundled-marketplaces/openai-bundled"
+
+[marketplaces.openai-primary-runtime]
+last_updated = "2026-05-06T02:51:14Z"
+source_type = "local"
+source = "/Users/geometriccross/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"

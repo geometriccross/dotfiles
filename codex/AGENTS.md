@@ -1,4 +1,5 @@
-# CRITICAL — Session Initialization
+Skillsは~/.config/dotfiles/
+
 
 **You MUST read ALL files under `~/.config/dotfiles/prompts/` at the very beginning of every conversation, before doing anything else.**
 These files contain essential rules and workflows you must follow throughout the session.
