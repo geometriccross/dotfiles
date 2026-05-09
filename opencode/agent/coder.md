@@ -2,7 +2,7 @@
 description: Coder
 mode: subagent
 
-model: openai/gpt-5.5
+model: zai-coding-plan/glm-5-turbo
 temperature: 0.25
 reasoningEffort: low
 permission:

@@ -1,7 +1,7 @@
 ---
 description: Review the anything, code, plan, architecture design.
 mode: subagent
-model: openai/gpt-5.5
+model: github-copilot/gpt-5-mini
 temperature: 0.15
 reasoningEffort: medium
 permission:

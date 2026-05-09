@@ -2,7 +2,7 @@
 description: Adversarial failure and test designer
 mode: subagent
 
-model: openai/gpt-5.5
+model: opencode/minimax-m2.5-free
 temperature: 0.5
 reasoningEffort: high
 permission:
