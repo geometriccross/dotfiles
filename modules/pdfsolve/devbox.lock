@@ -5,6 +5,54 @@
       "last_modified": "2026-03-07T23:46:50Z",
       "resolved": "github:NixOS/nixpkgs/0e6cdd5be64608ef630c2e41f8d51d484468492f?lastModified=1772927210"
     },
+    "hashcat-utils@latest": {
+      "last_modified": "2026-02-23T15:40:43Z",
+      "resolved": "github:NixOS/nixpkgs/80d901ec0377e19ac3f7bb8c035201e2e098cc97#hashcat-utils",
+      "source": "devbox-search",
+      "version": "1.10",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/j5x3lczm80nd7nhyda0n9p7wcwl0fgym-hashcat-utils-1.10",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/j5x3lczm80nd7nhyda0n9p7wcwl0fgym-hashcat-utils-1.10"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/hgdiq81g74wjzhn7smcsbmfmnrv1h65y-hashcat-utils-1.10",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/hgdiq81g74wjzhn7smcsbmfmnrv1h65y-hashcat-utils-1.10"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/y4hibn1k74z4g89gj7p98fd3ki8igrsy-hashcat-utils-1.10",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/y4hibn1k74z4g89gj7p98fd3ki8igrsy-hashcat-utils-1.10"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/pqkm6nv9ayv8444lnz8w0avx9f24qyhy-hashcat-utils-1.10",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/pqkm6nv9ayv8444lnz8w0avx9f24qyhy-hashcat-utils-1.10"
+        }
+      }
+    },
     "hashcat@latest": {
       "last_modified": "2026-02-23T15:40:43Z",
       "resolved": "github:NixOS/nixpkgs/80d901ec0377e19ac3f7bb8c035201e2e098cc97#hashcat",

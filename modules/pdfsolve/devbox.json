@@ -3,12 +3,13 @@
   "packages": [
     "qpdf@latest",
     "hashcat@latest",
-	"python@latest",
-	"uv@latest"
+    "python@latest",
+    "uv@latest",
+    "hashcat-utils@latest"
   ],
   "shell": {
     "init_hook": [
-	  ". $VENV_DIR/bin/activate"
+      ". $VENV_DIR/bin/activate"
     ],
     "scripts": {
       "test": [
