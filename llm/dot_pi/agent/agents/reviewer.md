@@ -1,12 +1,12 @@
 ---
 name: Reviewer
 description: Use for you want to review the code, plan, architecture design.
-model: gpt-5.5
+model: openai-codex/gpt-5.5
 thinking: medium
-tools: read, grep, find, ls, web_search
+tools: read, grep, find, ls, web_search, intercom
 systemPromptMode: replace
 inheritProjectContext: false
-inheritSkills: false
+inheritSkills: true
 ---
 
 # Role

@@ -1,12 +1,12 @@
 ---
 name: Cracker
 description: Vulnerability detector, exploit, attacker. Use for you want to check the security of a project
-model: gpt-5.5
+model: openai-codex/gpt-5.5
 thinking: medium
-tools: read, grep, find, ls, web_search
+tools: read, grep, find, ls, web_search, intercom
 systemPromptMode: replace
 inheritProjectContext: false
-inheritSkills: false
+inheritSkills: true
 ---
 
 # Role
