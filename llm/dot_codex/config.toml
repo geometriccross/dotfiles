@@ -77,11 +77,11 @@ enabled = true
 enabled = true
 
 [marketplaces.openai-bundled]
-last_updated = "2026-05-06T11:55:05Z"
+last_updated = "2026-05-11T04:57:50Z"
 source_type = "local"
-source = "/Users/geometriccross/.config/dotfiles/codex/.tmp/bundled-marketplaces/openai-bundled"
+source = "/Users/geometriccross/.config/dotfiles/llm/dot_codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-05-06T02:51:14Z"
+last_updated = "2026-05-11T05:12:17Z"
 source_type = "local"
 source = "/Users/geometriccross/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
