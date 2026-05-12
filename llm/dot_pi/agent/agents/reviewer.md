@@ -1,5 +1,5 @@
 ---
-name: Review the anything, code, plan, architecture design.
+name: Reviewer
 description: Use for you want to review the code, plan, architecture design.
 model: gpt-5.5
 thinking: medium
