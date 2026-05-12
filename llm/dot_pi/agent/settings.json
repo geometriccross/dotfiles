@@ -1,35 +1,62 @@
 {
-	"lastChangelogVersion": "0.74.0",
-	"defaultProvider": "zai",
-	"defaultModel": "glm-5.1",
-	"packages": [
-		"git:github.com/elpapi42/pi-fork",
-		"git:github.com/MasuRii/pi-rtk-optimizer",
-		"git:github.com/elpapi42/pi-observational-memory",
-		"https://github.com/nicobailon/pi-subagents",
-		"https://github.com/nicobailon/pi-intercom",
-		"https://github.com/nicobailon/pi-web-access"
-	],
-	"hideThinkingBlock": false,
-	"pi-fork": {
-		"defaultEffort": "balanced",
-		"effortProfiles": {
-			"fast": {
-				"provider": "zai",
-				"id": "glm-5-turbo",
-				"thinking": "medium"
-			},
-			"balanced": {
-				"provider": "zai",
-				"id": "glm-5.1",
-				"thinking": "high"
-			},
-			"deep": {
-				"provider": "openai-codex",
-				"id": "gpt-5.5",
-				"thinking": "high"
-			}
-		}
-	}
+  "lastChangelogVersion": "0.74.0",
+  "defaultProvider": "zai",
+  "defaultModel": "glm-5.1",
+  "packages": [
+    "git:github.com/elpapi42/pi-fork",
+    "git:github.com/MasuRii/pi-rtk-optimizer",
+    "git:github.com/elpapi42/pi-observational-memory",
+    "https://github.com/nicobailon/pi-subagents",
+    "https://github.com/nicobailon/pi-web-access",
+    "git:github.com/nicobailon/pi-intercom"
+  ],
+  "hideThinkingBlock": false,
+  "subagents": {
+    "agentOverrides": {
+      "context-builder": {
+        "disabled": true
+      },
+      "delegate": {
+        "disabled": true
+      },
+      "oracle": {
+        "disabled": true
+      },
+      "planner": {
+        "disabled": true
+      },
+      "researcher": {
+        "disabled": true
+      },
+      "reviewer": {
+        "disabled": true
+      },
+      "scout": {
+        "disabled": true
+      },
+      "worker": {
+        "disabled": true
+      }
+    }
+  },
+  "pi-fork": {
+    "defaultEffort": "balanced",
+    "effortProfiles": {
+      "fast": {
+        "provider": "zai",
+        "id": "glm-5-turbo",
+        "thinking": "medium"
+      },
+      "balanced": {
+        "provider": "zai",
+        "id": "glm-5.1",
+        "thinking": "high"
+      },
+      "deep": {
+        "provider": "openai-codex",
+        "id": "gpt-5.5",
+        "thinking": "high"
+      }
+    }
+  }
 }
-
