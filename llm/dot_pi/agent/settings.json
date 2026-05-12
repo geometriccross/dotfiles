@@ -5,7 +5,9 @@
   "packages": [
     "git:github.com/elpapi42/pi-fork",
     "git:github.com/MasuRii/pi-rtk-optimizer",
-    "git:github.com/elpapi42/pi-observational-memory"
-  ]
+    "git:github.com/elpapi42/pi-observational-memory",
+    "https://github.com/nicobailon/pi-subagents",
+    "https://github.com/nicobailon/pi-intercom",
     "https://github.com/nicobailon/pi-web-access"
+  ],
 }
