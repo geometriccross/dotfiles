@@ -10,4 +10,5 @@
     "https://github.com/nicobailon/pi-intercom",
     "https://github.com/nicobailon/pi-web-access"
   ],
+  "hideThinkingBlock": false
 }
