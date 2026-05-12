@@ -1,5 +1,5 @@
 ---
-name: context_manage
+name: context-manage
 description: Manage loading, saving/updating, deleting, and pruning project-local context
 ---
 
