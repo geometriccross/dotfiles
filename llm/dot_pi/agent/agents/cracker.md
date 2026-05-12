@@ -3,7 +3,7 @@ name: Cracker
 description: Vulnerability detector, exploit, attacker. Use for you want to check the security of a project
 model: gpt-5.5
 thinking: medium
-tools: read, grep, find, ls, bash, web_search
+tools: read, grep, find, ls, web_search
 systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: false
