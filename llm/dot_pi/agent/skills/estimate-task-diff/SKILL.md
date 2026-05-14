@@ -36,3 +36,10 @@ rollback_difficulty:
 - architecture change  ->  ex-high
 - production deletion   ->  danger
 
+# overall_difficulty
+count like this:
+- low: 1
+- medium: 2
+- high: 3
+- ex-high: 4
+- danger: 20
