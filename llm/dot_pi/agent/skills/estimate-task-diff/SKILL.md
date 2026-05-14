@@ -52,6 +52,8 @@ blast_radius_score
 + rollback_difficulty_score
 ) / 4
 
+final_diff = max(mean_of_diff, max_individual_score)
+
 difficulty:
 - 1.0 <= final_diff < 2.0: low
 - 2.0 <= final_diff < 3.0: medium
