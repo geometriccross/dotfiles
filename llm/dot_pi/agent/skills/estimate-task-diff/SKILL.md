@@ -61,3 +61,23 @@ difficulty:
 - 4.0 <= final_diff < 5.0: ex-high
 - 5.0 or above: danger
 
+# required_actions
+low:
+- direct_execution
+
+medium:
+- create_checkpoint
+
+high:
+- use_subagents
+- create_checkpoint
+
+ex-high:
+- use_subagents
+- create_checkpoint
+- run_review_loop
+
+danger:
+- block_execution
+- require_human_approval
+
