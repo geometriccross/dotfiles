@@ -1,3 +1,5 @@
 agent/bin
 agent/sessions
 auth.json
+agent/intercom
+agent/run-history.jsonl
