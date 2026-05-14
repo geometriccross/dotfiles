@@ -52,3 +52,10 @@ blast_radius_score
 + rollback_difficulty_score
 ) / 4
 
+difficulty:
+- 1.0 <= final_diff < 2.0: low
+- 2.0 <= final_diff < 3.0: medium
+- 3.0 <= final_diff < 4.0: high
+- 4.0 <= final_diff < 5.0: ex-high
+- 5.0 or above: danger
+
