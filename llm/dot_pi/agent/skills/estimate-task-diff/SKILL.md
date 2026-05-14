@@ -81,3 +81,18 @@ danger:
 - block_execution
 - require_human_approval
 
+# Return
+Return scored diff estimation as JSON.
+Insert required actions into required_actions.
+
+{
+  "difficulty": "low|medium|high|ex-high|danger",
+  "blast_radius_score": 0,
+  "context_pressure_score": 0,
+  "estimated_tool_call_count_score": 0,
+  "rollback_difficulty_score": 0,
+  "mean_of_diff": 0,
+  "max_individual_score": 0,
+  "final_diff": 0,
+  "required_actions": []
+}
