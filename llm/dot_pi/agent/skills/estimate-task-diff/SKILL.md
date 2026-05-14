@@ -20,3 +20,11 @@ context_pressure:
 - 0.60〜0.75    ->  high
 - 0.75〜0.90	->  ex-high
 - 0.90 or above	->  danger
+
+estimated_tool_call_count:
+- 0 ~ 3: low
+- 4 ~ 8: medium
+- 9 ~ 12: high
+- 13 ~ 16: ex-high
+- 16 or above: danger
+
