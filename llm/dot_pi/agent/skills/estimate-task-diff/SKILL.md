@@ -43,3 +43,12 @@ count like this:
 - high: 3
 - ex-high: 4
 - danger: 20
+
+mean_of_diff =
+(
+blast_radius_score
++ context_pressure_score
++ estimated_tool_call_count_score
++ rollback_difficulty_score
+) / 4
+
