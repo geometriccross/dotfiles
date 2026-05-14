@@ -28,3 +28,10 @@ estimated_tool_call_count:
 - 13 ~ 16: ex-high
 - 16 or above: danger
 
+rollback_difficulty:
+- local file edit       ->  low
+- module edit           ->  medium
+- schema migration      ->  high
+- architecture channge  ->  ex-high
+- production deletion   ->  danger
+
