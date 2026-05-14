@@ -5,6 +5,7 @@ description: Estimate task difficulty for the orchestration
 
 Estimate task complexity before execution.
 
+# Difficulty Score
 blast_radius:
 -> affected_services + downstream_dependencies + external_side_effects
 - 0 ~ 4:        ->  low
