@@ -13,3 +13,10 @@ blast_radius:
 - 15 ~ 20:      ->  ex-high
 - 21 or above:  ->  danger
 
+context_pressure:
+-> (repo_context + tool_context + expected_retrieval + reasoning_buffer) / model_token_limit
+- < 0.35        ->  low
+- 0.35〜0.60    ->  medium
+- 0.60〜0.75    ->  high
+- 0.75〜0.90	->  ex-high
+- 0.90 or above	->  danger
