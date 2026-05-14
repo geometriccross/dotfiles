@@ -1,6 +1,6 @@
 ---
 name: estimate-task-diff
-description: Estimate task difficulty for the orchestraion
+description: Estimate task difficulty for the orchestration
 ---
 
 Estimate task complexity before execution.
@@ -10,7 +10,7 @@ blast_radius:
 - 0 ~ 4:        ->  low
 - 5 ~ 10:       ->  medium
 - 11 ~ 15:      ->  high
-- 15 ~ 20:      ->  ex-high
+- 16 ~ 20:      ->  ex-high
 - 21 or above:  ->  danger
 
 context_pressure:
@@ -26,12 +26,12 @@ estimated_tool_call_count:
 - 4 ~ 8: medium
 - 9 ~ 12: high
 - 13 ~ 16: ex-high
-- 16 or above: danger
+- 17 or above: danger
 
 rollback_difficulty:
 - local file edit       ->  low
 - module edit           ->  medium
 - schema migration      ->  high
-- architecture channge  ->  ex-high
+- architecture change  ->  ex-high
 - production deletion   ->  danger
 
