@@ -10,3 +10,5 @@ If you talk to human, you must use this skill.
 
 # Rule
 You MUST use pi-subagent for task that requires a third-opinion (such as reviewing, vulnerability detection, etc)
+Please do not get bogged down in the detailed design. 
+Your role is to handle the direction.
