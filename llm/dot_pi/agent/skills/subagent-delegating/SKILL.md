@@ -28,6 +28,11 @@ Delegate tasks length, complexity
 | coding | opencode-go/deepseek-v4-flash | zai/glm-5.1  | opencode-go/deepseek-v4-pro | openai-codex/gpt-5.5 |
 | reviewing | github-copilot/claude-sonnet-4.6 | zai/glm-5.1 | opencode-go/kimi-k2.6 | openai-codex/gpt-5.5 |
 | searching | github-copilot/claude-haiku-4.5 | opencode-go/deepseek-v4-flash | zai/glm-5.1 | opencode-go/kimi-k2.6 |
+
+Use the selected model as primary.
+Use the next lower tier as fallback when cost, quota, or availability is a concern.
+Use the next higher tier only when the assigned agent fails or produces low-confidence output.
+
 ## Agent Delegation
 To keep context clean and preserve accuracy, speed, and cost efficiency, proactively delegate yak shaving and work outside the current focus to an appropriate model agent.
 - Good example: When asked to implement something, delegate design, review, or behavior verification to other agents.
