@@ -3,6 +3,21 @@ name: subagent-delegating
 description: The simple rule for delegating tasks to subagents
 ---
 
+## Input Contract
+
+This skill assumes the task difficulty has already been estimated by `estimate-task-diff`.
+Expected input:
+```json
+{
+  "difficulty": "low|medium|high|ex-high|danger",
+  "required_actions": []
+}
+```
+
+Do not recompute difficulty.
+Do not redefine checkpointing, review-loop, or human-approval policy.
+Use `difficulty` and `required_actions` only to select delegated roles and models.
+
 ## Agent Delegation
 To keep context clean and preserve accuracy, speed, and cost efficiency, proactively delegate yak shaving and work outside the current focus to an appropriate model agent.
 - Good example: When asked to implement something, delegate design, review, or behavior verification to other agents.
