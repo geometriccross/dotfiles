@@ -40,7 +40,7 @@ To keep context clean and preserve accuracy, speed, and cost efficiency, proacti
 
 How to call an agent (left-priority fallback)
 ```bash
-pi --model <provider/model:effort> --fallback-models <provider/model:effort>,... ¥
+pi --model <provider/model:effort> <provider/model:effort>,... ¥
     -p '<instructions>' 
 ```
 When a delegated task needs a specific skill, specify it in the prompt
