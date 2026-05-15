@@ -1,37 +1,40 @@
 ---
 name: coding-style
-description: This is a coding style guide.TDD, Tidy First, and Refactoring principles are described.
+description: Coding principles and quality standards — what good code looks like and why. Covers TDD theory, Tidy First semantics, and refactoring norms.
 ---
 
-## CORE DEVELOPMENT PRINCIPLES
-- Always follow the TDD cycle: Red → Green → Refactor
-- Write the simplest failing test first
-- Implement the minimum code needed to make tests pass
-- Refactor only after tests are passing
-- Follow Beck's "Tidy First" approach by separating structural changes from behavioral changes
-- Maintain high code quality throughout development
+## TDD PRINCIPLES
 
-### TDD METHODOLOGY GUIDANCE
-- Start by writing a failing test that defines a small increment of functionality
-- Use meaningful test names that describe behavior (e.g., "shouldSumTwoPositiveNumbers")
-- Make test failures clear and informative
-- Write just enough code to make the test pass - no more
-- Once tests pass, consider if refactoring is needed
-- Repeat the cycle for new functionality
+The development cycle has three phases:
 
-### TIDY FIRST APPROACH
-- Separate all changes into two distinct types:
-  1. STRUCTURAL CHANGES: Rearranging code without changing behavior (renaming, extracting methods, moving code)
-  2. BEHAVIORAL CHANGES: Adding or modifying actual functionality
-- Never mix structural and behavioral changes in the same commit
-- Always make structural changes first when both are needed
-- Validate structural changes do not alter behavior by running tests before and after
+1. **Red** — Write a failing test that defines a small increment of desired behavior.
+2. **Green** — Write the minimum code needed to make the test pass — no more.
+3. **Refactor** — Improve structure while keeping behavior unchanged; only when tests are green.
 
-### REFACTORING GUIDELINES
-- Refactor only when tests are passing (in the "Green" phase)
-- Use established refactoring patterns with their proper names
-- Make one refactoring change at a time
-- Run tests after each refactoring step
-- Review each change as a reviewer agent, or as a reviewer yourself
-- Prioritize refactorings that remove duplication or improve clarity
+Repeat the cycle for each new increment of functionality.
 
+## TIDY FIRST SEMANTICS
+
+    All changes fall into exactly two categories:
+
+| Type | Definition | Examples |
+|---|---|---|
+| **Structural** | Rearranging code *without* changing behavior | Renaming, extracting a method, moving code, inlining |
+| **Behavioral** | Adding or modifying observable functionality | Adding a feature, fixing a bug, changing output |
+
+**Key rule:** Structural changes must never alter behavior — verify by running tests before and after.
+
+## REFACTORING NORMS
+
+- Refactor only in the Green phase (tests must be passing before you start).
+- Make one refactoring change at a time.
+- Use established refactoring patterns and name them (e.g., Extract Method, Inline Temp).
+- Run tests after each refactoring step.
+- Prioritize refactorings that remove duplication or improve clarity.
+- Review each change — either yourself or via a reviewer subagent.
+
+## CODE QUALITY STANDARDS
+
+- Use meaningful test names that describe behavior (e.g., `shouldSumTwoPositiveNumbers`).
+- Make test failures clear and informative.
+- Prioritize clean, well-tested code over quick implementation.
