@@ -1,5 +1,5 @@
 ---
-name: coding-workflow
+name: coding-style
 description: This is a coding style guide.TDD, Tidy First, and Refactoring principles are described.
 ---
 
