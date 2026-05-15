@@ -57,27 +57,3 @@ Acceptance Criteria:
 Stop Condition:
 Expected Output:
 ```
-
-## Model selection:
-Ranked by ability,
-Delegate tasks length, complexity
-
-Orchestration:
-Top     ->  opencode-go/kimi-k2.6
-Middle  ->  zai/glm-5.1
-Low     ->  github-copilot/claude-sonnet-4.6
-
-Reviewing:
-Top     ->  opencode-go/kimi-k2.6
-Middle  ->  zai/glm-5.1
-Low     ->  opencode-go/deepseek-v4-pro
-
-Coding:
-Top     ->  openai-codex/gpt-5.5
-Middle  ->  opencode-go/deepseek-v4-pro
-Low     ->  zai/glm-5.1
-
-Searching:
-Top     ->  opencode-go/deepseek-v4-flash
-Middle  ->  zai/glm-5-turbo
-Low     ->  github-copilot/claude-sonnet-4.5
