@@ -1,6 +1,8 @@
 ---
 name: coding-style
-description: Coding principles and quality standards — what good code looks like and why. Covers TDD theory, Tidy First semantics, and refactoring norms.
+description: >-
+    Coding principles and quality standards
+    What good code looks like and why. Covers TDD theory, Tidy First semantics, and refactoring norms.
 ---
 
 ## TDD PRINCIPLES
