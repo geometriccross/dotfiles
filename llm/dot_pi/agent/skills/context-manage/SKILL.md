@@ -1,6 +1,8 @@
 ---
 name: context-manage
-description: Manage loading, saving/updating, deleting, and pruning project-local context
+description: ->
+    Manage loading, saving/updating, deleting, and pruning project-local context
+    You MUST read this if you start session.
 ---
 
 # context_manage
