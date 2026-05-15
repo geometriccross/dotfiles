@@ -1,6 +1,8 @@
 ---
 name: base-rule
-description: The core principles and behavior
+description: >-
+    The core principles and behavior
+    You must read this when you start session.
 ---
 
 # Core Principles
