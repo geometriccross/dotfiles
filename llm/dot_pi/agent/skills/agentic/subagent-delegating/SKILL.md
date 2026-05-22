@@ -1,66 +1,46 @@
 ---
 name: subagent-delegating
-description: Delegate tasks to sub-agents via CLI pi. Selects models by difficulty and role, generates structured prompts, and executes via `pi -p`. Use after estimating task difficulty with estimate-task-diff, or when delegating work to another agent instance.
+description: Delegate tasks to sub-agents via CLI pi. Selects agent from [agents/](agents/) directory, parses frontmatter, and executes via `pi -p` with automatic fallback. Use when delegating work to another agent instance.
 ---
 
-## Input Contract
+## Danger Rule
 
-Task difficulty must already be estimated by `estimate-task-diff`.
-Expected input:
-```json
-{
-  "difficulty": "low|medium|high|ex-high|danger",
-  "required_actions": []
-}
-```
+If the task involves **production data deletion, schema migration, or irreversible architecture changes**, stop. Present to human for approval. Do not delegate.
 
-Do not recompute difficulty.
-Do not redefine checkpointing, review-loop, or human-approval policy.
+For all other tasks, proceed.
 
-## Danger Level
+## Workflow
 
-**danger = no delegation.** Present the task to the human for explicit approval before any action. Do not auto-delegate.
+1. **Check danger** — Production deletion / schema migration / architecture change → ask human
+2. **Select agent** — Pick from [agents/](agents/) based on task nature:
 
-## Model Selection
+| Agent | When to use |
+|---|---|
+| coder | Write code, implement features, fix bugs |
+| reviewer | Review code, plans, architecture for correctness |
+| cracker | Security audit, vulnerability detection |
+| orchestration | Plan and break down work into structured steps |
+| searcher | Find specific information (file, symbol, reference) |
+| researcher | Investigate a topic and synthesize a report |
 
-Ranked by ability, delegate by task length and complexity.
-
-| role | low | medium | high | ex-high |
-|---|---|---|---|---|
-| orchestration | github-copilot/claude-sonnet-4.6 | zai/glm-5.1 | opencode-go/kimi-k2.6 | opencode-go/kimi-k2.6 |
-| coding | opencode-go/deepseek-v4-flash | zai/glm-5.1 | opencode-go/deepseek-v4-pro | openai-codex/gpt-5.5 |
-| reviewing | github-copilot/claude-sonnet-4.6 | zai/glm-5.1 | opencode-go/kimi-k2.6 | openai-codex/gpt-5.5 |
-| searching | github-copilot/claude-haiku-4.5 | opencode-go/deepseek-v4-flash | zai/glm-5.1 | opencode-go/kimi-k2.6 |
-
-Fallback: use next lower tier when cost, quota, or availability is a concern.
-Escalate: use next higher tier only when the assigned agent fails or produces low-confidence output.
-
-## Delegation Workflow
-
-1. Determine role from `required_actions` (orchestration / coding / reviewing / searching)
-2. Select model from table using `difficulty` + role
-3. Build prompt using [DELEGATION.md](DELEGATION.md) template
-4. Execute via bash:
+3. **Execute** — Use [scripts/delegate.sh](scripts/delegate.sh):
 
 ```bash
-pi -p --model <model> --append-system-prompt <this directory>/DELEGATION.md --session <session_path> "<message>"
+./<this dir>/scripts/delegate.sh <agent> "<message>" [--no-context] [--session <path>] [--continue] [--dry-run]
 ```
 
-5. Parse stdout for result
-6. If multi-turn needed, continue:
+The script reads agent frontmatter, builds the `pi -p` command, and handles fallback automatically.
 
-```bash
-pi -p --continue --session <session_path> "<follow-up message>"
-```
+4. Parse stdout for result
 
 ## Timeout Rule
 
 **Do not specify a `timeout` on bash calls that invoke `pi -p`.**
-The agent tends to auto-inject short timeouts (10–60s) which kill long-running sub-agents.
-`pi -p` will terminate on its own when the LLM completes. Rely on task decomposition
-(not timeouts) to keep individual calls short.
+The agent auto-injects short timeouts (10–60s) which kill long-running sub-agents.
+`pi -p` terminates on its own. Rely on task decomposition, not timeouts.
 
-## Session Paths
+## Session Lifecycle
 
-Use `--session /tmp/pi-subagent-<role>-<timestamp>` to isolate sub-agent sessions.
-Clean up sessions after task completion.
+- `delegate.sh` auto-generates `--session /tmp/pi-subagent-<agent>-<timestamp>`
+- Sessions persist after task completion for multi-turn use (`--continue`)
+- Clean up manually when the task is fully resolved: `rm /tmp/pi-subagent-<agent>-*`
