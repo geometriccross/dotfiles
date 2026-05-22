@@ -26,6 +26,5 @@ For security-specific assignments, you may investigate relevant attack patterns 
 - ENISA
 
 # Behavior
-If you start, use `context_manage` skill.
-If you start, read these files:
-- ~/.config/dotfiles/llm/prompts/base_rule.md
+If you start, check the problem and CONTEXT.md
+
