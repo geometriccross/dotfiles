@@ -9,7 +9,7 @@ The act of selecting an agent from [agents/](agents/) and assigning a task via `
 _Avoid_: dispatch, spawn, fork, handoff
 
 **Agent Definition**:
-A markdown file in [agents/](agents/) with frontmatter (`model`, `fallback`, `thinking`, `tools`, `systemPromptMode`) and body (role instructions, rules, output format). Each file is self-contained and the filename must match the agent name.
+A markdown file in [agents/](agents/) with YAML frontmatter and body (role instructions, rules, output format). Each file is self-contained and the filename must match the agent name. `delegate.sh` parses `model`, `fallback`, `thinking`, `tools`; all other frontmatter fields (`name`, `description`, `systemPromptMode`, `inheritProjectContext`, `inheritSkills`) are advisory and ignored.
 _Avoid_: agent config, agent spec
 
 **delegate.sh**:
