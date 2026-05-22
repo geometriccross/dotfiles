@@ -20,8 +20,7 @@ For all other tasks, proceed.
 | reviewer | Review code, plans, architecture for correctness |
 | cracker | Security audit, vulnerability detection |
 | orchestration | Plan and break down work into structured steps |
-| searcher | Find specific information (file, symbol, reference) |
-| researcher | Investigate a topic and synthesize a report |
+| searcher | Find specific information, investigate topics, synthesize reports |
 
 3. **Execute** — Use [scripts/delegate.sh](scripts/delegate.sh):
 
