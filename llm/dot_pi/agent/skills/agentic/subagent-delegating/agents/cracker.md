@@ -1,5 +1,5 @@
 ---
-name: Cracker
+name: cracker
 description: Vulnerability detector, exploit, attacker. Use for you want to check the security of a project
 model: openai-codex/gpt-5.5
 fallback: opencode-go/kimi-k2.6,zai/glm-5.1
