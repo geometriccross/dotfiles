@@ -1,90 +1,115 @@
 ---
 name: context-manage
-description: ->
-    Manage loading, saving/updating, deleting, and pruning project-local context
-    You MUST read this if you start session.
+description: >
+    Save and load project decisions, constraints, and failed approaches in
+    `.context/`. Use when starting a session, making design decisions,
+    discovering non-obvious constraints, or encountering dead ends.
 ---
 
-# context_manage
+# context-manage
 
-Procedures for loading, saving/updating, deleting, and pruning project context directly under `<PROJECT_ROOT>/.context/`.
-
-## When to Use
-
-- Load relevant context before starting non-trivial project work.
-- After completing work, save/update reusable decisions, findings, constraints, and patterns.
-- During maintenance, safely prune stale, duplicate, or malformed context.
+Manage project knowledge in `<PROJECT_ROOT>/.context/`.
 
 ## Setup
-
-- Create `<PROJECT_ROOT>/.context/` if it does not exist.
-- Add `.context/` idempotently to `<PROJECT_ROOT>/.gitignore`.
-- Use `.context/` as a flat directory; do not create subdirectories.
 
 ```bash
 mkdir -p <PROJECT_ROOT>/.context/
 grep -qxF ".context/" <PROJECT_ROOT>/.gitignore || echo ".context/" >> <PROJECT_ROOT>/.gitignore
 ```
 
-## Loading
-
-1. Choose 2-4 lowercase English keywords from the task, domain, and related filenames.
-2. Search only directly under `.context/`.
-
-```bash
-find <PROJECT_ROOT>/.context/ -maxdepth 1 -type f \( -name "*<keyword1>*" -o -name "*<keyword2>*" \)
-```
-
-3. If there are zero matches, report "no matches" and search once more after adding adjacent domain terms/synonyms or replacing specific keywords with broader stems. If there are still zero matches, state that you will proceed assuming no existing context is available.
-4. If there are multiple matches, read all of them when they are small. If there are many or large files, choose by this priority: task relevance > exact filename match > recency > smaller/readable file. State the selection rationale.
-5. Record the filenames loaded and their relevance to the task in working notes or the final report.
-
-## Saving / Updating
-
-- At the end of a task, save only reusable decisions, design patterns, research findings, and constraints.
-- Before creating a new file, search for similar names. Do not create a new file if the content can be merged into or updated in an existing file.
-- Keep the Markdown readable and always include `name` and `description` in YAML frontmatter.
-- After writing, re-read the file and confirm that the frontmatter and body are readable and not malformed.
+If `.context/CONTEXT.md` does not exist, create it:
 
 ```markdown
----
-name: auth_patterns
-description: Reusable design decisions and implementation patterns for authentication
----
+# Context Index
 
-## Key Points
-
-- <context_content>
+| file | tags | summary |
+|---|---|---|
 ```
 
-## Deleting / Pruning
+## What to Save
 
-- Do not delete blindly. First list stale candidates with a dry-run.
-- On macOS/BSD and Linux, `find ... -atime +14` often works. On macOS/BSD, use `stat -f` for inspection when you need details. If the OS is unknown, only perform safe listing/reporting, not deletion commands.
+Only three types. Nothing else belongs in `.context/`:
 
-```bash
-# dry-run: macOS/BSD and Linux
-find <PROJECT_ROOT>/.context/ -maxdepth 1 -type f -atime +14 -print
+| Type | Trigger |
+|---|---|
+| **Decision (A)** | You chose one option over others for a specific reason |
+| **Constraint (B)** | You discovered a non-obvious fact through investigation, testing, or external sources — things you would not know from casually reading the code (e.g. runtime behavior, undocumented limits, environment-specific quirks, implicit dependencies between systems). Code-level constraints visible from schema/model definitions do NOT belong here. |
+| **Failure (C)** | An approach you tried or investigated did not work — includes both "ran code and it failed" and "evaluated an option and found it unusable" |
 
-# inspection on macOS/BSD
-stat -f '%N %Sa' -t '%Y-%m-%d %H:%M:%S' <PROJECT_ROOT>/.context/*
+**Do NOT save:** patterns/conventions (→ project AGENTS.md), glossary terms (→ project CONTEXT.md), in-progress investigations (→ compact).
+
+## Save Procedure
+
+When a trigger fires, **immediately**:
+
+1. Fill the matching template below.
+2. Append to an existing file if it covers the **same narrow topic** (e.g. `auth_decisions.md` for auth decisions, not for all auth-related things). When in doubt, create a new file.
+3. Update `.context/CONTEXT.md` index.
+
+### Templates
+
+Each entry starts with a heading. Append new entries to the **end** of the file (chronological order).
+
+**Decision:**
+
+```markdown
+## Decision: <what was decided> [YYYY-MM-DD]
+
+**Choice:** <what was chosen>
+**Alternatives rejected:** <what was rejected>
+**Reason:** <why — can be multiple sentences or bullet points>
 ```
 
-- Delete only files whose exact paths have been reviewed and confirmed to be stale and unrelated to current or in-progress work.
-- For destructive operations such as deletion/renaming/merging, follow this sequence: dry-run list → summarize candidates and reasons → explicit user approval → execute only on the approved exact paths → verify/report. Without explicit approval, only report proposed actions; do not delete, rename, or merge.
-- Keep malformed context; do not rename/delete it merely because it is malformed. Repair frontmatter only when the intended name/description is obvious from the filename/content. Otherwise, record the path and reason as `manual_review` in the pruning report.
-- For duplicate/overlapping names, compare the contents and consider merging, updating, or renaming before deletion.
-- Report files that were deleted, merged, or renamed, along with the reasons.
+**Constraint:**
 
-## Format / Naming
+```markdown
+## Constraint: <short name> [YYYY-MM-DD]
 
-- Use one `.md` file per event/topic.
-- Store files only directly under `<PROJECT_ROOT>/.context/`.
-- The filename stem and frontmatter `name` must use lowercase English segments joined with `_`, with at most 3 segments.
-- A readable/valid context has opening/closing `---`, non-empty `name` and `description`, and a `name` matching the filename stem. If they intentionally differ, explain why in the body.
-- Examples: `auth_patterns.md`, `api_routes.md`, `login_verifier.md`
-- Use broad names for broad context and specific names for narrow context, but do not exceed 3 segments.
+**What:** <the constraint — be specific with values>
+**Source:** <how you discovered it — e.g. "API docs §3.2", "runtime test showing 5xx at 6req/s", "ops team confirmation">
+```
 
-## Reporting
+**Failure:**
 
-In the final answer or task notes, briefly summarize the context files loaded, saved, updated, or deleted, along with the assumptions behind those decisions.
+```markdown
+## Failure: <what was tried> [YYYY-MM-DD]
+
+**Approach:** <what was attempted or investigated>
+**Result:** <what happened — error message, behavior, or why it's unusable>
+**Cause:** <direct reason it failed, not root cause analysis>
+```
+
+### File Naming
+
+- Lowercase English, `_`-separated, max 3 segments.
+- Name by **topic**, not by type — a file can contain mixed types if they share the same topic.
+- Do NOT include the type in the filename (no `_decisions`, `_constraints`, `_failures`).
+- Example: `auth.md`, `external_api.md`, `deployment.md`
+
+### Index Update
+
+After save, add one row to `.context/CONTEXT.md`:
+
+```markdown
+| auth_decisions | [auth, jwt, session, cookie] | Chose session cookie over JWT |
+```
+
+**Tags** should cover: synonyms, abbreviations, and related terms someone might search for. Include tags from all entries in the file.
+
+Re-read the index after writing and confirm the table is valid (has header separator row `|---|---|---|` and all rows have 3 columns).
+
+## Load Procedure
+
+1. Read `.context/CONTEXT.md`.
+2. From the task description and file paths involved, extract 2-4 keywords.
+3. Match keywords against **tags** and **summary** columns. A match on any tag is sufficient — err on the side of reading more rather than less.
+4. Read all matched files.
+5. If no matches at all, state "no relevant context found" and proceed.
+
+## Contradiction Handling
+
+If a loaded context contradicts the current codebase or situation:
+
+1. Report the contradiction to the user with both the context content and the current reality.
+2. Ask whether to update, delete, or keep as-is.
+3. Do not modify or delete without explicit user approval.
