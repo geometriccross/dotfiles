@@ -34,19 +34,8 @@ Use the next lower tier as fallback when cost, quota, or availability is a conce
 Use the next higher tier only when the assigned agent fails or produces low-confidence output.
 
 ## Agent Delegation
-To keep context clean and preserve accuracy, speed, and cost efficiency, proactively delegate yak shaving and work outside the current focus to an appropriate model agent.
-- Good example: When asked to implement something, delegate design, review, or behavior verification to other agents.
-- Bad example: When encountering a deep-rooted error, trying to solve it yourself without launching a debugging agent.
+Use pi-subagent and pi-intercom extensions to delegate tasks to other agents.
 
-How to call an agent (left-priority fallback)
-```bash
-pi --model <provider/model:effort> <provider/model:effort>,... ¥
-    -p '<instructions>' 
-```
-When a delegated task needs a specific skill, specify it in the prompt
-```bash
-pi ... -p '/skill:<skill-name> <instructions>'
-```
 
 You MUST add these format to the prompt instructions
 ```text
