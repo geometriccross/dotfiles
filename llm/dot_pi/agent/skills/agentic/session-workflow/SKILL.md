@@ -1,5 +1,5 @@
 ---
-name: root-session-workflow
+name: session-workflow
 description: A standard workflow for a session. You MUST read this when you start session.
 ---
 
