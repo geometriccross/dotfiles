@@ -9,33 +9,5 @@
     "npm:pi-caffeinate"
   ],
   "hideThinkingBlock": false,
-  "subagents": {
-    "agentOverrides": {
-      "context-builder": {
-        "disabled": true
-      },
-      "delegate": {
-        "disabled": true
-      },
-      "oracle": {
-        "disabled": true
-      },
-      "planner": {
-        "disabled": true
-      },
-      "researcher": {
-        "disabled": true
-      },
-      "reviewer": {
-        "disabled": true
-      },
-      "scout": {
-        "disabled": true
-      },
-      "worker": {
-        "disabled": true
-      }
-    }
-  },
   "defaultThinkingLevel": "high"
 }
