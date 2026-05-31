@@ -125,28 +125,29 @@ select_container_source_dir() {
 }
 
 install_common_packages() {
-	local packages=(zsh wget curl git locales-all)
+	local packages=(zsh git curl wget)
 	local missing=()
 
-	if ! command -v apt-get >/dev/null 2>&1; then
-		log_error "apt-get not found. This installer currently supports Debian/Ubuntu only."
-		return 1
-	fi
-
-	for package in "${packages[@]}"; do
-		if ! dpkg -s "$package" >/dev/null 2>&1; then
-			missing+=("$package")
-		fi
+	for cmd in "${packages[@]}"; do
+		command -v "$cmd" >/dev/null || missing+=("$cmd")
 	done
 
 	if ((${#missing[@]} == 0)); then
-		log_info "Common packages already installed."
+		log_info "All prerequisites already installed."
 		return
 	fi
 
-	log_info "Installing missing packages: ${missing[*]}"
-	as_root apt-get update
-	as_root apt-get install -y "${missing[@]}"
+	log_info "Missing packages: ${missing[*]}"
+
+	if command -v brew >/dev/null; then
+		brew install "${missing[@]}"
+	elif command -v apt-get >/dev/null; then
+		as_root apt-get update
+		as_root apt-get install -y "${missing[@]}" locales-all
+	else
+		log_error "No supported package manager found (brew or apt-get)."
+		return 1
+	fi
 }
 
 ensure_zinit() {
@@ -160,21 +161,6 @@ ensure_zinit() {
 	log_info "Installing zinit..."
 	mkdir -p "$(dirname "$zinit_home")"
 	git clone https://github.com/zdharma-continuum/zinit.git "$zinit_home"
-}
-
-ensure_starship() {
-	if command -v starship >/dev/null 2>&1; then
-		log_info "starship already installed."
-		return
-	fi
-
-	log_info "Installing starship..."
-	if is_container_mode; then
-		mkdir -p "$HOME/.local/bin"
-		curl -fsSL https://starship.rs/install.sh | sh -s -- -y -b "$HOME/.local/bin"
-	else
-		curl -fsSL https://starship.rs/install.sh | as_root sh -s -- -y
-	fi
 }
 
 ensure_zsh_shell() {
@@ -302,7 +288,6 @@ main() {
 		ensure_zsh_shell
 	fi
 
-	ensure_starship
 	ensure_dotfiles_repo
 	ensure_symlink "$DOTFILES_DIR/zsh" "$XDG_CONFIG_HOME/zsh"
 	ensure_symlink "$DOTFILES_DIR/zsh/.zshenv" "$HOME/.zshenv"

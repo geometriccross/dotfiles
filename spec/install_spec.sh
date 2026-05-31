@@ -130,9 +130,8 @@ End
 
 Describe 'main --container'
 	It 'skips full-mode setup steps'
-		When run bash -c 'source ./install.sh; install_common_packages(){ echo full:packages; }; ensure_zinit(){ echo full:zinit; }; ensure_zsh_shell(){ echo full:zsh_shell; }; ensure_starship(){ echo common:starship; }; ensure_dotfiles_repo(){ echo common:repo; }; ensure_symlink(){ echo common:symlink:$1:$2; }; ensure_aqua(){ echo common:aqua; }; main --container'
+		When run bash -c 'source ./install.sh; install_common_packages(){ echo full:packages; }; ensure_zinit(){ echo full:zinit; }; ensure_zsh_shell(){ echo full:zsh_shell; }; ensure_dotfiles_repo(){ echo common:repo; }; ensure_symlink(){ echo common:symlink:$1:$2; }; ensure_aqua(){ echo common:aqua; }; main --container'
 		The status should be success
-		The stdout should include "common:starship"
 		The stdout should include "common:repo"
 		The stdout should include "common:symlink:"
 		The stdout should include ".zshenv"

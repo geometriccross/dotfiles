@@ -43,7 +43,6 @@ fi
 export PATH=${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH
 export AQUA_GLOBAL_CONFIG=$XDG_CONFIG_HOME/dotfiles/aqua.yaml
 
-export PATH=$HOME/.pixi/bin:$PATH # pixi
 export PATH=$HOME/.opencode/bin:$PATH # opencode
 
 [[ -f "$HOME/.env" ]] && source "$HOME/.env" # SET MANUALY
@@ -79,9 +78,3 @@ if [[ -x "$MAMBA_EXE" ]]; then
 	fi
 	unset __mamba_setup
 fi
-
-# Rust
-[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
-
-# roswell
-export PATH="$HOME/.roswell/bin:$PATH"
