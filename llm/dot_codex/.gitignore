@@ -21,3 +21,4 @@ log*
 tmp*
 sqlite
 state_5*
+goals_*
