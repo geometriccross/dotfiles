@@ -3,3 +3,4 @@ agent/sessions
 auth.json
 agent/intercom
 agent/run-history.jsonl
+__pycache__
