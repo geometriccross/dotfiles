@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.75.1",
+  "lastChangelogVersion": "0.78.0",
   "defaultProvider": "zai",
   "defaultModel": "glm-5.1",
   "packages": [
