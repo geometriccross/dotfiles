@@ -164,26 +164,19 @@ ensure_zinit() {
 }
 
 ensure_zsh_shell() {
-	local current_user
 	local zsh_path
-	local current_shell
-
-	current_user="$(id -un)"
 	zsh_path="$(command -v zsh)"
-	current_shell="$(getent passwd "$current_user" | cut -d: -f7)"
 
-	if grep -Fxq "$zsh_path" /etc/shells; then
+	if grep -Fxq "$zsh_path" /etc/shells 2>/dev/null; then
 		log_info "$zsh_path already listed in /etc/shells."
 	else
 		log_info "Adding $zsh_path to /etc/shells..."
 		printf "%s\n" "$zsh_path" | as_root tee -a /etc/shells >/dev/null
 	fi
 
-	if [[ "$current_shell" == "$zsh_path" ]]; then
-		log_info "Default shell already set to zsh."
-	else
+	if [[ "$SHELL" != "$zsh_path" ]]; then
 		log_info "Changing default shell to zsh..."
-		as_root chsh -s "$zsh_path" "$current_user"
+		chsh -s "$zsh_path"
 	fi
 }
 
