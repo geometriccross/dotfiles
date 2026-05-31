@@ -22,3 +22,5 @@ packages:
 - name: oven-sh/bun@bun-v1.3.13
 - name: openai/codex@rust-v0.128.0
 - name: shellspec/shellspec@0.28.1
+- name: starship/starship@v1.25.1
+- name: direnv/direnv@v2.37.1
