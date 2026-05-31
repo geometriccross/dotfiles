@@ -1,7 +1,7 @@
 export PATH="$HOME/.local/bin:$PATH"
 
-
-# ==================== zsh setup ====================
+# ==================== history ====================
+HISTFILE=${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 if [[ -r "$ZINIT_HOME/zinit.zsh" ]]; then
 	source "${ZINIT_HOME}/zinit.zsh"
