@@ -1,5 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+	set -Eeuo pipefail
+	trap 'log_error "Failed at line $LINENO"' ERR
+fi
 
 # 色付き出力用
 GREEN='\033[0;32m'
@@ -8,75 +12,303 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 log_info() {
-	echo -e "${GREEN}[INFO]${NC} $1"
+	printf "%b[INFO]%b %s\n" "$GREEN" "$NC" "$1"
 }
 
 log_warn() {
-	echo -e "${YELLOW}[WARN]${NC} $1"
+	printf "%b[WARN]%b %s\n" "$YELLOW" "$NC" "$1"
 }
 
 log_error() {
-	echo -e "${RED}[ERROR]${NC} $1"
+	printf "%b[ERROR]%b %s\n" "$RED" "$NC" "$1" >&2
 }
 
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+DOTFILES_DIR="$XDG_CONFIG_HOME/dotfiles"
+DOTFILES_SOURCE_DIR=""
+DOTFILES_REPO_SSH="git@github.com:geometriccross/dotfiles.git"
+DOTFILES_REPO_HTTPS="https://github.com/geometriccross/dotfiles.git"
+INSTALL_MODE="full"
+HELP_REQUESTED="false"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P || true)"
 
-# --- install common packages -------------------------------
-log_info "Installing common packages..." &&
-	sudo apt-get update &&
-	sudo apt-get install -y \
-		zsh \
-		wget \
-		curl \
-		git \
-		locales-all
+usage() {
+	cat <<'EOF'
+Usage: install.sh [--container] [--help]
 
-# zinit
-bash -c "$(curl --fail --show-error --silent --location https://raw.githubusercontent.com/zdharma-continuum/zinit/HEAD/scripts/install.sh)"
+Modes:
+  full         Install packages and configure the host user environment. (default)
+  container    Use the current dotfiles checkout; do not install apt packages or edit /etc.
+EOF
+}
 
-# starship
-sudo curl -sS https://starship.rs/install.sh | sh
+parse_args() {
+	INSTALL_MODE="full"
+	HELP_REQUESTED="false"
 
-# --- System Setup -------------------------------
-USER=$(whoami)
+	while (($# > 0)); do
+		case "$1" in
+			--container)
+				INSTALL_MODE="container"
+				;;
+			--help | -h)
+				usage
+				HELP_REQUESTED="true"
+				return
+				;;
+			*)
+				log_error "Unknown option: $1"
+				usage >&2
+				return 1
+				;;
+		esac
+		shift
+	done
+}
 
-log_info "Adding zsh to /etc/shells..." &&
-	grep -q "^/usr/bin/zsh$" /etc/shells ||
-	echo "/usr/bin/zsh" | tee -a /etc/shells >/dev/null
+is_container_mode() {
+	[[ "$INSTALL_MODE" == "container" ]]
+}
 
-log_info "Changing default shell to zsh..." &&
-	[[ "$SHELL" == *"zsh"* ]] ||
-	sudo chsh -s /usr/bin/zsh
+as_root() {
+	if [[ "$(id -u)" -eq 0 ]]; then
+		"$@"
+	elif command -v sudo >/dev/null 2>&1; then
+		sudo "$@"
+	else
+		log_error "sudo is required when running as a non-root user."
+		return 127
+	fi
+}
 
-SUDOERS_FILE="/etc/sudoers.d/$USER"
-log_info "Adding user to sudoers..." &&
-	[ -f "$SUDOERS_FILE" ] ||
-	echo "$USER    ALL=NOPASSWD: ALL" | tee "$SUDOERS_FILE" >/dev/null &&
-	chmod 440 "$SUDOERS_FILE"
+backup_path() {
+	local path="$1"
+	local backup="${path}.bak.$(date +%Y%m%d%H%M%S)"
 
+	while [[ -e "$backup" ]]; do
+		backup="${path}.bak.$(date +%Y%m%d%H%M%S).$RANDOM"
+	done
 
-# --- Dotfiles -------------------------------
-XDG_CONFIG_HOME=$HOME/.config
-DOTFILES_DIR=$XDG_CONFIG_HOME/dotfiles
+	printf "%s" "$backup"
+}
 
-mkdir -p $DOTFILES_DIR
+is_empty_dir() {
+	[[ -d "$1" ]] && [[ -z "$(find "$1" -mindepth 1 -maxdepth 1 -print -quit)" ]]
+}
 
-log_info "Cloning dotfiles repository..." &&
-	[ -d $DOTFILES_DIR ] &&
-	git clone git@github.com:geometriccross/dotfiles.git $DOTFILES_DIR ||
-	git clone https://github.com/geometriccross/dotfiles.git $DOTFILES_DIR
+resolve_path() {
+	if command -v realpath >/dev/null 2>&1; then
+		realpath "$1"
+	elif readlink -f "$1" >/dev/null 2>&1; then
+		readlink -f "$1"
+	elif command -v python3 >/dev/null 2>&1; then
+		python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "$1"
+	else
+		(cd "$(dirname "$1")" && printf "%s/%s\n" "$(pwd -P)" "$(basename "$1")")
+	fi
+}
 
-log_info "Add path to /etc/zsh/zshenv for ZDOTDIR..." &&
-	grep -q "export ZDOTDIR=$XDG_CONFIG_HOME/zsh" /etc/zsh/zshenv ||
-	echo "export ZDOTDIR=$XDG_CONFIG_HOME/zsh" | sudo tee -a /etc/zsh/zshenv >/dev/null
+valid_dotfiles_checkout() {
+	[[ -d "$1/zsh" && -f "$1/aqua.yaml" ]]
+}
 
-log_info "Sync zsh files" &&
-	cp -rsv $DOTFILES_DIR/zsh $XDG_CONFIG_HOME
+select_container_source_dir() {
+	if valid_dotfiles_checkout "$SCRIPT_DIR"; then
+		DOTFILES_SOURCE_DIR="$SCRIPT_DIR"
+	elif valid_dotfiles_checkout "$PWD"; then
+		DOTFILES_SOURCE_DIR="$PWD"
+	else
+		log_error "Container mode must run from a dotfiles checkout containing zsh/ and aqua.yaml."
+		return 1
+	fi
+}
 
+install_common_packages() {
+	local packages=(zsh wget curl git locales-all)
+	local missing=()
 
-# --- install aqua packages -------------------------------
-log_info "Installing aqua..." &&
-	[[ -e $HOME/.local/share/aquaproj-aqua/bin/aqua ]] ||
-	curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v4.0.2/aqua-installer | bash
+	if ! command -v apt-get >/dev/null 2>&1; then
+		log_error "apt-get not found. This installer currently supports Debian/Ubuntu only."
+		return 1
+	fi
 
-${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin/aqua i -a -c $DOTFILES_DIR/aqua.yaml
+	for package in "${packages[@]}"; do
+		if ! dpkg -s "$package" >/dev/null 2>&1; then
+			missing+=("$package")
+		fi
+	done
 
+	if ((${#missing[@]} == 0)); then
+		log_info "Common packages already installed."
+		return
+	fi
+
+	log_info "Installing missing packages: ${missing[*]}"
+	as_root apt-get update
+	as_root apt-get install -y "${missing[@]}"
+}
+
+ensure_zinit() {
+	local zinit_home="${ZINIT_HOME:-$XDG_DATA_HOME/zinit/zinit.git}"
+
+	if [[ -r "$zinit_home/zinit.zsh" ]]; then
+		log_info "zinit already installed."
+		return
+	fi
+
+	log_info "Installing zinit..."
+	mkdir -p "$(dirname "$zinit_home")"
+	git clone https://github.com/zdharma-continuum/zinit.git "$zinit_home"
+}
+
+ensure_starship() {
+	if command -v starship >/dev/null 2>&1; then
+		log_info "starship already installed."
+		return
+	fi
+
+	log_info "Installing starship..."
+	if is_container_mode; then
+		mkdir -p "$HOME/.local/bin"
+		curl -fsSL https://starship.rs/install.sh | sh -s -- -y -b "$HOME/.local/bin"
+	else
+		curl -fsSL https://starship.rs/install.sh | as_root sh -s -- -y
+	fi
+}
+
+ensure_zsh_shell() {
+	local current_user
+	local zsh_path
+	local current_shell
+
+	current_user="$(id -un)"
+	zsh_path="$(command -v zsh)"
+	current_shell="$(getent passwd "$current_user" | cut -d: -f7)"
+
+	if grep -Fxq "$zsh_path" /etc/shells; then
+		log_info "$zsh_path already listed in /etc/shells."
+	else
+		log_info "Adding $zsh_path to /etc/shells..."
+		printf "%s\n" "$zsh_path" | as_root tee -a /etc/shells >/dev/null
+	fi
+
+	if [[ "$current_shell" == "$zsh_path" ]]; then
+		log_info "Default shell already set to zsh."
+	else
+		log_info "Changing default shell to zsh..."
+		as_root chsh -s "$zsh_path" "$current_user"
+	fi
+}
+
+clone_dotfiles() {
+	mkdir -p "$(dirname "$DOTFILES_DIR")"
+
+	log_info "Cloning dotfiles repository..."
+	if GIT_SSH_COMMAND="ssh -o BatchMode=yes -o ConnectTimeout=5" git clone "$DOTFILES_REPO_SSH" "$DOTFILES_DIR"; then
+		return
+	fi
+
+	log_warn "SSH clone failed. Falling back to HTTPS."
+	git clone "$DOTFILES_REPO_HTTPS" "$DOTFILES_DIR"
+}
+
+ensure_dotfiles_repo() {
+	local backup
+
+	mkdir -p "$(dirname "$DOTFILES_DIR")"
+
+	if is_container_mode; then
+		select_container_source_dir
+		if [[ "$(resolve_path "$DOTFILES_SOURCE_DIR")" == "$(resolve_path "$DOTFILES_DIR" 2>/dev/null || printf '%s' "$DOTFILES_DIR")" ]]; then
+			log_info "Dotfiles checkout already at stable path: $DOTFILES_DIR"
+		else
+			ensure_symlink "$DOTFILES_SOURCE_DIR" "$DOTFILES_DIR"
+		fi
+		return
+	fi
+
+	if valid_dotfiles_checkout "$DOTFILES_DIR"; then
+		log_info "Dotfiles repository already available: $DOTFILES_DIR"
+		return
+	fi
+
+	if [[ -e "$DOTFILES_DIR" ]] && ! is_empty_dir "$DOTFILES_DIR"; then
+		backup="$(backup_path "$DOTFILES_DIR")"
+		log_warn "$DOTFILES_DIR exists but is not a valid dotfiles checkout. Moving to $backup"
+		mv "$DOTFILES_DIR" "$backup"
+	fi
+
+	clone_dotfiles
+}
+
+ensure_symlink() {
+	local source="$1"
+	local target="$2"
+	local current_target=""
+	local source_target=""
+	local backup
+
+	if [[ ! -e "$source" ]]; then
+		log_error "Symlink source not found: $source"
+		return 1
+	fi
+
+	mkdir -p "$(dirname "$target")"
+	source_target="$(resolve_path "$source")"
+
+	if [[ -L "$target" ]]; then
+		current_target="$(resolve_path "$target" 2>/dev/null || true)"
+		if [[ -n "$current_target" && "$current_target" == "$source_target" ]]; then
+			log_info "Symlink already configured: $target -> $source"
+			return
+		fi
+
+		log_warn "Replacing symlink: $target -> $(readlink "$target")"
+		rm "$target"
+	elif [[ -e "$target" ]]; then
+		backup="$(backup_path "$target")"
+		log_warn "$target already exists. Moving to $backup"
+		mv "$target" "$backup"
+	fi
+
+	log_info "Creating symlink: $target -> $source"
+	ln -s "$source" "$target"
+}
+
+ensure_aqua() {
+	local aqua_bin="${AQUA_ROOT_DIR:-$XDG_DATA_HOME/aquaproj-aqua}/bin/aqua"
+
+	if [[ -x "$aqua_bin" ]]; then
+		log_info "aqua already installed."
+	else
+		log_info "Installing aqua..."
+		curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v4.0.2/aqua-installer | bash
+	fi
+
+	log_info "Installing aqua packages..."
+	"$aqua_bin" i -a -c "$DOTFILES_DIR/aqua.yaml"
+}
+
+main() {
+	parse_args "$@"
+	if [[ "$HELP_REQUESTED" == "true" ]]; then
+		return
+	fi
+
+	if ! is_container_mode; then
+		install_common_packages
+		ensure_zinit
+		ensure_zsh_shell
+	fi
+
+	ensure_starship
+	ensure_dotfiles_repo
+	ensure_symlink "$DOTFILES_DIR/zsh" "$XDG_CONFIG_HOME/zsh"
+	ensure_symlink "$DOTFILES_DIR/zsh/.zshenv" "$HOME/.zshenv"
+	ensure_aqua
+}
+
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+	main "$@"
+fi
