@@ -1,9 +1,10 @@
 ## Easy Install
 ```
-bash <(curl https://raw.githubusercontent.com/geometriccross/dotfiles/refs/heads/main/install.sh)
+bash <(curl -fsSL https://raw.githubusercontent.com/geometriccross/dotfiles/refs/heads/main/install.sh)
 ```
 
 ## For Container (Non Root Only)
+Run from a dotfiles checkout, for example devcontainer dotfiles install command:
 ```
-curl -fsSL https://raw.githubusercontent.com/geometriccross/dotfiles/refs/heads/main/container.sh | bash
+./install.sh --container
 ```
