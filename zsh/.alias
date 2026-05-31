@@ -1,4 +1,4 @@
-alias s='source "${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME}}/.zshrc"'
+alias s='source "${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}/.zshrc"'
 
 alias v="nvim"
 alias vi="nvim"
@@ -16,6 +16,6 @@ alias gc="git commit"
 alias gp="git push"
 alias gl="git log"
 
-alias dup="devcontainer up --workspace-folder . --dotfiles-repository https://github.com/geometriccross/dotfiles.git --dotfiles-install-command ./install.sh"
+alias dup="devcontainer up --workspace-folder . --dotfiles-repository https://github.com/geometriccross/dotfiles.git --dotfiles-install-command './install.sh --container'"
 alias dexec="devcontainer exec --workspace-folder ."
 alias dbuild="devcontainer build --workspace-folder ."

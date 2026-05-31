@@ -14,7 +14,9 @@ fi
 # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 # [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-eval "$(direnv hook zsh)"
+if command -v direnv >/dev/null 2>&1; then
+	eval "$(direnv hook zsh)"
+fi
 
 
 # ================ modules =================
@@ -44,11 +46,13 @@ export AQUA_GLOBAL_CONFIG=$XDG_CONFIG_HOME/dotfiles/aqua.yaml
 export PATH=$HOME/.pixi/bin:$PATH # pixi
 export PATH=$HOME/.opencode/bin:$PATH # opencode
 
-source ~/.env # SET MANUALY
-. "$HOME/.local/bin/env"
+[[ -f "$HOME/.env" ]] && source "$HOME/.env" # SET MANUALY
+[[ -f "$HOME/.local/bin/env" ]] && . "$HOME/.local/bin/env"
 
 # homebrew
-eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+if [[ -x /opt/homebrew/bin/brew ]]; then
+	eval "$(/opt/homebrew/bin/brew shellenv zsh)"
+fi
 
 # beads
 export PATH="$PATH:/Users/geometriccross/.local/bin"
@@ -64,18 +68,20 @@ esac
 export PATH="/Users/geometriccross/.cache/.bun/bin:$PATH"
 
 # micromamba
-export MAMBA_EXE='/opt/homebrew/bin/micromamba';
-export MAMBA_ROOT_PREFIX=$XDG_DATA_HOME/mamba;
-__mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__mamba_setup"
-else
-    alias micromamba="$MAMBA_EXE"  # Fallback on help from micromamba activate
+export MAMBA_EXE='/opt/homebrew/bin/micromamba'
+export MAMBA_ROOT_PREFIX=$XDG_DATA_HOME/mamba
+if [[ -x "$MAMBA_EXE" ]]; then
+	__mamba_setup="$("$MAMBA_EXE" shell hook --shell zsh --root-prefix "$MAMBA_ROOT_PREFIX" 2>/dev/null)"
+	if [ $? -eq 0 ]; then
+		eval "$__mamba_setup"
+	else
+		alias micromamba="$MAMBA_EXE" # Fallback on help from micromamba activate
+	fi
+	unset __mamba_setup
 fi
-unset __mamba_setup
 
 # Rust
-. "$HOME/.cargo/env"
+[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
 
 # roswell
 export PATH="$HOME/.roswell/bin:$PATH"

@@ -1,44 +1,43 @@
-export XDG_DATA_HOME=$HOME/.local/share
-export XDG_CONFIG_HOME=$HOME/.config
-export XDG_STATE_HOME=$HOME/.local/state
-export XDG_CACHE_HOME=$HOME/.cache
+export PATH="$HOME/.local/bin:$PATH"
 
 
 # ==================== zsh setup ====================
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
-[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
-[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-source "${ZINIT_HOME}/zinit.zsh"
+if [[ -r "$ZINIT_HOME/zinit.zsh" ]]; then
+	source "${ZINIT_HOME}/zinit.zsh"
 
-zinit light-mode for \
-    zdharma-continuum/zinit-annex-as-monitor \
-    zdharma-continuum/zinit-annex-bin-gem-node \
-    zdharma-continuum/zinit-annex-patch-dl \
-    zdharma-continuum/zinit-annex-rust
+	zinit light-mode for \
+		zdharma-continuum/zinit-annex-as-monitor \
+		zdharma-continuum/zinit-annex-bin-gem-node \
+		zdharma-continuum/zinit-annex-patch-dl \
+		zdharma-continuum/zinit-annex-rust
 
-zinit load "mafredri/zsh-async"
-zinit load "zsh-users/zsh-completions"
-zinit load "zsh-users/zsh-autosuggestions"
-zinit load "zsh-users/zsh-syntax-highlighting"
-zinit load "zsh-users/zsh-history-substring-search"
-zinit load "chrissicool/zsh-256color"
-zinit load "mrowa44/emojify"
+	zinit load "mafredri/zsh-async"
+	zinit load "zsh-users/zsh-completions"
+	zinit load "zsh-users/zsh-autosuggestions"
+	zinit load "zsh-users/zsh-syntax-highlighting"
+	zinit load "zsh-users/zsh-history-substring-search"
+	zinit load "chrissicool/zsh-256color"
+	zinit load "mrowa44/emojify"
 
-zinit self-update
+	zinit self-update
+fi
 
 autoload -Uz compinit
 compinit
-# Zinitが読み込んだ補完定義を確実に反映させるコマンド（推奨）
-zinit cdreplay -q
+if command -v zinit >/dev/null 2>&1; then
+	# Zinitが読み込んだ補完定義を確実に反映させるコマンド（推奨）
+	zinit cdreplay -q
+fi
 
 # prompt setting
-eval "$(starship init zsh)"
+if command -v starship >/dev/null 2>&1; then
+	eval "$(starship init zsh)"
+fi
 
 
 # ==================== load my custom files  ====================
-. "$HOME/.local/bin/env"
+[[ -f "$HOME/.local/bin/env" ]] && . "$HOME/.local/bin/env"
 
-for file in $XDG_CONFIG_HOME/zsh/.*; do
-	[[ $file != *.zshrc ]] && [[ $file != *.zsh_history ]] && [[ -f $file ]] && source $file
-done
+[[ -f "${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}/.alias" ]] && source "${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}/.alias"
 
