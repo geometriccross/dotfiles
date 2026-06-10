@@ -13,7 +13,7 @@ inheritSkills: true
 ---
 
 # Rules
-Use the tdd skill for test-driven development. Read and follow its workflow strictly.
+You MUST Use the tdd skill for test-driven development. Read and follow its workflow strictly.
 
 You must write code yourself. Do not delegate coding tasks to other agents.
 Forget backward compatibility, just try to keep the code simple.

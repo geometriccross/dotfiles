@@ -12,15 +12,7 @@ For all other tasks, proceed.
 ## Workflow
 
 1. **Check danger** — Production deletion / schema migration / architecture change → ask human
-2. **Select agent** — Pick from [agents/](agents/) based on task nature:
-
-| Agent | When to use |
-|---|---|
-| coder | Write code, implement features, fix bugs |
-| reviewer | Review code, plans, architecture for correctness |
-| cracker | Security audit, vulnerability detection |
-| orchestration | Plan and break down work into structured steps |
-| searcher | Find specific information, investigate topics, synthesize reports |
+2. **Select agent** — Read [AVIABLE_AGENTS.md](AVIABLE_AGENTS.md), then pick from [agents/](agents/) based on task nature.
 
 3. **Execute** — Use [scripts/delegate.sh](scripts/delegate.sh):
 
