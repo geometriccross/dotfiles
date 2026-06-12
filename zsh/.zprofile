@@ -54,17 +54,17 @@ if [[ -x /opt/homebrew/bin/brew ]]; then
 fi
 
 # beads
-export PATH="$PATH:/Users/geometriccross/.local/bin"
+export PATH="$PATH:$HOME/.local/bin"
 
 # pnpm
-export PNPM_HOME="/Users/geometriccross/.local/share/pnpm"
+export PNPM_HOME="$HOME/.local/share/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 
 # bun
-export PATH="/Users/geometriccross/.cache/.bun/bin:$PATH"
+export PATH="$HOME/.cache/.bun/bin:$PATH"
 
 # micromamba
 export MAMBA_EXE='/opt/homebrew/bin/micromamba'
