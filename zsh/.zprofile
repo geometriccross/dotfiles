@@ -58,10 +58,13 @@ export PATH="$PATH:$HOME/.local/bin"
 
 # pnpm
 export PNPM_HOME="$HOME/.local/share/pnpm"
-case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PNPM_HOME/bin:$PATH" ;;
-esac
+for pnpm_path in "$PNPM_HOME" "$PNPM_HOME/bin"; do
+  case ":$PATH:" in
+    *":$pnpm_path:"*) ;;
+    *) export PATH="$pnpm_path:$PATH" ;;
+  esac
+done
+unset pnpm_path
 
 # bun
 export PATH="$HOME/.cache/.bun/bin:$PATH"
