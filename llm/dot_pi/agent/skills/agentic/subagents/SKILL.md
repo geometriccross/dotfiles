@@ -1,5 +1,5 @@
 ---
-name: subagent-delegating
+name: subagents
 description: Delegate tasks to sub-agents via CLI pi. Selects agent from [agents/](agents/) directory, parses frontmatter, and executes via `pi -p` with automatic fallback. Use when delegating work to another agent instance.
 ---
 

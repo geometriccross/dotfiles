@@ -12,16 +12,15 @@ description: A standard workflow for a session. You MUST read this when you star
    - **Small** (single file, quick fix, config change) → execute directly with read/edit/write/bash, then run targeted checks.
    - **Unclear design** → ask/grill until the decision is explicit before editing.
    - **Large coding** (multi-file feature, new module) → split into small vertical slices; use TDD when applicable; delegate to coder only when its tools and constraints support the required edits.
-   - **Code review / local investigation** → use reviewer via `subagent-delegating` when an independent opinion is needed.
-   - **Security / adversarial analysis** → use cracker via `subagent-delegating`.
-   - **External docs/API/web research** → use searcher via `subagent-delegating`; do not use searcher for local codebase inspection.
+   - **Code review / local investigation** → use reviewer via `subagents` when an independent opinion is needed.
+   - **Security / adversarial analysis** → use cracker via `subagents`.
+   - **External docs/API/web research** → use searcher via `subagents`; do not use searcher for local codebase inspection.
 3. Execute, iterate, and commit at logical checkpoints only after verifying the working tree and avoiding unrelated changes.
 
 # Rules
 
-- Do not rely on `context-manage` or `.context/`; that skill/cache may not exist in the current environment.
-- For independent review, security analysis, or external research, use `subagent-delegating` — never self-review when third-party judgement is the task.
-- Follow `subagent-delegating` danger rules before delegation.
+- For independent review, security analysis, or external research, use `subagents` — never self-review when third-party judgement is the task.
+- Follow `subagents` danger rules before delegation.
 - Prefer local files/git/config for local facts; use web search only for external documentation, APIs, packages, or current public facts.
 - Keep changes scoped; avoid broad rewrites unless explicitly requested.
 - Run targeted tests/checks first, then broader tests when the risk justifies it.
