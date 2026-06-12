@@ -74,10 +74,10 @@ Do not use for direct implementation.
 
 ## searcher
 
-Use for information gathering:
-- find facts in the codebase
-- inspect documentation
+Use for external information gathering only:
+- inspect external dependency/API documentation
 - research web or external references
 - return structured findings with sources
 
+Do not use searcher to inspect, search, read, or summarize the local codebase/project files; use the parent agent or reviewer for local investigation.
 Do not use when the answer requires code changes rather than investigation.

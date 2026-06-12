@@ -6,7 +6,7 @@ description: >-
 model: opencode-go/qwen3.7-max
 fallback: openai-codex/gpt-5.5, zai/glm-5.1
 thinking: medium
-tools: read, grep, find, ls, bash, web_search
+tools: read, grep, find, ls, edit, write, bash, web_search
 systemPromptMode: replace
 inheritProjectContext: false
 inheritSkills: true
