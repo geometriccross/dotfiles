@@ -3,8 +3,8 @@ name: coder
 description: >-
     The expert coder.
     Use for you want to write code, implement features, fix bugs, or write tests.
-model: openai-codex/gpt-5.5
-fallback: opencode-go/kimi-k2.6,opencode-go/deepseek-v4-pro,zai/glm-5.1
+model: opencode-go/qwen3.7-max
+fallback: openai-codex/gpt-5.5, zai/glm-5.1
 thinking: medium
 tools: read, grep, find, ls, bash, web_search
 systemPromptMode: replace
