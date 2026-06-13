@@ -7,13 +7,14 @@ AGENTS_DIR="$SKILL_DIR/agents"
 
 usage() {
   cat <<EOF
-Usage: delegate.sh <agent> <message> [options]
+Usage: delegate.sh <agent> [message|-] [options]
 
 Options:
-  --session <path>    Session path (default: auto-generated)
-  --continue          Continue existing session
-  --no-context        Pass --no-context-files to sub-agent
-  --dry-run           Print command without executing
+  --session <path>       Session path (default: auto-generated)
+  --continue             Continue existing session
+  --no-context           Pass --no-context-files to sub-agent
+  --message-file <path>  Read message from file (overrides <message|->)
+  --dry-run              Print command without executing
 
 Agents:
 $(shopt -s nullglob; for f in "$AGENTS_DIR"/*.md; do basename "$f" .md | sed 's/^/  /'; done)
@@ -22,14 +23,18 @@ EOF
 }
 
 # --- Args ---
-(( $# < 2 )) && usage
+(( $# < 1 )) && usage
 
 AGENT="$1"; shift
-MESSAGE="$1"; shift
+MESSAGE=""
+if (( $# )) && [[ "$1" != --* ]]; then
+  MESSAGE="$1"; shift
+fi
 
 SESSION=""
 CONTINUE=false
 NO_CONTEXT=false
+MESSAGE_FILE=""
 DRY_RUN=false
 
 while (( $# )); do
@@ -42,6 +47,12 @@ while (( $# )); do
       ;;
     --continue)  CONTINUE=true; shift ;;
     --no-context) NO_CONTEXT=true; shift ;;
+    --message-file)
+      if (( $# < 2 )) || [[ "$2" == --* ]]; then
+        echo "Error: --message-file requires a path argument" >&2; exit 1
+      fi
+      MESSAGE_FILE="$2"; shift 2
+      ;;
     --dry-run)   DRY_RUN=true; shift ;;
     *) echo "Unknown option: $1" >&2; exit 1 ;;
   esac
@@ -50,6 +61,20 @@ done
 # --- Validate agent name (no path traversal) ---
 if [[ ! "$AGENT" =~ ^[A-Za-z0-9_-]+$ ]]; then
   echo "Error: invalid agent name '$AGENT' (alphanumeric, hyphens, underscores only)" >&2
+  exit 1
+fi
+
+# --- Resolve message ---
+if [[ -n "$MESSAGE_FILE" ]]; then
+  if [[ ! -f "$MESSAGE_FILE" ]]; then
+    echo "Error: message file not found: $MESSAGE_FILE" >&2
+    exit 1
+  fi
+  MESSAGE="$(cat "$MESSAGE_FILE")"
+elif [[ "$MESSAGE" == "-" ]]; then
+  MESSAGE="$(cat)"
+elif [[ -z "$MESSAGE" ]]; then
+  echo "Error: message is required unless --message-file is provided" >&2
   exit 1
 fi
 
@@ -91,7 +116,7 @@ IFS=',' read -ra MODELS <<< "$PRIMARY_MODEL${FALLBACK:+,$FALLBACK}"
 
 # --- Session ---
 if [[ -z "$SESSION" ]]; then
-  SESSION="/tmp/pi-subagent-${AGENT}-$(date +%s)"
+  SESSION="/tmp/pi-subagent-${AGENT}-$(date +%s)-$$-${RANDOM}"
 fi
 
 # --- Build + Run ---

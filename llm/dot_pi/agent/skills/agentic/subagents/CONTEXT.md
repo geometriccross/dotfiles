@@ -9,7 +9,7 @@ The act of selecting an agent from [agents/](agents/) and assigning a task via `
 _Avoid_: dispatch, spawn, fork, handoff
 
 **Agent Definition**:
-A markdown file in [agents/](agents/) with YAML frontmatter and body (role instructions, rules, output format). Each file is self-contained and the filename must match the agent name. `delegate.sh` parses `model`, `fallback`, `thinking`, `tools`; all other frontmatter fields (`name`, `description`, `systemPromptMode`, `inheritProjectContext`, `inheritSkills`) are advisory and ignored.
+A markdown file in [agents/](agents/) with YAML frontmatter and body (role instructions, rules, output format). Each file is self-contained and the filename must match the agent name. `delegate.sh` parses `model`, `fallback`, `thinking`, and `tools`; `name` and `description` document intent but are not passed to `pi -p`. Parsed fields must be single-line scalars.
 _Avoid_: agent config, agent spec
 
 **delegate.sh**:
@@ -20,12 +20,16 @@ _Avoid_: runner, executor
 Comma-separated model list in agent frontmatter. Tried in order by `delegate.sh` when the primary model fails.
 _Avoid_: retry, backup model
 
+**Skill Access**:
+Sub-agents are normal `pi -p` processes. `delegate.sh` does not pass `--no-skills`, so Pi skill discovery still applies. `delegate.sh` does not parse any `inheritSkills` field. Full skill loading usually requires the agent to have `read`; agents without `read` should not receive skill-dependent tasks.
+_Avoid_: inherited skills, shared skill state
+
 **Danger Rule**:
-A hardcoded gate: production deletion, schema migration, or architecture change → stop and ask human.
+A parent-agent gate: production data deletion, schema migration, or irreversible architecture change → stop and ask human. Reviewing or planning such work is allowed; executing it requires approval.
 _Avoid_: danger zone, block rule
 
 **Session Lifecycle**:
-Sessions are auto-created by `delegate.sh`, persist for multi-turn use, and must be manually cleaned up after task resolution.
+Sessions are auto-created by `delegate.sh` as `/tmp/pi-subagent-<agent>-<timestamp>-<pid>-<random>`, persist for multi-turn use, and must be manually cleaned up after task resolution.
 _Avoid_: sandbox, namespace
 
 **Timeout Prohibition**:
