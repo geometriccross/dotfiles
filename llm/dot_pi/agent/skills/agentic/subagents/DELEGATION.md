@@ -40,15 +40,12 @@ Expected Output: Numbered findings with severity" \
 ```
 
 ### Multi-turn continuation
+`--continue` requires an explicit existing `--session <path>`.
+
 ```bash
 /path/to/scripts/delegate.sh coder \
   "The tests are failing because the token expiry check is wrong. Fix the expiry validation." \
-  --continue --session /tmp/pi-subagent-coder-1700000000
-```
-
-### Dry run (print command without executing)
-```bash
-/path/to/scripts/delegate.sh searcher "GOAL: find all TODO comments" --dry-run
+  --session /tmp/pi-subagent-coder.ABC123xyz0 --continue
 ```
 
 ## Multiline Prompts

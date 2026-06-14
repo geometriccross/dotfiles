@@ -17,16 +17,16 @@ For all other tasks, proceed.
 3. **Execute** — Use [scripts/delegate.sh](scripts/delegate.sh):
 
 ```bash
-./<this dir>/scripts/delegate.sh <agent> "<message>" [--no-context] [--session <path>] [--continue] [--dry-run]
+./<this dir>/scripts/delegate.sh <agent> "<message>" [--no-context] [--session <path>] [--continue] [--no-fallback]
 ./<this dir>/scripts/delegate.sh <agent> - < task.md
 ./<this dir>/scripts/delegate.sh <agent> --message-file task.md
 ```
 
-The script reads agent frontmatter, builds the `pi -p` command, and handles fallback automatically.
-Use `-` or `--message-file` for multi-line prompts to avoid shell quoting mistakes.
-Parsed frontmatter fields (`model`, `fallback`, `thinking`, `tools`) must be single-line scalars.
+The script requires `pi`, `node`, and Node module resolution where `require.resolve("yaml")` succeeds. It reads YAML frontmatter, builds the `pi -p` command, and handles fallback automatically unless `--no-fallback` is set.
+Use `-` or `--message-file` for multi-line prompts to avoid shell quoting mistakes. `--message-file` must point to a readable, non-empty regular file.
+Parsed frontmatter fields are `model`, `fallback`, `thinking`, and `tools`; scalar strings and YAML lists are supported for `fallback` and `tools`. YAML list items for parsed fields must not contain commas because the shell wrapper normalizes lists to comma-separated values for `pi -p`.
 Sub-agents run normal `pi -p` skill discovery because `delegate.sh` does not pass `--no-skills`; however, full skill loading usually requires `read`, so agents without `read` should not be assigned skill-dependent tasks.
-For coding tasks, keep delegation small because automatic fallback can run after partial edits; inspect the resulting diff before continuing.
+For coding tasks, keep delegation small because automatic fallback can run after partial edits; inspect the resulting diff before continuing or use `--no-fallback` when fallback would be unsafe.
 
 4. Parse stdout for result
 
@@ -38,6 +38,6 @@ The agent auto-injects short timeouts (10–60s) which kill long-running sub-age
 
 ## Session Lifecycle
 
-- `delegate.sh` auto-generates `--session /tmp/pi-subagent-<agent>-<timestamp>-<pid>-<random>`
-- Sessions persist after task completion for multi-turn use (`--continue`)
-- Clean up manually when the task is fully resolved: `rm /tmp/pi-subagent-<agent>-*`
+- `delegate.sh` auto-generates a session directory with `mktemp -d` using the pattern `${TMPDIR:-/tmp}/pi-subagent-<agent>.XXXXXXXXXX`
+- Sessions persist after task completion for multi-turn use; `--continue` requires `--session <path>`
+- Clean up manually when the task is fully resolved: `rm -rf "${TMPDIR:-/tmp}/pi-subagent-<agent>."*`
