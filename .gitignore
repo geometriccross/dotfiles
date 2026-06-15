@@ -1,5 +1,8 @@
 # Ignore
 ./*
+.zsh_sessions/
+.zcompdump*
+.zsh_history
 .env
 
 # Allow
@@ -9,4 +12,3 @@
 !install.sh
 !/spec
 !/llm/dot_pi/agent/agents
-.zcompdump
