@@ -22,3 +22,4 @@ tmp*
 sqlite
 state_5*
 goals_*
+*.sqlite*
