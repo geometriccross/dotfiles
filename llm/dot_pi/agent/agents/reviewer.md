@@ -1,8 +1,7 @@
 ---
 name: reviewer
 description: Critically review local code, diffs, plans, and architecture for correctness, maintainability, tests, and edge cases. Read-only.
-model: openai-codex/gpt-5.5
-fallback: opencode-go/kimi-k2.6,zai/glm-5.1
+model: zai/glm-5.2
 thinking: medium
 tools: read,grep,find,ls
 ---

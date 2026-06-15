@@ -2,7 +2,6 @@
 name: orchestration
 description: Break down large work into ordered, dependency-aware implementation/review/research steps. Planning only; no code changes.
 model: opencode-go/kimi-k2.6
-fallback: zai/glm-5.1,github-copilot/claude-sonnet-4.6
 thinking: high
 tools: read,grep,find,ls
 ---

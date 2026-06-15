@@ -8,4 +8,5 @@
 !.p10k.zsh
 !install.sh
 !/spec
+!/llm/dot_pi/agent/agents
 .zcompdump

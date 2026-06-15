@@ -1,8 +1,7 @@
 ---
 name: coder
 description: Implement code changes, fix bugs, and write or update tests. Use for scoped implementation work, not independent review.
-model: opencode-go/qwen3.7-max
-fallback: openai-codex/gpt-5.5,zai/glm-5.1
+model: opencode-go/kimi-k2.7-code
 thinking: medium
 tools: read,grep,find,ls,edit,write,bash,web_search
 ---

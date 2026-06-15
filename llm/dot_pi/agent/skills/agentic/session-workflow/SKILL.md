@@ -11,19 +11,21 @@ description: A standard workflow for a session. You MUST read this when you star
 2. Receive user instruction and assess scope:
    - **Small** (single file, quick fix, config change) → execute directly with read/edit/write/bash, then run targeted checks.
    - **Unclear design** → ask/grill until the decision is explicit before editing.
-   - **Large coding** (multi-file feature, new module) → split into small vertical slices; use TDD when applicable; delegate to coder only when its tools and constraints support the required edits.
-   - **Code review / local investigation** → use reviewer via `subagents` when an independent opinion is needed.
-   - **Security / adversarial analysis** → use cracker via `subagents`.
-   - **Standalone external docs/API/web research** → use searcher via `subagents`; do not use searcher for local codebase inspection.
-3. Execute and iterate in small checkpoints. Commit only when explicitly requested or authorized.
+   - **Large coding** (multi-file feature, new module) → split into small vertical slices; use `pi-crew` (`crew_spawn`) for each checkpoint/slice, then parent-inspect the diff and run required checks before delegating the next slice. Use TDD when applicable; delegate to `coder`/`worker` only when its tools and constraints support the required edits.
+   - **Code review / local investigation** → use `pi-crew` (`crew_spawn` with `reviewer`, `code-reviewer`, or `quality-reviewer`) when an independent opinion is needed.
+   - **Security / adversarial analysis** → use `pi-crew` (`crew_spawn` with `cracker` or `oracle`).
+   - **Standalone external docs/API/web research** → use `pi-crew` (`crew_spawn` with `searcher` or `scout`); do not use them for local codebase inspection.
+3. Execute and iterate in small checkpoints. When sub-agents are used, each checkpoint should be a separate spawn rather than a one-shot bundle. Commit only when explicitly requested or authorized.
 
 # Rules
 
-- Do your own sanity check first; use `subagents` when independent review, security analysis, or external research is requested or materially valuable.
-- Follow `subagents` danger rules before delegation.
-- Prefer local files/git/config for local facts; use web search only for external documentation, APIs, packages, or current public facts.
-- Use searcher for standalone external research. Coder may use web search incidentally during implementation; delegate substantial research to searcher first and pass findings to coder.
-- Keep coding delegation small: `delegate.sh` may automatically fall back to another model after partial edits. After coder delegation, parent must inspect `git status`/diff and run required non-test checks, builds, or lint.
+- Do your own sanity check first; use `pi-crew` when independent review, security analysis, or external research is requested or materially valuable.
+- Before spawning, call `crew_list` to discover available agents. Override bundled agents with your custom definitions in `~/.pi/agent/agents/` when appropriate.
+- Follow `pi-crew` danger rules before delegation: production data deletion, schema migration, or irreversible architecture change → ask human first.
+- Every `crew_spawn` needs a concise `brief` (label) and a self-contained `task`. Do not restate role boilerplate or mechanical repo/Git state.
+- Subagents run asynchronously. Wait for results as steering messages; do not poll with `crew_list`.
+- Keep coding delegation small: delegate one implementation checkpoint/slice at a time. After each coder/worker delegation, parent must inspect `git status`/diff and run required non-test checks, builds, or lint before delegating the next checkpoint.
+- Use `crew_abort` only when an active subagent becomes obsolete, wrong, or cancelled.
 - Keep changes scoped; avoid broad rewrites unless explicitly requested.
 - Run targeted tests/checks first, then broader tests when the risk justifies it.
 - Commit only related changes with conventional commit messages after explicit request/authorization; never include unrelated user edits.

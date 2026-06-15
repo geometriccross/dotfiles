@@ -2,7 +2,6 @@
 name: searcher
 description: Research external documentation, APIs, packages, standards, release notes, and web sources. No local codebase access.
 model: opencode-go/kimi-k2.6
-fallback: opencode-go/deepseek-v4-flash,github-copilot/claude-haiku-4.5
 thinking: medium
 tools: web_search
 ---

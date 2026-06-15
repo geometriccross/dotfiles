@@ -1,13 +1,15 @@
 {
-  "lastChangelogVersion": "0.78.0",
+  "lastChangelogVersion": "0.79.4",
   "defaultProvider": "zai",
   "defaultModel": "glm-5.1",
   "packages": [
     "git:github.com/MasuRii/pi-rtk-optimizer",
     "git:github.com/elpapi42/pi-observational-memory",
     "npm:pi-web-access",
-    "npm:pi-caffeinate"
+    "npm:pi-caffeinate",
+    "npm:@melihmucuk/pi-crew"
   ],
   "hideThinkingBlock": false,
-  "defaultThinkingLevel": "high"
+  "defaultThinkingLevel": "high",
+  "theme": "dark"
 }
