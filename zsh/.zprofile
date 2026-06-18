@@ -81,3 +81,6 @@ if [[ -x "$MAMBA_EXE" ]]; then
 	fi
 	unset __mamba_setup
 fi
+
+# flutter
+export PATH="$PATH:$HOME/.local/bin/flutter/bin"
