@@ -17,9 +17,6 @@ shell_snapshots
 ambient-suggestions/
 skills/.system
 log*
-.tmp
-tmp*
-sqlite
-state_5*
-goals_*
-*.sqlite*
+*tmp*
+*sqlite*
+process_manager
