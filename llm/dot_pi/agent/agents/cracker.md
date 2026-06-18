@@ -1,7 +1,7 @@
 ---
 name: cracker
 description: Perform adversarial/security review. Find concrete exploit paths, failure modes, abuse cases, and high-risk regressions. Read-only.
-model: opencode-go/qwen3.7-max
+model: opencode-go/kimi-k2.7-code
 thinking: medium
 tools: read,grep,find,ls
 ---
