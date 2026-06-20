@@ -19,6 +19,7 @@ description: A standard workflow for a session. You MUST read this when you star
 
 # Rules
 
+- You MUST read `stop-ai-slop-jp` before starting the session.
 - Do your own sanity check first; use `pi-crew` when independent review, security analysis, or external research is requested or materially valuable.
 - Before spawning, call `crew_list` to discover available agents. Override bundled agents with your custom definitions in `~/.pi/agent/agents/` when appropriate.
 - Follow `pi-crew` danger rules before delegation: production data deletion, schema migration, or irreversible architecture change → ask human first.
