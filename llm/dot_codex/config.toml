@@ -106,7 +106,7 @@ source_type = "local"
 source = "/Users/geometriccross/.config/dotfiles/llm/dot_codex/.tmp/bundled-marketplaces/openai-bundled"
 
 [marketplaces.openai-primary-runtime]
-last_updated = "2026-06-15T16:12:59Z"
+last_updated = "2026-06-20T04:12:49Z"
 source_type = "local"
 source = "/Users/geometriccross/.cache/codex-runtimes/codex-primary-runtime/plugins/openai-primary-runtime"
 
