@@ -95,37 +95,34 @@ A started Pi agent stays alive (idle, prompt-waiting) in its pane after it finis
 Decision flow at task start:
 
 1. Run `herdr agent list` and search for the agent by `name` (the `--name <task-id>` used at launch).
-2. **Found and alive (`idle`/`working`)** → reuse the same pane/tab and send the continuation with `herdr pane run <pane_id> "<message>"` (send-text + Enter). Do **not** create a new tab.
+2. **Found and alive (`idle`/`working`)** → reuse the same pane/tab and send the continuation by resolving the name → pane via `herdr agent list` and using `herdr pane run` (send-text + Enter), as shown in the snippet below. Do **not** create a new tab.
 3. **Found but the pane is gone** (tab closed, process exited) → read its `agent_session.value` jsonl, create a fresh dedicated tab, and restart with `pi --resume` (interactive) or `pi --session <session-jsonl>` (explicit). Keep `--name <original task-id>` so the name does not change.
 4. **Not found (genuinely new task)** → use the dedicated-tab launch pattern above, assigning a stable, unique `--name <task-id>` so future continuations can find it.
 
-Skeleton:
+By-name continuation snippet (the canonical way to send a follow-up to a named, alive agent):
 
 ```bash
-# 1) find an existing agent by name (task-id)
-EXISTING=$(herdr agent list | python3 -c '
-import sys,json
-d=json.load(sys.stdin)
-name="worker-example"   # the task-id you want to continue
-for a in d["result"]["agents"]:
-    if a.get("name")==name:
-        print(a["pane_id"], a.get("agent_status",""), a.get("agent_session",{}).get("value",""))
-        break
-')
-PANE=$(printf '%s' "$EXISTING" | cut -d" " -f1)
-STATUS=$(printf '%s' "$EXISTING" | cut -d" " -f2)
-SESSION=$(printf '%s' "$EXISTING" | cut -d" " -f3)
+# Send a continuation message to a named agent with Enter (send-text + Enter).
+# Resolves name -> pane_id via `agent list`, then uses `pane run` (which presses Enter).
+# Do NOT use `herdr agent send` — it does not press Enter.
 
-if [ -n "$PANE" ] && { [ "$STATUS" = "idle" ] || [ "$STATUS" = "working" ]; }; then
-  # 2a) alive: continue in the same pane (send-text + Enter). DO NOT use `agent send` (no Enter).
-  herdr pane run "$PANE" "Follow-up: <next step, referencing the prior task>"
-else
-  # 2b) gone or missing: resume the session in a fresh dedicated tab.
-  #     Reuse the dedicated-tab launch above, but start pi with
-  #     `pi --resume` (or `pi --session "$SESSION"`) and the SAME `--name <task-id>`.
-  :
-fi
+name="worker-example"          # the --name <task-id> used at launch
+message="Follow-up: <next step, referencing the prior task>"
+
+pane=$(herdr agent list | python3 -c '
+import sys, json
+d = json.load(sys.stdin)
+n = '"'$name'"'
+match = [a for a in d["result"]["agents"] if a.get("name") == n]
+if len(match) > 1:
+    sys.stderr.write("ambiguous name: %d agents\n" % len(match)); sys.exit(2)
+print(match[0]["pane_id"] if match else "")
+')
+[ -n "$pane" ] || { echo "agent not found: $name" >&2; exit 1; }
+herdr pane run "$pane" "$message"
 ```
+
+`agent send <name>` is forbidden for continuation because it never presses Enter. Boundary cases handled by the snippet: **name not found** → stderr + `exit 1` (route to a new launch or to session restore per branches 3/4 above); **name matched more than once** → stderr + `exit 2` (a parallel run reused the same `--name`; keep task-ids unique). If the matched agent is not `idle`/`working` (e.g. `done`), the pane may stay alive but not respond — wait for `idle` first (`herdr wait agent-status <pane> --status idle`), or if the session is gone, restore it via `pi --resume`/`pi --session <path>` with the same `--name` (branch 3 above).
 
 Record the mapping `task-id → { pane_id, session jsonl, cwd }` under `.agent-runs/<id>/` so the next continuation can resolve quickly.
 
@@ -187,4 +184,4 @@ After every worker finishes:
 - A finished agent is left idle in its pane by default — do not close the pane/tab, so the user can review results and hand back follow-up tasks into the same context.
 - Only an explicit pane/tab close removes a live agent. The session jsonl persists, so `pi --resume` / `pi --session <path>` can still restore it in a new dedicated tab.
 - Watch for name collisions under parallel runs: multiple live agents cannot share one `name`. Keep task-ids unique.
-- **Continuation sends use `herdr pane run <pane_id> "<text>"`** (send-text + Enter). `herdr agent send <name> <text>` only places text in the input box and does **not** press Enter, so the message never executes. **Common pitfall:** if a follow-up appears to be ignored, confirm you used `pane run`, not `agent send`.
+- **Continuation sends use `herdr pane run` (send-text + Enter), with the pane resolved from the agent name** via the by-name snippet in *Reusing an existing agent*. `herdr agent send <name> <text>` only places text in the input box and does **not** press Enter, so the message never executes. **Common pitfall:** a follow-up appears ignored because `agent send` was used; the fix is the by-name snippet (`agent list` → `pane run`), never `agent send`.
