@@ -4,6 +4,7 @@
 .zcompdump*
 .zsh_history
 .env
+.agent-runs/
 
 # Allow
 !.zshrc
