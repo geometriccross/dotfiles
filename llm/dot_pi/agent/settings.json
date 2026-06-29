@@ -10,7 +10,9 @@
     "npm:pi-caffeinate",
     "npm:@melihmucuk/pi-crew",
     "npm:pi-goal",
-    "npm:@ollama/pi-web-search"
+    "npm:@ollama/pi-web-search",
+    "npm:@zosmaai/pi-llm-wiki",
+    "npm:pi-hermes-memory"
   ],
   "theme": "dark"
 }
