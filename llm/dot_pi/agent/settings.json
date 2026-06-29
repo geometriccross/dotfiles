@@ -1,17 +1,16 @@
 {
-  "lastChangelogVersion": "0.79.4",
-  "defaultProvider": "zai",
-  "defaultModel": "glm-5.1",
+  "defaultModel": "gpt-5.5",
+  "defaultProvider": "openai-codex",
+  "defaultThinkingLevel": "high",
+  "hideThinkingBlock": false,
+  "lastChangelogVersion": "0.80.2",
   "packages": [
     "git:github.com/MasuRii/pi-rtk-optimizer",
     "git:github.com/elpapi42/pi-observational-memory",
-	"git:github.com/geometriccross/pi-alter-ego",
     "npm:pi-caffeinate",
     "npm:@melihmucuk/pi-crew",
     "npm:pi-goal",
     "npm:@ollama/pi-web-search"
   ],
-  "hideThinkingBlock": false,
-  "defaultThinkingLevel": "high",
   "theme": "dark"
 }
