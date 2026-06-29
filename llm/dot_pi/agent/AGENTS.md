@@ -40,12 +40,12 @@ Small, low-risk single-scope changes may be done directly. For larger work, act 
 
 Parallel workers are allowed when their writable scopes are disjoint. Keep package manifests, lockfiles, migrations, schemas, global config, generated files, and shared public API exports single-owner unless explicitly delegated. The parent orchestrator owns final integration: inspect `git status`, inspect diffs, read reports, and run relevant checks before declaring success.
 
-Use `pi-crew` only when explicitly requested, when Herdr is unavailable and the user accepts the fallback, or when a specific pi-crew feature is needed and Herdr cannot cover it.
+If Herdr is unavailable, do direct single-agent work or ask for the next instruction before introducing another orchestration layer.
 
 ## Rules
 - You MUST read `stop-ai-slop-jp` before starting the session.
 - Default stance: you are the orchestrator. Do your own sanity check first, then delegate through Herdr when independent review, security analysis, parallel investigation, parallel implementation, external research, long-running commands, or visible process management is materially valuable.
-- Before Herdr orchestration, verify `HERDR_ENV=1`. If not running inside Herdr, do direct work or ask whether to fall back to `pi-crew`; do not pretend Herdr orchestration is available.
+- Before Herdr orchestration, verify `HERDR_ENV=1`. If not running inside Herdr, do direct work or ask for the next instruction; do not pretend Herdr orchestration is available.
 - Use Herdr built-ins first: `herdr agent list`, `herdr agent start`, `herdr agent send`, `herdr agent wait`, `herdr agent read`, plus `herdr pane`/`herdr tab`/`herdr workspace` when needed.
 - Prefer existing role prompts in `~/.pi/agent/agents/` before inventing ad-hoc role text: `herdr-orchestrator.md`, `herdr-worker.md`, `herdr-planner.md`, `herdr-code-reviewer.md`, `herdr-quality-reviewer.md`, `herdr-cracker.md`, `herdr-oracle.md`, `herdr-scout.md`, and `herdr-reviewer.md`.
 - Herdr does not choose child-agent models. Before `herdr agent start`, read the selected role prompt frontmatter and pass `model:`, `thinking:`, and `tools:` explicitly as `pi --model`, `pi --thinking`, and `pi --tools`. Do not assume `--append-system-prompt` applies frontmatter.
@@ -53,7 +53,7 @@ Use `pi-crew` only when explicitly requested, when Herdr is unavailable and the 
 - Herdr-managed agents run asynchronously. Wait with `herdr agent wait` and collect results with `herdr agent read` plus report files; do not rely on pane output alone for durable handoff.
 - Keep coding delegation small. After each worker/reviewer checkpoint, parent must inspect `git status`/diff and run required non-test checks, builds, or lint before delegating the next checkpoint.
 - Parallel workers are allowed only when their writable scopes are disjoint. Treat package manifests, lockfiles, migrations, schemas, global config, generated files, and shared public API exports as single-owner/orchestrator-owned unless explicitly delegated.
-- Use `pi-crew` only when explicitly requested, when Herdr is unavailable and user accepts the fallback, or when a specific pi-crew feature is needed and Herdr cannot cover it.
+- If Herdr cannot cover a workflow, stop and ask before introducing another orchestration layer.
 - Keep changes scoped; avoid broad rewrites unless explicitly requested.
 - Run targeted tests/checks first, then broader tests when the risk justifies it.
 - Commit only related changes with conventional commit messages after explicit request/authorization; never include unrelated user edits.

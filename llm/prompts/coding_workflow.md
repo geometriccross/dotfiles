@@ -1,5 +1,5 @@
 # CODING WORKFLOW
-1. Use `pi-crew` (`crew_spawn` with `searcher` or `scout`) only for external dependency/API documentation and other non-local sources. The searcher/scout must not inspect, search, read, or summarize the local codebase/project files; do codebase investigation yourself or use another code-aware agent.
+1. Use Herdr-managed scout/research agents only when external dependency/API documentation or other non-local sources need separate investigation. Keep them read-only and bounded; do codebase investigation yourself or with Herdr-managed local scout/reviewer agents.
 2. Write a simple failing test for a small part of the feature
 3. Implement the bare minimum to make it pass
 4. Run tests to confirm they pass (Green)

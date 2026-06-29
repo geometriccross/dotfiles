@@ -8,7 +8,6 @@
     "git:github.com/MasuRii/pi-rtk-optimizer",
     "git:github.com/elpapi42/pi-observational-memory",
     "npm:pi-caffeinate",
-    "npm:@melihmucuk/pi-crew",
     "npm:pi-goal",
     "npm:@ollama/pi-web-search",
     "npm:@zosmaai/pi-llm-wiki",
