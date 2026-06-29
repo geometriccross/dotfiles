@@ -59,10 +59,18 @@ MODEL=$(awk -F': ' '/^model:/{print $2; exit}' "$ROLE")
 THINKING=$(awk -F': ' '/^thinking:/{print $2; exit}' "$ROLE")
 TOOLS=$(awk -F': ' '/^tools:/{gsub(/, */,",",$2); print $2; exit}' "$ROLE")
 
+# 1) create a dedicated tab in the focused workspace
+WS=$(herdr workspace list | python3 -c 'import sys,json;d=json.load(sys.stdin);print(next(w["workspace_id"] for w in d["result"]["workspaces"] if w.get("focused")))')
+TAB_JSON=$(herdr tab create --workspace "$WS" --label "worker-example" --no-focus)
+NEW_TAB=$(printf '%s' "$TAB_JSON" | python3 -c 'import sys,json;print(json.load(sys.stdin)["result"]["tab"]["tab_id"])')
+ROOT_PANE=$(printf '%s' "$TAB_JSON" | python3 -c 'import sys,json;print(json.load(sys.stdin)["result"]["root_pane"]["pane_id"])')
+
+# 2) start the agent in that dedicated tab (no --split: agent start always makes a fresh pane)
+#    `--name <task-id>` is the continuation key: reuse this exact name to find the agent
+#    in `herdr agent list` when issuing follow-up / continuation tasks (see section below).
 herdr agent start worker-example \
+  --tab "$NEW_TAB" \
   --cwd "$PWD" \
-  --tab <tab-id> \
-  --split right \
   --no-focus \
   -- pi \
     --name worker-example \
@@ -71,11 +79,55 @@ herdr agent start worker-example \
     --tools "$TOOLS" \
     --append-system-prompt "$ROLE" \
     "Read task file ... and complete it exactly."
+
+# 3) close the empty root pane so the agent owns the tab (pane_count == 1)
+herdr pane close "$ROOT_PANE"
 ```
 
-> `herdr agent start` does not guarantee a plain tab/agent id on stdout — it may return JSON or a table. Do not capture stdout as a bare id. Reuse a `--tab` you already control, or parse the output defensibly with `jq`/named-field `grep`.
+> Both `herdr tab create` and `herdr agent start` return JSON (not a bare id on stdout). Never assume a plain tab/agent id; parse the output defensibly with `python3`/`jq`: capture `result.tab.tab_id` and `result.root_pane.pane_id` from `tab create`, and `result.agent.pane_id` from `agent start`.
 
 If a frontmatter value is missing, use the current Pi default only when that is intentional; otherwise choose an explicit safe default before spawning.
+
+## Reusing an existing agent (continuation / follow-up tasks)
+
+A started Pi agent stays alive (idle, prompt-waiting) in its pane after it finishes a task, as long as you do not close the tab/pane. Its session is also persisted to the `agent_session.value` jsonl. For a continuation or follow-up task, **reuse the existing agent instead of spawning a new tab every time.**
+
+Decision flow at task start:
+
+1. Run `herdr agent list` and search for the agent by `name` (the `--name <task-id>` used at launch).
+2. **Found and alive (`idle`/`working`)** → reuse the same pane/tab and send the continuation with `herdr pane run <pane_id> "<message>"` (send-text + Enter). Do **not** create a new tab.
+3. **Found but the pane is gone** (tab closed, process exited) → read its `agent_session.value` jsonl, create a fresh dedicated tab, and restart with `pi --resume` (interactive) or `pi --session <session-jsonl>` (explicit). Keep `--name <original task-id>` so the name does not change.
+4. **Not found (genuinely new task)** → use the dedicated-tab launch pattern above, assigning a stable, unique `--name <task-id>` so future continuations can find it.
+
+Skeleton:
+
+```bash
+# 1) find an existing agent by name (task-id)
+EXISTING=$(herdr agent list | python3 -c '
+import sys,json
+d=json.load(sys.stdin)
+name="worker-example"   # the task-id you want to continue
+for a in d["result"]["agents"]:
+    if a.get("name")==name:
+        print(a["pane_id"], a.get("agent_status",""), a.get("agent_session",{}).get("value",""))
+        break
+')
+PANE=$(printf '%s' "$EXISTING" | cut -d" " -f1)
+STATUS=$(printf '%s' "$EXISTING" | cut -d" " -f2)
+SESSION=$(printf '%s' "$EXISTING" | cut -d" " -f3)
+
+if [ -n "$PANE" ] && { [ "$STATUS" = "idle" ] || [ "$STATUS" = "working" ]; }; then
+  # 2a) alive: continue in the same pane (send-text + Enter). DO NOT use `agent send` (no Enter).
+  herdr pane run "$PANE" "Follow-up: <next step, referencing the prior task>"
+else
+  # 2b) gone or missing: resume the session in a fresh dedicated tab.
+  #     Reuse the dedicated-tab launch above, but start pi with
+  #     `pi --resume` (or `pi --session "$SESSION"`) and the SAME `--name <task-id>`.
+  :
+fi
+```
+
+Record the mapping `task-id → { pane_id, session jsonl, cwd }` under `.agent-runs/<id>/` so the next continuation can resolve quickly.
 
 ## Task File & Shell Safety
 
@@ -129,3 +181,10 @@ After every worker finishes:
 3. check for unexpected edits
 4. run targeted verification
 5. decide the next worker/reviewer step
+
+## Agent lifecycle & continuation
+
+- A finished agent is left idle in its pane by default — do not close the pane/tab, so the user can review results and hand back follow-up tasks into the same context.
+- Only an explicit pane/tab close removes a live agent. The session jsonl persists, so `pi --resume` / `pi --session <path>` can still restore it in a new dedicated tab.
+- Watch for name collisions under parallel runs: multiple live agents cannot share one `name`. Keep task-ids unique.
+- **Continuation sends use `herdr pane run <pane_id> "<text>"`** (send-text + Enter). `herdr agent send <name> <text>` only places text in the input box and does **not** press Enter, so the message never executes. **Common pitfall:** if a follow-up appears to be ignored, confirm you used `pane run`, not `agent send`.
