@@ -4,4 +4,7 @@ auth.json
 agent/intercom
 agent/run-history.jsonl
 agent/trust.json
+agent/pi-hermes-memory
+agent/projects-memory
+
 __pycache__
