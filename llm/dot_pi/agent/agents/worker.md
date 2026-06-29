@@ -1,7 +1,7 @@
 ---
 name: worker
 description: Implements scoped code changes safely and verifies them.
-model: openai-codex/gpt-5.5
+model: zai/glm-5.2
 thinking: medium
 ---
 
