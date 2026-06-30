@@ -59,8 +59,12 @@ MODEL=$(awk -F': ' '/^model:/{print $2; exit}' "$ROLE")
 THINKING=$(awk -F': ' '/^thinking:/{print $2; exit}' "$ROLE")
 TOOLS=$(awk -F': ' '/^tools:/{gsub(/, */,",",$2); print $2; exit}' "$ROLE")
 
-# 1) create a dedicated tab in the focused workspace
-WS=$(herdr workspace list | python3 -c 'import sys,json;d=json.load(sys.stdin);print(next(w["workspace_id"] for w in d["result"]["workspaces"] if w.get("focused")))')
+# 1) create a dedicated tab in the ORCHESTRATOR's own workspace.
+#    Prefer HERDR_WORKSPACE_ID; derive from HERDR_TAB_ID / HERDR_PANE_ID if unset.
+#    NEVER use a globally "focused" workspace — focus is global and can move to
+#    another space mid-run, spawning the child into the wrong workspace.
+WS="${HERDR_WORKSPACE_ID:-${HERDR_TAB_ID%%:*}}"
+WS="${WS:-${HERDR_PANE_ID%%:*}}"
 TAB_JSON=$(herdr tab create --workspace "$WS" --label "worker-example" --no-focus)
 NEW_TAB=$(printf '%s' "$TAB_JSON" | python3 -c 'import sys,json;print(json.load(sys.stdin)["result"]["tab"]["tab_id"])')
 ROOT_PANE=$(printf '%s' "$TAB_JSON" | python3 -c 'import sys,json;print(json.load(sys.stdin)["result"]["root_pane"]["pane_id"])')
@@ -88,13 +92,24 @@ herdr pane close "$ROOT_PANE"
 
 If a frontmatter value is missing, use the current Pi default only when that is intentional; otherwise choose an explicit safe default before spawning.
 
+## Workspace locality
+
+Delegated agents are launched and reused **only within the orchestrator's own Herdr workspace**, identified by `HERDR_WORKSPACE_ID` (fall back to the prefix of `HERDR_TAB_ID` / `HERDR_PANE_ID` if that env var is unset).
+
+Failure mode this prevents: if a launch selects a globally *focused* workspace (`herdr workspace list` → `focused: true`), the focused space can move to another project mid-run and spawn the child agent into the wrong workspace. Likewise, if continuation matches an agent by `name` without filtering `herdr agent list` by `workspace_id`, a same-named agent from another workspace can be reused, mixing panes/agents across spaces.
+
+Rules:
+- `herdr tab create` always gets `--workspace "$WS"` where `WS` is the orchestrator's own workspace id (`HERDR_WORKSPACE_ID`, or the prefix of `HERDR_TAB_ID` / `HERDR_PANE_ID`).
+- By-name `herdr agent list` lookups always filter `a["workspace_id"] == ws`.
+- Never fall back to "the focused workspace" — focus is global and can belong to another space.
+
 ## Reusing an existing agent (continuation / follow-up tasks)
 
 A started Pi agent stays alive (idle, prompt-waiting) in its pane after it finishes a task, as long as you do not close the tab/pane. Its session is also persisted to the `agent_session.value` jsonl. For a continuation or follow-up task, **reuse the existing agent instead of spawning a new tab every time.**
 
 Decision flow at task start:
 
-1. Run `herdr agent list` and search for the agent by `name` (the `--name <task-id>` used at launch).
+1. Run `herdr agent list` and search for the agent by `name` (the `--name <task-id>` used at launch) **within the orchestrator's own workspace only** (`workspace_id == $HERDR_WORKSPACE_ID`). A same-named agent in another workspace is not a valid continuation target — see the Workspace locality section above.
 2. **Found and alive (`idle`/`working`)** → reuse the same pane/tab and send the continuation by resolving the name → pane via `herdr agent list` and using `herdr pane run` (send-text + Enter), as shown in the snippet below. Do **not** create a new tab.
 3. **Found but the pane is gone** (tab closed, process exited) → read its `agent_session.value` jsonl, create a fresh dedicated tab, and restart with `pi --resume` (interactive) or `pi --session <session-jsonl>` (explicit). Keep `--name <original task-id>` so the name does not change.
 4. **Not found (genuinely new task)** → use the dedicated-tab launch pattern above, assigning a stable, unique `--name <task-id>` so future continuations can find it.
@@ -110,12 +125,15 @@ name="worker-example"          # the --name <task-id> used at launch
 message="Follow-up: <next step, referencing the prior task>"
 
 pane=$(herdr agent list | python3 -c '
-import sys, json
+import sys, json, os
 d = json.load(sys.stdin)
 n = '"'$name'"'
-match = [a for a in d["result"]["agents"] if a.get("name") == n]
+ws = os.environ.get("HERDR_WORKSPACE_ID") or os.environ.get("HERDR_TAB_ID","").split(":")[0] or os.environ.get("HERDR_PANE_ID","").split(":")[0]
+# reuse only an agent in the orchestrator's OWN workspace; a same-named
+# agent in another workspace is not a valid continuation target.
+match = [a for a in d["result"]["agents"] if a.get("name") == n and a.get("workspace_id") == ws]
 if len(match) > 1:
-    sys.stderr.write("ambiguous name: %d agents\n" % len(match)); sys.exit(2)
+    sys.stderr.write("ambiguous name in workspace %s: %d agents\n" % (ws, len(match))); sys.exit(2)
 print(match[0]["pane_id"] if match else "")
 ')
 [ -n "$pane" ] || { echo "agent not found: $name" >&2; exit 1; }
