@@ -3,7 +3,7 @@
   "defaultProvider": "openai-codex",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
-  "lastChangelogVersion": "0.80.2",
+  "lastChangelogVersion": "0.80.3",
   "packages": [
     "git:github.com/MasuRii/pi-rtk-optimizer",
     "git:github.com/elpapi42/pi-observational-memory",
