@@ -125,7 +125,7 @@ select_container_source_dir() {
 }
 
 install_common_packages() {
-	local packages=(zsh git curl wget)
+	local packages=(zsh git curl wget build-essential unzip python3-venv python3-pip)
 	local missing=()
 
 	for cmd in "${packages[@]}"; do
