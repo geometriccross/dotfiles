@@ -9,7 +9,6 @@ require("mason-lspconfig").setup({
 		"lua_ls",
 		"powershell_es",
 		"copilot",
-		"ruff",
 		"pyright",
 	},
 	handlers = {
