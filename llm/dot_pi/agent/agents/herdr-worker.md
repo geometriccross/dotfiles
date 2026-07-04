@@ -1,7 +1,7 @@
 ---
 name: herdr-worker
 description: Executes one Herdr-orchestrated worker task with an explicit allowed edit scope and durable report output.
-model: zai/glm-5.2
+model: opencode-go/deepseek-v4-pro
 thinking: medium
 tools: read,bash,edit,write
 ---
