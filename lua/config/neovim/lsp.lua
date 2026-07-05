@@ -108,10 +108,6 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		local client = vim.lsp.get_client_by_id(ev.data.client_id)
 		local opts = { buffer = ev.buf }
 
-		if client and client.server_capabilities.semanticTokensProvider then
-			client.server_capabilities.semanticTokensProvider = nil
-		end
-
 		vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", opts, { desc = "LSP Hover" }))
 		vim.keymap.set(
 			"n",
