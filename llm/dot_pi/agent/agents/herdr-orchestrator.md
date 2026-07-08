@@ -173,6 +173,12 @@ This is the canonical task-contract field list, shared verbatim with `AGENTS.md`
 - verification expectation
 - stop condition
 
+## Task Lifecycle & Ledger
+
+Every task progresses through these states: `started` → `reported` → `integrated` → `cleaned`. Intermediate states: `failed` (unrecoverable error), `blocked` (provider/auth/rate-limit/input-wait/tool failure — retryable within budget).
+
+Maintain a canonical task ledger at `.agent-runs/<id>/index.json` for every task. Capture at minimum: task id, cwd, workspace/tab/pane ids, role, model/thinking/tools, task file path, report file path, session path (when known), status, started/finished timestamps, failure reason (if any), and retry count. Update it at each state transition.
+
 ## Worker Sharding Rules
 
 Every worker task must carry the full canonical Task Contract fields above (do not drop allowed read/edit scope).
@@ -187,19 +193,30 @@ Do not assign two workers the same writable file. Treat these as single-owner or
 
 ## Result Collection
 
-Prefer report files over pane-only output. Pane output is for diagnosis; report files are the durable handoff.
+Prefer report files over pane-only output. Pane output is for diagnosis; report files are the durable handoff. The canonical report path is `.agent-runs/<id>/reports/<role-or-step>.md`; do not use root `report.md` unless an explicit legacy task prescribes it.
 
 After every worker finishes:
 
-1. read its report
-2. inspect changed files against the assigned scope
-3. check for unexpected edits
-4. run targeted verification
-5. decide the next worker/reviewer step
+1. Confirm the report file exists and is not empty. A missing or empty report is an incomplete task — halt, diagnose, and do not proceed until a complete report is present.
+2. Read its report.
+3. Inspect changed files against the assigned scope.
+4. Check for unexpected edits.
+5. Run targeted verification.
+6. Decide the next worker/reviewer step.
+
+**Retry budget:** A task that fails or blocks gets the original attempt plus one retry maximum. A retry must record in `index.json` what changed from the previous attempt (model, thinking, task wording, scope). After budget is exhausted, stop and escalate with the collected evidence (index, reports, pane output summary). Do not retry silently.
 
 ## Agent lifecycle & continuation
 
-- A finished agent is left idle in its pane by default — do not close the pane/tab, so the user can review results and hand back follow-up tasks into the same context.
+- Preserve an agent's pane/tab only when review or explicit follow-up is planned; otherwise close it after report collection, diff/scope check, and integration (see Cleanup Policy). The session jsonl persists, so `pi --resume` / `pi --session <path>` can still restore the agent later.
 - Only an explicit pane/tab close removes a live agent. The session jsonl persists, so `pi --resume` / `pi --session <path>` can still restore it in a new dedicated tab.
 - Watch for name collisions under parallel runs: multiple live agents cannot share one `name`. Keep task-ids unique.
 - **Continuation sends use `herdr pane run` (send-text + Enter), with the pane resolved from the agent name** via the by-name snippet in *Reusing an existing agent*. `herdr agent send <name> <text>` only places text in the input box and does **not** press Enter, so the message never executes. **Common pitfall:** a follow-up appears ignored because `agent send` was used; the fix is the by-name snippet (`agent list` → `pane run`), never `agent send`.
+
+## Blocked / Timeout Handling
+
+When a child agent stops producing output or panes become unresponsive: read pane output, classify the block (provider error, auth, rate-limit, input-wait, tool failure), record it in `index.json`, and retry only within budget and fallback policy. If the block is provider/auth/rate-limit, fall back to a spare model when available; if input-wait, check the pane; if tool failure, narrow or rephrase the task. Escalate if budget exhausted or recovery impossible.
+
+## Cleanup Policy
+
+After report collection, diff/scope check, and no planned follow-up, close completed tabs/panes — do not leave stale panes indefinitely. If pane output contains secrets (keys, tokens, passwords), do not quote them in reports; close or clear the pane after user approval. A task reaches `cleaned` only after its tab/pane is closed or explicitly preserved for follow-up.

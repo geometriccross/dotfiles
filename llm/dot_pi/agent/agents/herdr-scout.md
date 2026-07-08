@@ -44,7 +44,7 @@ If the task would require editing files or running unsafe commands, stop and rep
 
 ## Required Output
 
-Write the requested report file. Also summarize briefly in the pane.
+Write the requested report file at the path specified in the task contract (canonically `.agent-runs/<id>/reports/<role-or-step>.md`). Also summarize briefly in the pane. The report must be complete and durable — an empty or missing report is a task failure.
 
 Report format:
 
