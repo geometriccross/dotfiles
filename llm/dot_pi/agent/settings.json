@@ -5,13 +5,14 @@
   "hideThinkingBlock": false,
   "lastChangelogVersion": "0.80.3",
   "packages": [
-    "git:github.com/MasuRii/pi-rtk-optimizer",
     "git:github.com/elpapi42/pi-observational-memory",
     "npm:pi-caffeinate",
     "npm:pi-goal",
     "npm:@ollama/pi-web-search",
     "npm:@zosmaai/pi-llm-wiki",
-    "npm:pi-hermes-memory"
+    "npm:pi-hermes-memory",
+    "npm:@mohndoe/pi-atlas",
+    "git:github.com/geometriccross/pi-alter-ego"
   ],
   "theme": "dark"
 }

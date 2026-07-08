@@ -835,7 +835,7 @@
       "cachedAt": 1782220885310
     },
     "godot": {
-      "configHash": "8dbf83754826de2e9a9468ac17e12cc3b42db7258b41f4bedc74f2c35dc9c7be",
+      "configHash": "97c7192802035d492e3d669daef3ec6920ec706efb4e827ccfff23776fd0c154",
       "tools": [
         {
           "name": "launch_editor",
@@ -1128,7 +1128,7 @@
         }
       ],
       "resources": [],
-      "cachedAt": 1782654984323
+      "cachedAt": 1783428735627
     }
   }
 }

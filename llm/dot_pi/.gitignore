@@ -8,3 +8,4 @@ agent/pi-hermes-memory
 agent/projects-memory
 
 __pycache__
+pi-atlas-cache.json
