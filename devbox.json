@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/jetify-com/devbox/0.17.5/.schema/devbox.schema.json",
+  "packages": [
+    "neovim@latest",
+    "gh@latest",
+    "fzf@latest",
+    "nodejs@latest",
+    "lazygit@latest",
+    "pnpm@latest",
+    "tree-sitter@latest",
+    "bun@latest",
+    "shellspec@latest",
+    "starship@latest",
+    "direnv@latest",
+    "uv@latest",
+    "pi-coding-agent@latest"
+  ],
+  "shell": {
+    "init_hook": [
+      "echo 'Devbox global environment loaded.' > /dev/null"
+    ],
+    "scripts": {}
+  }
+}

@@ -5,6 +5,7 @@
 .zsh_history
 .env
 .agent-runs/
+.devbox
 
 # Allow
 !.zshrc
