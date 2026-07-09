@@ -110,7 +110,7 @@ resolve_path() {
 }
 
 valid_dotfiles_checkout() {
-	[[ -d "$1/zsh" && -f "$1/aqua.yaml" ]]
+	[[ -d "$1/zsh" && -f "$1/devbox.json" ]]
 }
 
 select_container_source_dir() {
@@ -119,7 +119,7 @@ select_container_source_dir() {
 	elif valid_dotfiles_checkout "$PWD"; then
 		DOTFILES_SOURCE_DIR="$PWD"
 	else
-		log_error "Container mode must run from a dotfiles checkout containing zsh/ and aqua.yaml."
+		log_error "Container mode must run from a dotfiles checkout containing zsh/ and devbox.json."
 		return 1
 	fi
 }
@@ -255,18 +255,29 @@ ensure_symlink() {
 	ln -s "$source" "$target"
 }
 
-ensure_aqua() {
-	local aqua_bin="${AQUA_ROOT_DIR:-$XDG_DATA_HOME/aquaproj-aqua}/bin/aqua"
+ensure_devbox() {
+	local devbox_bin
+	devbox_bin="$(command -v devbox 2>/dev/null || true)"
 
-	if [[ -x "$aqua_bin" ]]; then
-		log_info "aqua already installed."
-	else
-		log_info "Installing aqua..."
-		curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v4.0.2/aqua-installer | bash
+	if [[ -z "$devbox_bin" ]]; then
+		log_info "Installing Devbox..."
+		curl -fsSL https://get.jetify.com/devbox | bash
+		devbox_bin="$(command -v devbox 2>/dev/null || true)"
+		if [[ -z "$devbox_bin" ]]; then
+			devbox_bin="$HOME/.local/bin/devbox"
+		fi
 	fi
 
-	log_info "Installing aqua packages..."
-	"$aqua_bin" i -a -c "$DOTFILES_DIR/aqua.yaml"
+	if [[ ! -x "$devbox_bin" ]]; then
+		log_error "Devbox binary not found at $devbox_bin"
+		return 1
+	fi
+
+	log_info "Configuring Devbox global symlink..."
+	ensure_symlink "$DOTFILES_DIR/devbox.json" "${XDG_DATA_HOME:-$HOME/.local/share}/devbox/global/default/devbox.json"
+
+	log_info "Installing global Devbox packages..."
+	"$devbox_bin" global install
 }
 
 main() {
@@ -284,7 +295,7 @@ main() {
 	ensure_dotfiles_repo
 	ensure_symlink "$DOTFILES_DIR/zsh" "$XDG_CONFIG_HOME/zsh"
 	ensure_symlink "$DOTFILES_DIR/zsh/.zshenv" "$HOME/.zshenv"
-	ensure_aqua
+	ensure_devbox
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then

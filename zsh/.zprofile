@@ -39,10 +39,6 @@ elif [ -x "$BROWSER_32" ]; then
     export BROWSER="$BROWSER_32"
 fi
 
-# aqua
-export PATH=${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH
-export AQUA_GLOBAL_CONFIG=$XDG_CONFIG_HOME/dotfiles/aqua.yaml
-
 export PATH=$HOME/.opencode/bin:$PATH # opencode
 
 [[ -f "$HOME/.env" ]] && source "$HOME/.env" # SET MANUALY
@@ -55,6 +51,11 @@ fi
 
 # beads
 export PATH="$PATH:$HOME/.local/bin"
+
+# devbox global
+if command -v devbox >/dev/null 2>&1; then
+	eval "$(devbox global shellenv)"
+fi
 
 # pnpm
 export PNPM_HOME="$HOME/.local/share/pnpm"
