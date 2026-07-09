@@ -4,16 +4,14 @@
     "neovim@latest",
     "gh@latest",
     "fzf@latest",
-    "nodejs@latest",
     "lazygit@latest",
-    "pnpm@latest",
     "tree-sitter@latest",
     "bun@latest",
     "shellspec@latest",
     "starship@latest",
-    "direnv@latest",
     "uv@latest",
-    "pi-coding-agent@latest"
+    "nodejs@latest",
+    "python3@latest"
   ],
   "shell": {
     "init_hook": [
