@@ -23,4 +23,23 @@ else
 	require("config.neovim.lsp")
 end
 
+-- -- カスタムLSP設定
+-- local lspconfig = require('lspconfig')
+-- local configs = require('lspconfig.configs')
+-- -- q2lsp をカスタムサーバーとして登録
+-- if not configs.q2lsp then
+-- 	configs.q2lsp = {
+-- 		default_config = {
+-- 			cmd = { 'python', '-m', 'q2lsp', '--debug', '--log-file', '/tmp/q2lsp.log' },
+-- 			filetypes = { 'sh', 'bash', 'zsh' },
+-- 			root_dir = function(fname)
+-- 				return lspconfig.util.find_git_ancestor(fname) or vim.fn.getcwd()
+-- 			end,
+-- 			settings = {},
+-- 		},
+-- 	}
+-- end
+-- -- サーバーを有効化
+-- lspconfig.q2lsp.setup({})
+
 vim.cmd [[colorscheme tokyonight]]
