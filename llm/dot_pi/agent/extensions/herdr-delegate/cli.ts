@@ -17,6 +17,63 @@ export interface AgentStartResult {
   agentSession?: AgentSession;
 }
 
+export interface AgentGetResult {
+  name: string;
+  pane_id: string;
+  tab_id: string;
+  workspace_id: string;
+  agent_status: string;
+  agent_session?: string;
+}
+
+/** Pure decision types and function for the continue action. */
+export type ContinueDecision =
+  | { decision: "not_found"; task_id: string }
+  | {
+      decision: "not_idle";
+      task_id: string;
+      agent_status: string;
+      pane_id: string;
+      tab_id: string;
+      workspace_id: string;
+    }
+  | { decision: "busy"; agent: AgentGetResult }
+  | { decision: "deliver"; agent: AgentGetResult };
+
+/**
+ * Pure decision function for the continue action.
+ * Separated so the branching logic is testable without a live Herdr CLI.
+ *
+ * Live-Herdr evidence: a Pi pane with agent_status "done" is still
+ * interactive and can process follow-up instructions via pane.run.
+ * Therefore "done" is continuation-eligible (returns deliver).
+ *
+ * "working" returns busy — do NOT send a new instruction into an
+ * agent that is actively processing a prior task.
+ */
+export function decideContinue(
+  agent: AgentGetResult | null,
+  taskId: string,
+): ContinueDecision {
+  if (!agent) {
+    return { decision: "not_found", task_id: taskId };
+  }
+  if (agent.agent_status === "idle" || agent.agent_status === "done") {
+    return { decision: "deliver", agent };
+  }
+  if (agent.agent_status === "working") {
+    return { decision: "busy", agent };
+  }
+  return {
+    decision: "not_idle",
+    task_id: taskId,
+    agent_status: agent.agent_status,
+    pane_id: agent.pane_id,
+    tab_id: agent.tab_id,
+    workspace_id: agent.workspace_id,
+  };
+}
+
 export interface AgentStatusEvent {
   event: "pane.agent_status_changed";
   data: {
@@ -35,6 +92,57 @@ export class HerdrCliError extends Error {
     this.commandArgs = commandArgs;
     this.exitCode = exitCode;
   }
+}
+
+/**
+ * Extract a JSON error code from a HerdrCliError's message.
+ * Returns the error code string, or null if not found / not parseable.
+ */
+function extractErrorCode(msg: string): string | null {
+  const firstBrace = msg.indexOf('{');
+  if (firstBrace === -1) return null;
+
+  let depth = 0;
+  let end = -1;
+  for (let i = firstBrace; i < msg.length; i++) {
+    if (msg[i] === '{') depth++;
+    else if (msg[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        end = i;
+        break;
+      }
+    }
+  }
+  if (end === -1) return null;
+
+  try {
+    const parsed = JSON.parse(msg.slice(firstBrace, end + 1));
+    const err =
+      parsed && typeof parsed === "object"
+        ? (parsed as Record<string, unknown>).error
+        : undefined;
+    if (
+      err !== undefined &&
+      typeof err === "object" &&
+      typeof (err as Record<string, unknown>).code === "string"
+    ) {
+      return (err as Record<string, unknown>).code as string;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/** Pure helper: detect agent_name_taken from a HerdrCliError's JSON error body. */
+export function isAgentNameTaken(error: HerdrCliError): boolean {
+  return extractErrorCode(error.message) === "agent_name_taken";
+}
+
+/** Pure helper: detect tab_not_found from a HerdrCliError's JSON error body. */
+export function isTabNotFoundError(error: HerdrCliError): boolean {
+  return extractErrorCode(error.message) === "tab_not_found";
 }
 
 function parseJson(command: string, stdout: string): unknown {
@@ -157,6 +265,7 @@ export interface HerdrCli {
     timeoutMs: number,
     status?: string,
   ): Promise<AgentStatusEvent>;
+  agentGet(name: string): Promise<AgentGetResult | null>;
   paneRead(paneId: string, lines: number): Promise<string>;
   tabClose(tabId: string): Promise<void>;
 }
@@ -231,6 +340,51 @@ export function createHerdrCli(
       );
     },
 
+    async agentGet(name: string): Promise<AgentGetResult | null> {
+      const args = ["agent", "get", name];
+      const response = await pi.exec("herdr", args, { signal, timeout: 10000 });
+      const raw = (response.stdout || response.stderr || "").trim();
+
+      let parsed: Record<string, unknown> | undefined;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        // not JSON
+      }
+
+      if (parsed) {
+        const err = asRecord(parsed.error);
+        if (err?.code === "agent_not_found") return null;
+
+        const result = asRecord(parsed.result);
+        const agent = asRecord(result?.agent);
+        if (agent) {
+          const session = asRecord(agent.agent_session);
+          return {
+            name: String(agent.name || ""),
+            pane_id: String(agent.pane_id || ""),
+            tab_id: String(agent.tab_id || ""),
+            workspace_id: String(agent.workspace_id || ""),
+            agent_status: String(agent.agent_status || ""),
+            agent_session: session?.value as string | undefined,
+          };
+        }
+      }
+
+      if (response.code !== 0) {
+        throw new HerdrCliError(
+          `Herdr CLI agent get failed with exit ${response.code}: ${raw}`,
+          args,
+          response.code,
+        );
+      }
+
+      throw new HerdrCliError(
+        `Herdr CLI agent get returned unexpected response: ${raw}`,
+        args,
+      );
+    },
+
     paneRead(paneId, lines) {
       return exec([
         "pane", "read", paneId,
@@ -239,8 +393,16 @@ export function createHerdrCli(
       ]);
     },
 
-    tabClose(tabId) {
-      return expectOk(["tab", "close", tabId]);
+    async tabClose(tabId) {
+      const args = ["tab", "close", tabId];
+      try {
+        await expectOk(args);
+      } catch (e) {
+        if (e instanceof HerdrCliError && isTabNotFoundError(e)) {
+          return; // idempotent: tab already closed
+        }
+        throw e;
+      }
     },
   };
 }

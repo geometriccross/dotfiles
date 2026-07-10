@@ -10,7 +10,7 @@ import { assertTransition } from "./state.ts";
 
 export interface LedgerEvent {
   at: string; // ISO-8601
-  status: TaskStatus | "starting";
+  status: TaskStatus | "starting" | "continuing";
   message: string;
 }
 
@@ -135,7 +135,7 @@ export function updateLedgerStatus(
     ],
   };
 
-  if (newStatus === "reported" || newStatus === "failed" || newStatus === "cleaned") {
+  if (newStatus === "reported" || newStatus === "failed" || newStatus === "cancelled" || newStatus === "cleaned") {
     updated.finished_at = now;
   }
 

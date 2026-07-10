@@ -2,13 +2,13 @@
  * herdr-delegate: Pi extension that gives a parent orchestrator a typed
  * `herdr_delegate` tool for Herdr delegation.
  *
- * V1 scope: `start` and `wait` actions only.
+ * Actions: `start`, `wait`, `continue`.
  * - `start`: validate, write task + ledger, create a tab and agent through the
  *   Herdr CLI, close the root pane, then atomically deliver the instruction.
  * - `wait`: poll until a non-empty report file appears or the deadline expires,
  *   then update reported/blocked.
- *
- * No continuation, cancellation, integration marking, or cleanup in this slice.
+ * - `continue`: resolve an existing agent by name and deliver a follow-up
+ *   instruction via pane.run (no new tab created).
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -20,7 +20,6 @@ import {
   existsSync,
   writeFileSync,
   mkdirSync,
-  statSync,
 } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { homedir } from "node:os";
@@ -34,11 +33,24 @@ import {
 
 import { resolvePiBin } from "./resolver.ts";
 
-import { buildInstruction } from "./instruction.ts";
+import {
+  buildInstruction,
+  buildContinuationInstruction,
+} from "./instruction.ts";
 import {
   createHerdrCli,
   type HerdrCli,
+  HerdrCliError,
+  isAgentNameTaken,
+  decideContinue,
+  isTabNotFoundError,
+  type AgentGetResult,
 } from "./cli.ts";
+import {
+  takeFingerprint,
+  waitForFreshReport,
+  waitForNonEmptyReport,
+} from "./freshness.ts";
 import { isAgentDetected } from "./lifecycle.ts";
 
 import { parseRoleFrontmatter, type RoleMetadata } from "./frontmatter.ts";
@@ -51,6 +63,8 @@ import {
   ledgerPath,
   type Ledger,
 } from "./ledger.ts";
+
+import type { TaskStatus } from "./state.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -93,18 +107,6 @@ function ensureDirForFile(filePath: string): void {
   const dir = dirname(filePath);
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
-  }
-}
-
-/** Read a non-empty regular file, or return null while it is unavailable. */
-function readNonEmptyFile(path: string): string | null {
-  try {
-    const st = statSync(path);
-    if (!st.isFile() || st.size === 0) return null;
-    const content = readFileSync(path, "utf-8");
-    return content.length > 0 ? content : null;
-  } catch {
-    return null;
   }
 }
 
@@ -191,23 +193,59 @@ async function actionStart(
   // Ensure report dir exists
   ensureDirForFile(resolve(cwd, reportFilePath));
 
-  // Create initial ledger
+  // Create or reuse ledger (non-destructive: preserve prior events)
   const initialRetry = 0;
   const initialAttempt = 1;
-  const ledger: Ledger = createInitialLedger(
-    taskId,
-    cwd,
-    workspaceId,
-    role,
-    rpPath,
-    meta.model,
-    meta.thinking,
-    meta.tools,
-    taskFilePath,
-    reportFilePath,
-    initialRetry,
-    initialAttempt,
-  );
+  const prevLedger = readLedger(cwd, taskId);
+  let ledger: Ledger;
+  if (prevLedger) {
+    const now = new Date().toISOString();
+    ledger = {
+      ...prevLedger,
+      task_id: taskId,
+      cwd,
+      workspace_id: workspaceId,
+      role,
+      role_path: rpPath,
+      model: meta.model,
+      thinking: meta.thinking,
+      tools: meta.tools,
+      task_file_path: taskFilePath,
+      report_file_path: reportFilePath,
+      status: "started",
+      retry_count: initialRetry,
+      attempt: prevLedger.attempt + 1,
+      started_at: now,
+      updated_at: now,
+      finished_at: null,
+      failure_reason: null,
+      integration_summary: null,
+      verification_summary: null,
+      tab_id: undefined,
+      root_pane_id: undefined,
+      pane_id: undefined,
+      agent_session: undefined,
+      events: [
+        ...prevLedger.events,
+        { at: now, status: "starting", message: `ledger reused for attempt ${prevLedger.attempt + 1}` },
+      ],
+    };
+  } else {
+    ledger = createInitialLedger(
+      taskId,
+      cwd,
+      workspaceId,
+      role,
+      rpPath,
+      meta.model,
+      meta.thinking,
+      meta.tools,
+      taskFilePath,
+      reportFilePath,
+      initialRetry,
+      initialAttempt,
+    );
+  }
   writeLedger(cwd, taskId, ledger);
 
   // 1. herdr tab create --workspace <ws> --label <id> --no-focus
@@ -248,6 +286,23 @@ async function actionStart(
       rolePath: rpPath,
     });
   } catch (e) {
+    // Check for agent_name_taken — reuse existing agent
+    if (e instanceof HerdrCliError && isAgentNameTaken(e)) {
+      const existing = await cli.agentGet(taskId);
+      if (existing && (existing.agent_status === "idle" || existing.agent_status === "done" || existing.agent_status === "working")) {
+        // Best-effort close created tab
+        try { await cli.tabClose(tabId); } catch { /* ignore */ }
+        return {
+          status: "already_running",
+          task_id: taskId,
+          pane_id: existing.pane_id,
+          tab_id: existing.tab_id,
+          workspace_id: existing.workspace_id,
+          agent_status: existing.agent_status,
+          cwd,
+        };
+      }
+    }
     // Best-effort close created tab
     try {
       await cli.tabClose(tabId);
@@ -295,7 +350,11 @@ async function actionStart(
     throw e;
   }
 
-  // 5. Atomically deliver text + Enter with herdr pane run.
+  // 5. Snapshot report fingerprint BEFORE delivery (freshness baseline)
+  const reportAbsPath = resolve(cwd, reportFilePath);
+  const preFingerprint = takeFingerprint(reportAbsPath);
+
+  // 6. Atomically deliver text + Enter with herdr pane run.
   const instruction = buildInstruction(taskFilePath, reportFilePath);
   try {
     await cli.paneRun(childPaneId, instruction);
@@ -310,7 +369,7 @@ async function actionStart(
     throw e;
   }
 
-  // 6. Write started ledger (only after instruction delivery succeeds)
+  // 7. Write started ledger (only after instruction delivery succeeds)
   const startedLedger = updateLedgerStarted(
     withTab,
     tabId,
@@ -320,16 +379,255 @@ async function actionStart(
   );
   writeLedger(cwd, taskId, startedLedger);
 
-  // 7. If wait=true, run the wait loop
+  // 8. If wait=true, poll for fresh report (NOT done-driven wait)
   if (shouldWait) {
-    return actionWait(
-      { task_id: taskId, cwd, timeout_ms: _timeoutMs },
-      ctx,
-      cli,
-    );
+    try {
+      const reportContent = await waitForFreshReport(
+        preFingerprint,
+        reportAbsPath,
+        _timeoutMs,
+      );
+      const currentLedger = readLedger(cwd, taskId)!;
+      const reportedLedger = updateLedgerStatus(
+        currentLedger,
+        "reported",
+        "start: fresh report detected via fingerprint change",
+      );
+      writeLedger(cwd, taskId, reportedLedger);
+      const result = buildResult(reportedLedger);
+      result.report_content = reportContent;
+      return result;
+    } catch (e) {
+      const currentLedger = readLedger(cwd, taskId)!;
+      const blockedLedger = updateLedgerStatus(
+        currentLedger,
+        "blocked",
+        `start: no fresh report within ${_timeoutMs}ms`,
+        {
+          failure_reason:
+            `timeout after ${_timeoutMs}ms: no fresh report detected (${e})`,
+        },
+      );
+      writeLedger(cwd, taskId, blockedLedger);
+      return buildResult(blockedLedger);
+    }
   }
 
   return buildResult(startedLedger);
+}
+
+// ---------------------------------------------------------------------------
+// Action: continue
+// ---------------------------------------------------------------------------
+
+async function actionContinue(
+  params: {
+    task_id: string;
+    cwd?: string;
+    task_content?: string;
+    report_file_path?: string;
+    timeout_ms?: number;
+    wait?: boolean;
+  },
+  ctx: { cwd: string },
+  cli: HerdrCli,
+): Promise<Record<string, unknown>> {
+  const taskId = validateTaskId(params.task_id);
+  const cwd = resolveCwd(params.cwd, ctx.cwd);
+  const taskContent = params.task_content;
+  const shouldWait = params.wait !== false;
+  const _timeoutMs = params.timeout_ms || 900000;
+
+  if (!taskContent) {
+    throw new Error("task_content is required for continue action");
+  }
+
+  // 1. Resolve existing agent
+  const agent = await cli.agentGet(taskId);
+
+  if (!agent) {
+    // Agent not found — include session hint from ledger if available
+    const existingLedger = readLedger(cwd, taskId);
+    const result: Record<string, unknown> = {
+      status: "not_found",
+      task_id: taskId,
+      cwd,
+    };
+    if (existingLedger?.agent_session?.value) {
+      result.agent_session = existingLedger.agent_session.value;
+    }
+    return result;
+  }
+
+  // 2. Decide eligibility using pure helper (live-evidence driven)
+  const decision = decideContinue(agent, taskId);
+
+  if (decision.decision === "not_found") {
+    // Should not happen here since agent was resolved, but handle defensively
+    return { status: "not_found", task_id: taskId, cwd };
+  }
+
+  if (decision.decision === "not_idle") {
+    return {
+      status: "not_idle",
+      task_id: taskId,
+      agent_status: decision.agent_status,
+      pane_id: decision.pane_id,
+      tab_id: decision.tab_id,
+      workspace_id: decision.workspace_id,
+      cwd,
+    };
+  }
+
+  if (decision.decision === "busy") {
+    return {
+      status: "busy",
+      task_id: taskId,
+      pane_id: agent.pane_id,
+      tab_id: agent.tab_id,
+      workspace_id: agent.workspace_id,
+      agent_status: agent.agent_status,
+      cwd,
+    };
+  }
+
+  // 3. Agent is eligible (deliver) — prepare continuation
+  const existingLedger = readLedger(cwd, taskId);
+  const role = existingLedger?.role || "herdr-worker";
+  const defaultTaskPath = `.agent-runs/${taskId}/tasks/${role}.md`;
+  const taskFilePath = existingLedger?.task_file_path || defaultTaskPath;
+  const reportFilePath =
+    params.report_file_path ||
+    existingLedger?.report_file_path ||
+    `.agent-runs/${taskId}/reports/${role}.md`;
+
+  // Validate paths
+  validateTaskFilePath(taskFilePath, cwd, taskId);
+  validateReportPath(reportFilePath, cwd, taskId);
+
+  // Write task file with new content
+  ensureDirForFile(resolve(cwd, taskFilePath));
+  writeFileSync(resolve(cwd, taskFilePath), taskContent, "utf-8");
+
+  // Ensure report dir exists
+  ensureDirForFile(resolve(cwd, reportFilePath));
+
+  // 4. Write ledger event (non-destructive append)
+  const now = new Date().toISOString();
+  if (existingLedger) {
+    const updatedLedger: Ledger = {
+      ...existingLedger,
+      status: "started",
+      updated_at: now,
+      events: [
+        ...existingLedger.events,
+        { at: now, status: "continuing", message: "continue action: follow-up step delivered" },
+      ],
+    };
+    writeLedger(cwd, taskId, updatedLedger);
+  } else {
+    // Create a minimal ledger when none exists
+    const newLedger: Ledger = {
+      task_id: taskId,
+      cwd,
+      workspace_id: agent.workspace_id,
+      tab_id: agent.tab_id || undefined,
+      root_pane_id: undefined,
+      pane_id: agent.pane_id,
+      role,
+      role_path: "",
+      model: "",
+      thinking: "",
+      tools: [],
+      task_file_path: taskFilePath,
+      report_file_path: reportFilePath,
+      agent_session: agent.agent_session
+        ? { source: "pi", agent: taskId, kind: "path", value: agent.agent_session }
+        : undefined,
+      status: "started",
+      retry_count: 0,
+      attempt: 1,
+      started_at: now,
+      updated_at: now,
+      finished_at: null,
+      failure_reason: null,
+      integration_summary: null,
+      verification_summary: null,
+      events: [
+        { at: now, status: "continuing", message: "continue action: follow-up step delivered (new ledger)" },
+      ],
+    };
+    writeLedger(cwd, taskId, newLedger);
+  }
+
+  // 5. Snapshot report fingerprint BEFORE delivery (fixes order bug:
+  //    was taken after paneRun, could miss a fast child write).
+  const reportAbsPath = resolve(cwd, reportFilePath);
+  const preFingerprint = takeFingerprint(reportAbsPath);
+
+  // 6. Deliver continuation-specific instruction via pane run
+  const attempt = existingLedger?.attempt || 1;
+  const instruction = buildContinuationInstruction(
+    taskFilePath,
+    reportFilePath,
+    attempt,
+  );
+  try {
+    await cli.paneRun(agent.pane_id, instruction);
+  } catch (e) {
+    const currentLedger = readLedger(cwd, taskId)!;
+    const failedLedger = updateLedgerStatus(
+      currentLedger,
+      "failed",
+      `pane.run failed in continue: ${e}`,
+      { failure_reason: String(e), pane_id: agent.pane_id },
+    );
+    writeLedger(cwd, taskId, failedLedger);
+    throw e;
+  }
+
+  // 7. Wait if requested — use shared fresh-report polling helper.
+  if (shouldWait) {
+    try {
+      const reportContent = await waitForFreshReport(
+        preFingerprint,
+        reportAbsPath,
+        _timeoutMs,
+      );
+      const currentLedger = readLedger(cwd, taskId)!;
+      const reportedLedger = updateLedgerStatus(
+        currentLedger,
+        "reported",
+        "continue: fresh report detected via fingerprint change",
+      );
+      writeLedger(cwd, taskId, reportedLedger);
+      const result = buildResult(reportedLedger);
+      result.report_content = reportContent;
+      return result;
+    } catch (e) {
+      const currentLedger = readLedger(cwd, taskId)!;
+      const blockedLedger = updateLedgerStatus(
+        currentLedger,
+        "blocked",
+        `continue: no fresh report within ${_timeoutMs}ms`,
+        {
+          failure_reason:
+            `timeout after ${_timeoutMs}ms: no fresh report detected (${e})`,
+        },
+      );
+      writeLedger(cwd, taskId, blockedLedger);
+      return buildResult(blockedLedger);
+    }
+  }
+
+  return {
+    status: "started",
+    task_id: taskId,
+    cwd,
+    pane_id: agent.pane_id,
+    tab_id: agent.tab_id || null,
+    workspace_id: agent.workspace_id,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -343,7 +641,7 @@ async function actionWait(
     timeout_ms?: number;
   },
   ctx: { cwd: string },
-  cli: HerdrCli,
+  _cli: HerdrCli,
 ): Promise<Record<string, unknown>> {
   const taskId = validateTaskId(params.task_id);
   const cwd = resolveCwd(params.cwd, ctx.cwd);
@@ -354,60 +652,292 @@ async function actionWait(
     throw new Error(`No ledger found for task "${taskId}" at ${cwd}`);
   }
 
-  const childPaneId = currentLedger.pane_id;
-  if (!childPaneId) {
-    throw new Error(`Ledger for "${taskId}" has no pane_id; was start completed?`);
-  }
-
   const reportPath = resolve(cwd, currentLedger.report_file_path);
 
-  // Primary wait: skill-aligned done-driven completion.
-  // The herdr skill canonical completion primitive is
-  //   herdr wait agent-status <pane> --status done --timeout <ms>
-  let agentDone = false;
+  // Report-freshness-driven wait — status is diagnostic only.
+  // Does NOT gate on agent_status:done or idle.  Pi can finish as
+  // either "done" or "idle"; report presence is the completion truth.
   try {
-    await cli.waitAgentStatus(childPaneId, timeoutMs, "done");
-    agentDone = true;
-  } catch {
-    // waitAgentStatus threw → timeout or error (agent did not reach done)
-  }
-
-  if (!agentDone) {
-    const timeoutLedger = updateLedgerStatus(
-      currentLedger,
-      "blocked",
-      `agent did not reach done within ${timeoutMs}ms`,
-      { failure_reason: `timeout after ${timeoutMs}ms: agent did not reach done` },
+    const reportContent = await waitForNonEmptyReport(
+      reportPath,
+      timeoutMs,
     );
-    writeLedger(cwd, taskId, timeoutLedger);
-    return buildResult(timeoutLedger);
-  }
-
-  // Agent reached done — gate on report file
-  const reportContent = readNonEmptyFile(reportPath);
-
-  if (reportContent !== null) {
     const reportedLedger = updateLedgerStatus(
       currentLedger,
       "reported",
-      "agent reached done, report file present and non-empty",
+      "wait: non-empty report detected",
     );
     writeLedger(cwd, taskId, reportedLedger);
-
     const result = buildResult(reportedLedger);
     result.report_content = reportContent;
     return result;
+  } catch (e) {
+    const blockedLedger = updateLedgerStatus(
+      currentLedger,
+      "blocked",
+      `wait: no report within ${timeoutMs}ms`,
+      {
+        failure_reason:
+          `timeout after ${timeoutMs}ms: no report appeared (${e})`,
+      },
+    );
+    writeLedger(cwd, taskId, blockedLedger);
+    return buildResult(blockedLedger);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Action: cancel
+// ---------------------------------------------------------------------------
+
+async function actionCancel(
+  params: {
+    task_id: string;
+    cwd?: string;
+    reason?: string;
+  },
+  ctx: { cwd: string },
+  cli: HerdrCli,
+): Promise<Record<string, unknown>> {
+  const taskId = validateTaskId(params.task_id);
+  const cwd = resolveCwd(params.cwd, ctx.cwd);
+  const reason = params.reason || "cancelled by orchestrator";
+
+  // 1. Try to resolve agent
+  let agent: AgentGetResult | null = null;
+  try {
+    agent = await cli.agentGet(taskId);
+  } catch {
+    // agentGet failed — proceed without agent info
   }
 
-  // done reached but report missing/empty → fail-fast blocked
-  const blockedLedger = updateLedgerStatus(
-    currentLedger,
-    "blocked",
-    "agent reached done without a report",
-    { failure_reason: "agent reached done without a report" },
+  // 2. Close tab/pane if agent exists
+  let closed = false;
+  if (agent) {
+    if (agent.tab_id) {
+      try {
+        await cli.tabClose(agent.tab_id);
+        closed = true;
+      } catch {
+        // tabClose failed — try paneClose fallback
+      }
+    }
+    if (!closed && agent.pane_id) {
+      try {
+        await cli.paneClose(agent.pane_id);
+        closed = true;
+      } catch {
+        // paneClose also failed — non-fatal
+      }
+    }
+  }
+
+  // 3. No agent and no ledger → nothing to cancel
+  const existingLedger = readLedger(cwd, taskId);
+  if (!agent && !existingLedger) {
+    return {
+      status: "not_found",
+      task_id: taskId,
+      cwd,
+    };
+  }
+
+  // 4. Update/create ledger as cancelled (terminal state)
+  const now = new Date().toISOString();
+
+  if (existingLedger) {
+    let cancelledLedger: Ledger;
+    try {
+      cancelledLedger = updateLedgerStatus(
+        existingLedger,
+        "cancelled",
+        reason,
+        { failure_reason: reason },
+      );
+    } catch {
+      // Force-write cancelled when state machine disallows (e.g. already integrated)
+      cancelledLedger = {
+        ...existingLedger,
+        status: "cancelled" as TaskStatus,
+        updated_at: now,
+        finished_at: now,
+        failure_reason: reason,
+        events: [
+          ...existingLedger.events,
+          { at: now, status: "cancelled" as TaskStatus, message: reason },
+        ],
+      };
+    }
+    writeLedger(cwd, taskId, cancelledLedger);
+    return buildResult(cancelledLedger, {
+      agent_existed: true,
+      was_closed: closed,
+    });
+  }
+
+  // No ledger but agent existed — create minimal cancelled ledger
+  const minimalLedger: Ledger = {
+    task_id: taskId,
+    cwd,
+    workspace_id: agent?.workspace_id || "",
+    tab_id: agent?.tab_id || undefined,
+    pane_id: agent?.pane_id || undefined,
+    role: "",
+    role_path: "",
+    model: "",
+    thinking: "",
+    tools: [],
+    task_file_path: "",
+    report_file_path: "",
+    agent_session: undefined,
+    status: "cancelled" as TaskStatus,
+    retry_count: 0,
+    attempt: 1,
+    started_at: now,
+    updated_at: now,
+    finished_at: now,
+    failure_reason: reason,
+    integration_summary: null,
+    verification_summary: null,
+    events: [
+      { at: now, status: "cancelled" as TaskStatus, message: reason },
+    ],
+  };
+  writeLedger(cwd, taskId, minimalLedger);
+  return buildResult(minimalLedger, {
+    agent_existed: true,
+    was_closed: closed,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Action: mark_integrated
+// ---------------------------------------------------------------------------
+
+async function actionMarkIntegrated(
+  params: {
+    task_id: string;
+    cwd?: string;
+    integration_summary?: string;
+  },
+  ctx: { cwd: string },
+  _cli: HerdrCli,
+): Promise<Record<string, unknown>> {
+  const taskId = validateTaskId(params.task_id);
+  const cwd = resolveCwd(params.cwd, ctx.cwd);
+
+  const existingLedger = readLedger(cwd, taskId);
+  if (!existingLedger) {
+    return { status: "not_found", task_id: taskId, cwd };
+  }
+
+  if (existingLedger.status !== "reported") {
+    return {
+      status: "not_reported",
+      task_id: taskId,
+      cwd,
+      current_status: existingLedger.status,
+    };
+  }
+
+  const summary = params.integration_summary || null;
+  const integratedLedger = updateLedgerStatus(
+    existingLedger,
+    "integrated",
+    "marked integrated by orchestrator",
   );
-  writeLedger(cwd, taskId, blockedLedger);
-  return buildResult(blockedLedger);
+  if (summary) {
+    integratedLedger.integration_summary = summary;
+  }
+  writeLedger(cwd, taskId, integratedLedger);
+  return buildResult(integratedLedger);
+}
+
+// ---------------------------------------------------------------------------
+// Action: cleanup
+// ---------------------------------------------------------------------------
+
+async function actionCleanup(
+  params: {
+    task_id: string;
+    cwd?: string;
+  },
+  ctx: { cwd: string },
+  cli: HerdrCli,
+): Promise<Record<string, unknown>> {
+  const taskId = validateTaskId(params.task_id);
+  const cwd = resolveCwd(params.cwd, ctx.cwd);
+
+  const existingLedger = readLedger(cwd, taskId);
+  if (!existingLedger) {
+    return { status: "not_found", task_id: taskId, cwd };
+  }
+
+  // Lifecycle enforcement: only allow cleanup from terminal/idle states
+  const allowedCleanupFrom: TaskStatus[] = [
+    "integrated",
+    "cancelled",
+    "failed",
+    "blocked",
+  ];
+  if (!(allowedCleanupFrom as string[]).includes(existingLedger.status)) {
+    return {
+      status: "not_ready_for_cleanup",
+      task_id: taskId,
+      cwd,
+      current_status: existingLedger.status,
+    };
+  }
+
+  // Close tab if present
+  if (existingLedger.tab_id) {
+    try {
+      await cli.tabClose(existingLedger.tab_id);
+    } catch {
+      // tabClose failed — try paneClose fallback
+      if (existingLedger.pane_id) {
+        try {
+          await cli.paneClose(existingLedger.pane_id);
+        } catch {
+          // Non-fatal
+        }
+      }
+    }
+  } else {
+    // No tab_id in ledger — resolve agent for closing info
+    try {
+      const agent = await cli.agentGet(taskId);
+      if (agent?.tab_id) {
+        try {
+          await cli.tabClose(agent.tab_id);
+        } catch {
+          // Non-fatal
+        }
+      } else if (agent?.pane_id) {
+        try {
+          await cli.paneClose(agent.pane_id);
+        } catch {
+          // Non-fatal
+        }
+      }
+    } catch {
+      // agentGet failed — already closed, non-fatal
+    }
+  }
+
+  const cleanedLedger = updateLedgerStatus(
+    existingLedger,
+    "cleaned",
+    "cleanup: tab/pane closed, task cleaned",
+  );
+  writeLedger(cwd, taskId, cleanedLedger);
+
+  return {
+    status: "cleaned",
+    task_id: taskId,
+    cwd,
+    workspace_id: cleanedLedger.workspace_id,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -472,20 +1002,34 @@ export default function (pi: ExtensionAPI) {
     label: "Herdr Delegate",
     description:
       "Delegate a task to a Herdr-managed child Pi agent. " +
-      "Use 'start' to launch a new child task, 'wait' to wait for completion. " +
-      "V1 supports start and wait actions only.",
+      "Use 'start' to launch a new child task, 'wait' to wait for completion, " +
+      "'continue' to reuse an existing child agent for a follow-up step, " +
+      "'cancel' to terminate a running task, " +
+      "'mark_integrated' to advance a reported task to integrated, " +
+      "'cleanup' to close the task tab and mark as cleaned.",
     promptSnippet:
       "Delegate a task to a Herdr-managed child agent (start or wait)",
     promptGuidelines: [
       "Use herdr_delegate with action='start' to launch a child Pi agent for implementation work. " +
         "Provide task_id, cwd, role, task_content, and report_file_path.",
       "Use herdr_delegate with action='wait' to wait for a previously started child to complete and gate on its report.",
+      "Use herdr_delegate with action='continue' to send a follow-up instruction to an existing idle/working child agent.",
+      "Use herdr_delegate with action='cancel' to terminate a running child task (closes tab, marks ledger cancelled).",
+      "Use herdr_delegate with action='mark_integrated' to advance a reported task to the integrated state.",
+      "Use herdr_delegate with action='cleanup' to close the task's tab/pane and mark the ledger as cleaned.",
       "Always check the returned status field: 'reported' means the child wrote a non-empty report; " +
-        "'blocked' means the child is stuck; 'failed' means an unrecoverable error occurred.",
+        "'blocked' means the child is stuck; 'failed' means an unrecoverable error occurred; " +
+        "'already_running' means the agent exists from a prior start; 'not_found' means no agent with that name exists; " +
+        "'busy' means the agent is actively working and cannot accept a continue right now; " +
+        "'not_idle' means the agent is blocked/unknown and cannot accept a continue; " +
+        "'cancelled' means the task was successfully cancelled and its tab closed; " +
+        "'cleaned' means the task's tab/pane has been closed and the task is cleaned; " +
+        "'not_reported' means the task is not in reported state and cannot be integrated; " +
+        "'not_ready_for_cleanup' means the task is still started/reported and cannot be cleaned yet.",
     ],
     parameters: Type.Object({
-      action: StringEnum(["start", "wait"] as const, {
-        description: "Action to perform: start a new child task, or wait for a running one",
+      action: StringEnum(["start", "wait", "continue", "cancel", "mark_integrated", "cleanup"] as const, {
+        description: "Action to perform: start, wait, continue, cancel, mark_integrated, or cleanup",
       }),
       task_id: Type.String({
         description:
@@ -553,6 +1097,20 @@ export default function (pi: ExtensionAPI) {
             "Must be absolute and executable when provided.",
         }),
       ),
+      // --- cancel parameters ---
+      reason: Type.Optional(
+        Type.String({
+          description:
+            "Reason for cancellation (recorded in ledger event). Default: 'cancelled by orchestrator'",
+        }),
+      ),
+      // --- mark_integrated parameters ---
+      integration_summary: Type.Optional(
+        Type.String({
+          description:
+            "Optional summary of integration (recorded in ledger)",
+        }),
+      ),
       // --- wait parameters ---
       // (shared: task_id, cwd, timeout_ms already defined above)
     }),
@@ -576,6 +1134,38 @@ export default function (pi: ExtensionAPI) {
 
       if (action === "wait") {
         const result = await actionWait(params as Parameters<typeof actionWait>[0], ctx, cli);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          details: result,
+        };
+      }
+
+      if (action === "continue") {
+        const result = await actionContinue(params as Parameters<typeof actionContinue>[0], ctx, cli);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          details: result,
+        };
+      }
+
+      if (action === "cancel") {
+        const result = await actionCancel(params as Parameters<typeof actionCancel>[0], ctx, cli);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          details: result,
+        };
+      }
+
+      if (action === "mark_integrated") {
+        const result = await actionMarkIntegrated(params as Parameters<typeof actionMarkIntegrated>[0], ctx, cli);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          details: result,
+        };
+      }
+
+      if (action === "cleanup") {
+        const result = await actionCleanup(params as Parameters<typeof actionCleanup>[0], ctx, cli);
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           details: result,

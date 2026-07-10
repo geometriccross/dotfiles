@@ -8,17 +8,19 @@ export type TaskStatus =
   | "started"
   | "reported"
   | "integrated"
+  | "cancelled"
   | "cleaned"
   | "blocked"
   | "failed";
 
 const VALID_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
-  started: ["reported", "blocked", "failed"],
-  reported: ["integrated", "failed"],
+  started: ["reported", "blocked", "failed", "cancelled"],
+  reported: ["integrated", "failed", "cancelled"],
   integrated: ["cleaned"],
+  cancelled: ["cleaned"],
   cleaned: [],
-  blocked: ["started", "failed"],
-  failed: ["started"],
+  blocked: ["started", "failed", "cancelled", "cleaned"],
+  failed: ["started", "cancelled", "cleaned"],
 };
 
 export function isTransitionAllowed(
