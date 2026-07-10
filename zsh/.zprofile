@@ -85,3 +85,5 @@ fi
 
 # flutter
 export PATH="$PATH:$HOME/.local/bin/flutter/bin"
+
+export PATH="$PATH:$HOME/.local/share/npm-global/bin/"
