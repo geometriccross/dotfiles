@@ -1,7 +1,7 @@
 ---
 name: herdr-planner
 description: Herdr-managed read-only planning agent that writes a deterministic implementation plan report.
-model: openai-codex/gpt-5.5
+model: opencode-go/glm-5.2
 thinking: high
 tools: read,grep,find,ls,bash
 interactive: true

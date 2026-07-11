@@ -2,7 +2,7 @@
 name: herdr-worker
 description: Executes one Herdr-orchestrated worker task with an explicit allowed edit scope and durable report output.
 model: opencode-go/deepseek-v4-pro
-thinking: medium
+thinking: xhigh 
 tools: read,bash,edit,write
 ---
 
