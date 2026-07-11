@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# Launch the executor and orchestrator Pi profiles side by side in Herdr.
+# Each Pi process loads its own settings, AGENTS.md, extensions, and skills
+# through PI_CODING_AGENT_DIR. This launcher does not inject role prompts.
+set -euo pipefail
+
+# -----------------------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------------------
+
+die() {
+  printf '[pi-dual] %s\n' "$*" >&2
+  exit 1
+}
+
+find_pi() {
+  local pi_bin npm_prefix
+
+  pi_bin="${HERDR_PI_BIN:-$(command -v pi 2>/dev/null || true)}"
+  if [[ -n "$pi_bin" ]]; then
+    printf '%s\n' "$pi_bin"
+    return
+  fi
+
+  npm_prefix="$(npm config get prefix 2>/dev/null || printf '%s' "$HOME/.local/share/npm-global")"
+  if [[ -x "$npm_prefix/bin/pi" ]]; then
+    printf '%s\n' "$npm_prefix/bin/pi"
+  fi
+}
+
+launch_pi() {
+  local pane_id="$1"
+  local role="$2"
+  local profile="$PROFILE_ROOT/$role"
+
+  herdr pane run "$pane_id" \
+    "PI_CODING_AGENT_DIR='$profile' $PI_BIN --approve"
+}
+
+# -----------------------------------------------------------------------------
+# Preflight
+# -----------------------------------------------------------------------------
+
+[[ "${HERDR_ENV:-}" == '1' ]] || die 'Run inside a Herdr session (HERDR_ENV=1).'
+
+PI_BIN="$(find_pi)"
+[[ -n "$PI_BIN" && -x "$PI_BIN" ]] || die 'pi binary not found. Set HERDR_PI_BIN or install pi.'
+
+PROJECT_DIR="$(cd "${1:-$PWD}" 2>/dev/null && pwd -P)" \
+  || die "Cannot resolve project directory: ${1:-$PWD}"
+
+# modules/pi-dual -> <dotfiles>/modules -> <dotfiles>/llm/dot_pi/agent
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+PROFILE_ROOT="$(cd "$SCRIPT_DIR/../llm/dot_pi/agent" 2>/dev/null && pwd -P)" \
+  || die 'Pi profile directory not found.'
+
+[[ -d "$PROFILE_ROOT/executor" ]] || die "Executor profile not found: $PROFILE_ROOT/executor"
+[[ -d "$PROFILE_ROOT/orchestrator" ]] || die "Orchestrator profile not found: $PROFILE_ROOT/orchestrator"
+
+# -----------------------------------------------------------------------------
+# Create a two-pane workspace
+# -----------------------------------------------------------------------------
+
+PROJECT_NAME="$(basename "$PROJECT_DIR")"
+
+# Herdr returns JSON on stdout. Convert the two needed values to one
+# tab-separated line, then let Bash assign them directly.
+read -r WORKSPACE_ID EXECUTOR_PANE < <(
+  herdr workspace create \
+    --cwd "$PROJECT_DIR" \
+    --label "pi-dual:$PROJECT_NAME" \
+    --no-focus \
+    | jq -r '[.result.workspace.workspace_id, .result.root_pane.pane_id] | @tsv'
+) || die 'Failed to create Herdr workspace.'
+
+ORCHESTRATOR_PANE="$(
+  herdr pane split "$EXECUTOR_PANE" --direction right --no-focus \
+    | jq -r '.result.pane.pane_id'
+)" || die 'Failed to split Herdr pane.'
+
+# -----------------------------------------------------------------------------
+# Start Pi using each profile's native configuration
+# -----------------------------------------------------------------------------
+
+launch_pi "$EXECUTOR_PANE" executor \
+  || die 'Failed to launch executor.'
+
+launch_pi "$ORCHESTRATOR_PANE" orchestrator \
+  || die 'Failed to launch orchestrator.'
+
+herdr workspace focus "$WORKSPACE_ID" || true
+printf '[pi-dual] ready: %s (executor=%s, orchestrator=%s)\n' \
+  "$WORKSPACE_ID" "$EXECUTOR_PANE" "$ORCHESTRATOR_PANE"

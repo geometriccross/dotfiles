@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Run Pi with the executor profile.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ROLE="${BASH_SOURCE[0]##*/}"
+ROLE="${ROLE#pi-}"
+PROFILE_ROOT="$(cd "$SCRIPT_DIR/../llm/dot_pi/agent" 2>/dev/null && pwd -P)" \
+  || { printf 'pi-executor: Pi profile directory not found.\n' >&2; exit 1; }
+
+[[ -d "$PROFILE_ROOT/$ROLE" ]] || {
+  printf 'pi-executor: profile not found: %s\n' "$PROFILE_ROOT/$ROLE" >&2
+  exit 1
+}
+
+PI_BIN="${HERDR_PI_BIN:-$(command -v pi 2>/dev/null || true)}"
+if [[ -z "$PI_BIN" ]]; then
+  NPM_PREFIX="$(npm config get prefix 2>/dev/null || printf '%s' "$HOME/.local/share/npm-global")"
+  [[ -x "$NPM_PREFIX/bin/pi" ]] && PI_BIN="$NPM_PREFIX/bin/pi"
+fi
+[[ -n "$PI_BIN" && -x "$PI_BIN" ]] || {
+  printf 'pi-executor: pi binary not found. Set HERDR_PI_BIN or install pi.\n' >&2
+  exit 1
+}
+
+export PI_CODING_AGENT_DIR="$PROFILE_ROOT/$ROLE"
+exec "$PI_BIN" "$@"
