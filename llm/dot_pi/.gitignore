@@ -1,11 +1,11 @@
-agent/bin
-agent/sessions
+bin
+sessions
 auth.json
-agent/intercom
-agent/run-history.jsonl
-agent/trust.json
-agent/pi-hermes-memory
-agent/projects-memory
+intercom
+run-history.jsonl
+trust.json
+pi-hermes-memory
+projects-memory
 
 __pycache__
 pi-atlas-cache.json
