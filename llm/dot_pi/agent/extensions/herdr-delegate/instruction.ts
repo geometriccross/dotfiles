@@ -45,3 +45,30 @@ export function buildContinuationInstruction(
     `Do not modify files outside the allowed edit scope.`
   );
 }
+
+/**
+ * Build the warm-lease instruction for a pool-leased warm worker.
+ *
+ * Unlike the standard start instruction, this MUST establish an
+ * independent-task boundary — the worker was previously warm-started
+ * without any task context, so it has no prior-task assumptions.
+ * The instruction:
+ *  - declares this is an independent task (no prior-task carry-over)
+ *  - requires reading the named task file NOW
+ *  - explicitly forbids carrying assumptions from prior conversations
+ *  - mandates the canonical report path
+ *  - differs from both buildInstruction and buildContinuationInstruction
+ */
+export function buildWarmLeaseInstruction(
+  taskFilePath: string,
+  reportFilePath: string,
+): string {
+  return (
+    `WARM-LEASE START: This is an independent task. ` +
+    `You have been leased from a warm pool — do not carry any assumptions ` +
+    `from prior tasks or conversations. ` +
+    `Read ${taskFilePath} NOW — this is your only task contract. ` +
+    `Complete it exactly and write the required report to ${reportFilePath}. ` +
+    `Do not modify files outside the allowed edit scope.`
+  );
+}

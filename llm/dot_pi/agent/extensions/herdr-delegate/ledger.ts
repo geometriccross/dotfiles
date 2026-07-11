@@ -44,6 +44,12 @@ export interface Ledger {
   integration_summary: string | null;
   verification_summary: string | null;
   events: LedgerEvent[];
+  /** Warm-pool v2 extensions — all optional, tolerant of old ledgers. */
+  schema_version?: number;
+  worker_name?: string;
+  lease_id?: string;
+  task_file_revisions?: string[];
+  baseline_fingerprint?: { size: number; mtimeMs: number; exists: boolean };
 }
 
 export function ledgerPath(cwd: string, taskId: string): string {

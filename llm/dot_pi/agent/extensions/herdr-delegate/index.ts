@@ -2,13 +2,17 @@
  * herdr-delegate: Pi extension that gives a parent orchestrator a typed
  * `herdr_delegate` tool for Herdr delegation.
  *
- * Actions: `start`, `wait`, `continue`.
+ * Actions: `start`, `wait`, `continue`, `settle`.
  * - `start`: validate, write task + ledger, create a tab and agent through the
- *   Herdr CLI, close the root pane, then atomically deliver the instruction.
+ *   Herdr CLI, then atomically deliver the instruction.
+ *   Optionally settle after report (wait:true + settle:true).
  * - `wait`: poll until a non-empty report file appears or the deadline expires,
  *   then update reported/blocked.
  * - `continue`: resolve an existing agent by name and deliver a follow-up
- *   instruction via pane.run (no new tab created).
+ *   instruction via pane.run (no new tab created). Optionally settle after
+ *   report (wait:true + settle:true).
+ * - `settle`: observe an agent via agentGet polling until it becomes reusable
+ *   (idle/done) or the deadline expires. Never sends pane input.
  */
 
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
@@ -36,6 +40,7 @@ import { resolvePiBin } from "./resolver.ts";
 import {
   buildInstruction,
   buildContinuationInstruction,
+  buildWarmLeaseInstruction,
 } from "./instruction.ts";
 import {
   createHerdrCli,
@@ -52,6 +57,7 @@ import {
   waitForNonEmptyReport,
 } from "./freshness.ts";
 import { isAgentDetected } from "./lifecycle.ts";
+import { decideSettled, decideReuse } from "./settle.ts";
 
 import { parseRoleFrontmatter, type RoleMetadata } from "./frontmatter.ts";
 import {
@@ -65,6 +71,22 @@ import {
 } from "./ledger.ts";
 
 import type { TaskStatus } from "./state.ts";
+
+import {
+  poolPath,
+  readPool,
+  writePool,
+  createPool,
+  findWorker,
+  generateWarmWorkerName,
+  selectCandidate,
+  leaseWorker,
+  releaseWorker,
+  markWorkerDead,
+  type WarmPool,
+  type WarmWorkerEntry,
+} from "./warm.ts";
+import { validateWarmWorkerName } from "./validation.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -133,6 +155,523 @@ const READINESS_DETECTION_TIMEOUT_MS = 30_000;
 const READY_DELAY_MS = parseEnvInt("HERDR_DELEGATE_READY_DELAY_MS", 5000);
 
 // ---------------------------------------------------------------------------
+// Shared settle helper (cold-compatible observation, no pane input)
+// ---------------------------------------------------------------------------
+
+/**
+ * Observe an agent until it reaches a reusable state or the deadline expires.
+ *
+ * Uses `cli.agentGet` repeatedly — never sends pane input.
+ * Does NOT mutate the task ledger; observation is separate from task state.
+ *
+ * Agent name resolution: `ledger.worker_name ?? task_id` (cold task ids only now;
+ * worker_name supports future warm ledgers).
+ *
+ * Settle timeout precedence:
+ *  1. Explicit timeout_ms parameter
+ *  2. HERDR_DELEGATE_SETTLE_TIMEOUT_MS env var (default 60000)
+ */
+async function observeSettle(
+  taskId: string,
+  cwd: string,
+  cli: HerdrCli,
+  timeoutMs: number,
+): Promise<Record<string, unknown>> {
+  const existingLedger = readLedger(cwd, taskId);
+  const agentName = existingLedger?.worker_name ?? taskId;
+
+  const deadline = Date.now() + timeoutMs;
+  const pollIntervalMs = 2000;
+
+  while (Date.now() < deadline) {
+    const agent = await cli.agentGet(agentName);
+
+    if (!agent) {
+      return {
+        status: "not_found",
+        task_id: taskId,
+        agent_name: agentName,
+        cwd,
+      };
+    }
+
+    const decision = decideSettled(agent.agent_status);
+
+    if (decision.decision === "reusable") {
+      return {
+        status: "reusable",
+        task_id: taskId,
+        agent_name: agentName,
+        agent_status: decision.agent_status,
+        pane_id: agent.pane_id,
+        tab_id: agent.tab_id,
+        workspace_id: agent.workspace_id,
+        cwd,
+      };
+    }
+
+    if (decision.decision === "not_idle") {
+      return {
+        status: "not_idle",
+        task_id: taskId,
+        agent_name: agentName,
+        agent_status: decision.agent_status,
+        pane_id: agent.pane_id,
+        tab_id: agent.tab_id,
+        workspace_id: agent.workspace_id,
+        cwd,
+      };
+    }
+
+    // decision is "settling" (working) → keep waiting
+    const remaining = Math.min(
+      pollIntervalMs,
+      Math.max(100, deadline - Date.now()),
+    );
+    await sleep(remaining);
+  }
+
+  // Deadline reached while agent was still working
+  const agent = await cli.agentGet(agentName);
+
+  const result: Record<string, unknown> = {
+    status: "settling",
+    deadline_reached: true,
+    task_id: taskId,
+    agent_name: agentName,
+    cwd,
+  };
+
+  if (agent) {
+    result.agent_status = agent.agent_status;
+    result.pane_id = agent.pane_id;
+    result.tab_id = agent.tab_id;
+    result.workspace_id = agent.workspace_id;
+  } else {
+    result.agent_status = "not_found";
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Action: warm_start
+// ---------------------------------------------------------------------------
+
+async function actionWarmStart(
+  params: {
+    cwd?: string;
+    workspace_id?: string;
+    role?: string;
+    worker_name?: string;
+    timeout_ms?: number;
+    pi_path?: string;
+  },
+  ctx: { cwd: string },
+  cli: HerdrCli,
+): Promise<Record<string, unknown>> {
+  const cwd = resolveCwd(params.cwd, ctx.cwd);
+  const role = params.role || "herdr-worker";
+  const piBin = resolvePiBin(params.pi_path, process.env.HERDR_PI_BIN);
+  const workspaceId = resolveWorkspaceId(params.workspace_id);
+
+  // Read and parse role prompt
+  const { content: rpContent, path: rpPath } = readRolePrompt(role);
+  const meta: RoleMetadata = parseRoleFrontmatter(rpContent, role, rpPath);
+
+  // Resolve or validate worker name
+  const pool = readPool(cwd, workspaceId) || createPool(workspaceId);
+  const existingPoolNames = new Set(pool.workers.map((w) => w.name));
+
+  let workerName: string;
+  if (params.worker_name) {
+    workerName = validateWarmWorkerName(params.worker_name);
+    // Collision: must not already be in pool
+    if (existingPoolNames.has(workerName)) {
+      throw new Error(
+        `Warm worker name "${workerName}" is already in pool for workspace "${workspaceId}"`,
+      );
+    }
+    // Collision: must not be a live agent
+    try {
+      const existing = await cli.agentGet(workerName);
+      if (existing) {
+        throw new Error(
+          `Warm worker name "${workerName}" collides with a live agent`,
+        );
+      }
+    } catch {
+      // agentGet failure is acceptable — agent likely doesn't exist
+    }
+  } else {
+    // Generate next unused name from pool, then check live collision
+    workerName = generateWarmWorkerName(role, existingPoolNames);
+    try {
+      const existing = await cli.agentGet(workerName);
+      if (existing) {
+        // Name collides with live agent — add to skip set and regenerate
+        const allSkip = new Set(existingPoolNames);
+        allSkip.add(workerName);
+        workerName = generateWarmWorkerName(role, allSkip);
+        const check2 = await cli.agentGet(workerName);
+        if (check2) {
+          throw new Error(
+            `Cannot find unused warm worker name for role "${role}" ` +
+            `in workspace "${workspaceId}" — pool may be saturated`,
+          );
+        }
+      }
+    } catch (e) {
+      if (e instanceof Error && e.message.includes("Cannot find")) throw e;
+      // agentGet failure is acceptable
+    }
+  }
+
+  // Create tab (no root-pane close — root pane retention is mandatory)
+  let tabId: string;
+  let rootPaneId: string;
+  try {
+    const tabRes = await cli.tabCreate(workspaceId, `warm-${workerName}`);
+    tabId = tabRes.tabId;
+    rootPaneId = tabRes.rootPaneId;
+  } catch (e) {
+    throw new Error(`warm_start tab.create failed: ${e}`);
+  }
+
+  // Agent start — interactive Pi with role model/thinking/tools
+  let childPaneId: string;
+  let agentSession: { source: string; agent: string; kind: "id" | "path"; value: string } | undefined;
+  try {
+    const agentRes = await cli.agentStart({
+      name: workerName,
+      tabId,
+      cwd,
+      piBin,
+      model: meta.model,
+      thinking: meta.thinking,
+      toolsCsv: meta.toolsString,
+      rolePath: rpPath,
+    });
+    childPaneId = agentRes.paneId;
+    agentSession = agentRes.agentSession;
+  } catch (e) {
+    try { await cli.tabClose(tabId); } catch { /* ignore */ }
+    throw new Error(`warm_start agent.start failed: ${e}`);
+  }
+
+  // Wait readiness — detect agent, then allow input box to mount
+  try {
+    const readiness = await cli.waitAgentStatus(
+      childPaneId,
+      READINESS_DETECTION_TIMEOUT_MS,
+    );
+    if (!isAgentDetected(readiness.data.agent_status)) {
+      throw new Error(
+        "warm worker agent was not detected before pool registration",
+      );
+    }
+    await sleep(READY_DELAY_MS);
+  } catch (e) {
+    try { await cli.tabClose(tabId); } catch { /* ignore */ }
+    throw new Error(`warm_start readiness wait failed: ${e}`);
+  }
+
+  // Register pool entry as "ready" — no task text sent
+  const now = new Date().toISOString();
+  const entry: WarmWorkerEntry = {
+    name: workerName,
+    role,
+    workspace_id: workspaceId,
+    tab_id: tabId,
+    pane_id: childPaneId,
+    agent_session: agentSession?.value,
+    state: "ready",
+    lease_count: 0,
+    born_at: now,
+    version: 0,
+  };
+
+  const updatedPool: WarmPool = {
+    ...pool,
+    workers: [...pool.workers, entry],
+  };
+  writePool(cwd, workspaceId, updatedPool);
+
+  return {
+    status: "ready",
+    worker_name: workerName,
+    worker_state: "ready",
+    tab_id: tabId,
+    root_pane_id: rootPaneId,
+    pane_id: childPaneId,
+    workspace_id: workspaceId,
+    pool_path: poolPath(cwd, workspaceId),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Internal: execute a single warm start and return the worker name
+// ---------------------------------------------------------------------------
+
+async function autoWarmOne(
+  cwd: string,
+  workspaceId: string,
+  role: string,
+  cli: HerdrCli,
+): Promise<string> {
+  const result = await actionWarmStart(
+    { cwd, workspace_id: workspaceId, role },
+    { cwd },
+    cli,
+  );
+  return result.worker_name as string;
+}
+
+// ---------------------------------------------------------------------------
+// Warm start delivery: lease a pool worker and deliver the task
+// ---------------------------------------------------------------------------
+
+async function actionStartWarm(
+  taskId: string,
+  cwd: string,
+  workspaceId: string,
+  role: string,
+  rpPath: string,
+  meta: RoleMetadata,
+  taskContent: string | undefined,
+  taskFilePath: string,
+  reportFilePath: string,
+  ledger: Ledger,
+  shouldWait: boolean,
+  shouldSettle: boolean,
+  timeoutMs: number,
+  autoWarm: boolean,
+  cli: HerdrCli,
+): Promise<Record<string, unknown>> {
+  // Require task_content
+  if (!taskContent) {
+    throw new Error("task_content is required for start action (warm mode)");
+  }
+
+  // Read pool
+  let pool = readPool(cwd, workspaceId);
+  if (!pool) {
+    // No pool and no auto_warm → no_warm_worker
+    if (!autoWarm) {
+      return {
+        status: "no_warm_worker",
+        task_id: taskId,
+        cwd,
+        workspace_id: workspaceId,
+      };
+    }
+    // Auto-warm: create a pool implicitly
+    pool = createPool(workspaceId);
+  }
+
+  // Select eligible pool candidate (ready/reusable, matching role and workspace)
+  let candidate = selectCandidate(pool, workspaceId);
+
+  if (!candidate) {
+    if (!autoWarm) {
+      return {
+        status: "no_warm_worker",
+        task_id: taskId,
+        cwd,
+        workspace_id: workspaceId,
+      };
+    }
+    // Auto-warm exactly one worker
+    await autoWarmOne(cwd, workspaceId, role, cli);
+    pool = readPool(cwd, workspaceId)!; // Re-read after warm
+    candidate = selectCandidate(pool, workspaceId);
+    if (!candidate) {
+      return {
+        status: "no_warm_worker",
+        task_id: taskId,
+        cwd,
+        workspace_id: workspaceId,
+      };
+    }
+  }
+
+  const worker = candidate.entry;
+  const workerName = worker.name;
+
+  // CAS lease worker to task
+  const leaseResult = leaseWorker(pool, workspaceId, workerName, worker.version, taskId);
+  if (!leaseResult.ok) {
+    return {
+      status: "busy",
+      task_id: taskId,
+      cwd,
+      workspace_id: workspaceId,
+      worker_name: workerName,
+      conflict: leaseResult.conflict,
+      worker_state: worker.state,
+    };
+  }
+
+  // Persist updated pool
+  pool = leaseResult.pool;
+  writePool(cwd, workspaceId, pool);
+
+  const leasedEntry = leaseResult.entry;
+  const childPaneId = leasedEntry.pane_id;
+  const tabId = leasedEntry.tab_id;
+
+  // Update ledger with warm fields and tab/pane metadata
+  const now = new Date().toISOString();
+  const warmLedger: Ledger = {
+    ...ledger,
+    schema_version: 2,
+    worker_name: workerName,
+    lease_id: `lease-${taskId}-${Date.now()}`,
+    tab_id: tabId,
+    pane_id: childPaneId,
+    updated_at: now,
+    events: [
+      ...ledger.events,
+      {
+        at: now,
+        status: "starting",
+        message: `warm lease: worker "${workerName}" leased to task`,
+      },
+    ],
+  };
+  writeLedger(cwd, taskId, warmLedger);
+
+  // Snapshot report fingerprint BEFORE delivery
+  const reportAbsPath = resolve(cwd, reportFilePath);
+  const preFingerprint = takeFingerprint(reportAbsPath);
+
+  // Deliver warm-lease instruction (no cold readiness delay)
+  const instruction = buildWarmLeaseInstruction(taskFilePath, reportFilePath);
+  try {
+    await cli.paneRun(childPaneId, instruction);
+  } catch (e) {
+    const failedLedger = updateLedgerStatus(
+      warmLedger,
+      "failed",
+      `warm pane.run failed: ${e}`,
+      { failure_reason: String(e), pane_id: childPaneId },
+    );
+    writeLedger(cwd, taskId, failedLedger);
+    throw e;
+  }
+
+  // Write started ledger (warm: no root_pane_id — tab persists from warm_start)
+  const startedNow = new Date().toISOString();
+  const startedLedger: Ledger = {
+    ...warmLedger,
+    tab_id: tabId,
+    pane_id: childPaneId,
+    root_pane_id: undefined,
+    updated_at: startedNow,
+    events: [
+      ...warmLedger.events,
+      {
+        at: startedNow,
+        status: "started",
+        message: "warm agent instruction delivered",
+      },
+    ],
+  };
+  writeLedger(cwd, taskId, startedLedger);
+
+  // If wait=true, poll for fresh report
+  if (shouldWait) {
+    try {
+      const reportContent = await waitForFreshReport(
+        preFingerprint,
+        reportAbsPath,
+        timeoutMs,
+      );
+      const currentLedger = readLedger(cwd, taskId)!;
+      const reportedLedger = updateLedgerStatus(
+        currentLedger,
+        "reported",
+        "warm start: fresh report detected via fingerprint change",
+      );
+      writeLedger(cwd, taskId, reportedLedger);
+
+      // Transition pool from "leased" to "settling" (not yet reusable)
+      const poolAfterReport = readPool(cwd, workspaceId);
+      if (poolAfterReport) {
+        const wIdx = poolAfterReport.workers.findIndex(
+          (w) => w.name === workerName,
+        );
+        if (wIdx !== -1 && poolAfterReport.workers[wIdx].state === "leased") {
+          const settledWorker: WarmWorkerEntry = {
+            ...poolAfterReport.workers[wIdx],
+            state: "settling",
+            version: poolAfterReport.workers[wIdx].version + 1,
+          };
+          const updatedPool: WarmPool = {
+            ...poolAfterReport,
+            workers: [
+              ...poolAfterReport.workers.slice(0, wIdx),
+              settledWorker,
+              ...poolAfterReport.workers.slice(wIdx + 1),
+            ],
+          };
+          writePool(cwd, workspaceId, updatedPool);
+        }
+      }
+
+      const result = buildResult(reportedLedger);
+      result.report_content = reportContent;
+      result.warm = true;
+      result.worker_name = workerName;
+
+      // If settle=true, observe post-report settlement
+      if (shouldSettle) {
+        const settleResult = await observeSettle(
+          taskId, cwd, cli,
+          timeoutMs ||
+            parseEnvInt("HERDR_DELEGATE_SETTLE_TIMEOUT_MS", 60000),
+        );
+        // Merge settle result; pool stays leased/settling (no release)
+        return {
+          ...settleResult,
+          status: settleResult.status,
+          report_content: reportContent,
+          task_file_path: result.task_file_path,
+          report_file_path: result.report_file_path,
+          ledger_path: result.ledger_path,
+          settled: true,
+          warm: true,
+          worker_name: workerName,
+        };
+      }
+
+      return result;
+    } catch (e) {
+      const currentLedger = readLedger(cwd, taskId)!;
+      const blockedLedger = updateLedgerStatus(
+        currentLedger,
+        "blocked",
+        `warm start: no fresh report within ${timeoutMs}ms`,
+        {
+          failure_reason:
+            `timeout after ${timeoutMs}ms: no fresh report detected (${e})`,
+        },
+      );
+      writeLedger(cwd, taskId, blockedLedger);
+      const result = buildResult(blockedLedger);
+      result.warm = true;
+      result.worker_name = workerName;
+      return result;
+    }
+  }
+
+  const result = buildResult(startedLedger);
+  result.warm = true;
+  result.worker_name = workerName;
+  return result;
+}
+
+// ---------------------------------------------------------------------------
 // Action: start
 // ---------------------------------------------------------------------------
 
@@ -147,8 +686,11 @@ async function actionStart(
     report_file_path?: string;
     timeout_ms?: number;
     wait?: boolean;
+    settle?: boolean;
     label?: string;
     pi_path?: string;
+    mode?: string;
+    auto_warm?: boolean;
   },
   ctx: { cwd: string },
   cli: HerdrCli,
@@ -157,8 +699,12 @@ async function actionStart(
   const cwd = resolveCwd(params.cwd, ctx.cwd);
   const role = params.role || "herdr-worker";
   const taskContent = params.task_content;
+  const shouldSettle = params.settle === true;
   const _timeoutMs = params.timeout_ms || 900000;
   const shouldWait = params.wait !== false; // default true
+  if (shouldSettle && !shouldWait) {
+    throw new Error("settle:true requires wait:true for start action; cannot settle without a confirmed report baseline");
+  }
   const label = params.label || taskId;
   const piBin = resolvePiBin(params.pi_path, process.env.HERDR_PI_BIN);
 
@@ -181,6 +727,7 @@ async function actionStart(
     params.report_file_path || defaultReportPath,
     cwd,
     taskId,
+    role,
   );
 
   // Write task file
@@ -247,6 +794,25 @@ async function actionStart(
     );
   }
   writeLedger(cwd, taskId, ledger);
+
+  // =========================================================================
+  // Warm mode: lease a pool worker and deliver
+  // =========================================================================
+  const mode = params.mode || "cold";
+  const autoWarm = params.auto_warm === true;
+
+  if (mode === "warm") {
+    return actionStartWarm(
+      taskId, cwd, workspaceId, role, rpPath, meta,
+      taskContent, taskFilePath, reportFilePath,
+      ledger, shouldWait, shouldSettle, _timeoutMs,
+      autoWarm, cli,
+    );
+  }
+
+  // =========================================================================
+  // Cold mode (default): create a new tab + agent
+  // =========================================================================
 
   // 1. herdr tab create --workspace <ws> --label <id> --no-focus
   let tabCreateRes;
@@ -321,14 +887,7 @@ async function actionStart(
 
   const { paneId: childPaneId, agentSession } = agentRes;
 
-  // 3. pane.close root pane so child owns the dedicated tab
-  try {
-    await cli.paneClose(rootPaneId);
-  } catch {
-    // Non-fatal; tab still usable even if root is open
-  }
-
-  // 4. Wait until Herdr has detected the child, then allow Pi's input box to
+  // 3. Wait until Herdr has detected the child, then allow Pi's input box to
   // mount before delivering text + Enter. Status is a readiness signal only.
   try {
     const readiness = await cli.waitAgentStatus(
@@ -350,11 +909,11 @@ async function actionStart(
     throw e;
   }
 
-  // 5. Snapshot report fingerprint BEFORE delivery (freshness baseline)
+  // 4. Snapshot report fingerprint BEFORE delivery (freshness baseline)
   const reportAbsPath = resolve(cwd, reportFilePath);
   const preFingerprint = takeFingerprint(reportAbsPath);
 
-  // 6. Atomically deliver text + Enter with herdr pane run.
+  // 5. Atomically deliver text + Enter with herdr pane run.
   const instruction = buildInstruction(taskFilePath, reportFilePath);
   try {
     await cli.paneRun(childPaneId, instruction);
@@ -369,7 +928,7 @@ async function actionStart(
     throw e;
   }
 
-  // 7. Write started ledger (only after instruction delivery succeeds)
+  // 6. Write started ledger (only after instruction delivery succeeds)
   const startedLedger = updateLedgerStarted(
     withTab,
     tabId,
@@ -379,7 +938,7 @@ async function actionStart(
   );
   writeLedger(cwd, taskId, startedLedger);
 
-  // 8. If wait=true, poll for fresh report (NOT done-driven wait)
+  // 7. If wait=true, poll for fresh report (NOT done-driven wait)
   if (shouldWait) {
     try {
       const reportContent = await waitForFreshReport(
@@ -396,6 +955,26 @@ async function actionStart(
       writeLedger(cwd, taskId, reportedLedger);
       const result = buildResult(reportedLedger);
       result.report_content = reportContent;
+
+      // 7b. If settler=true, observe post-report settlement
+      if (shouldSettle) {
+        const settleResult = await observeSettle(
+          taskId, cwd, cli,
+          params.timeout_ms ||
+            parseEnvInt("HERDR_DELEGATE_SETTLE_TIMEOUT_MS", 60000),
+        );
+        // Merge: settle result is primary, retain report_content + task context
+        return {
+          ...settleResult,
+          status: settleResult.status, // "reusable" | "settling" | "not_idle" | "not_found"
+          report_content: reportContent,
+          task_file_path: result.task_file_path,
+          report_file_path: result.report_file_path,
+          ledger_path: result.ledger_path,
+          settled: true,
+        };
+      }
+
       return result;
     } catch (e) {
       const currentLedger = readLedger(cwd, taskId)!;
@@ -428,6 +1007,7 @@ async function actionContinue(
     report_file_path?: string;
     timeout_ms?: number;
     wait?: boolean;
+    settle?: boolean;
   },
   ctx: { cwd: string },
   cli: HerdrCli,
@@ -435,8 +1015,12 @@ async function actionContinue(
   const taskId = validateTaskId(params.task_id);
   const cwd = resolveCwd(params.cwd, ctx.cwd);
   const taskContent = params.task_content;
+  const shouldSettle = params.settle === true;
   const shouldWait = params.wait !== false;
   const _timeoutMs = params.timeout_ms || 900000;
+  if (shouldSettle && !shouldWait) {
+    throw new Error("settle:true requires wait:true for continue action; cannot settle without a confirmed report baseline");
+  }
 
   if (!taskContent) {
     throw new Error("task_content is required for continue action");
@@ -503,7 +1087,8 @@ async function actionContinue(
 
   // Validate paths
   validateTaskFilePath(taskFilePath, cwd, taskId);
-  validateReportPath(reportFilePath, cwd, taskId);
+  const continueRole = role;
+  validateReportPath(reportFilePath, cwd, taskId, continueRole);
 
   // Write task file with new content
   ensureDirForFile(resolve(cwd, taskFilePath));
@@ -603,6 +1188,25 @@ async function actionContinue(
       writeLedger(cwd, taskId, reportedLedger);
       const result = buildResult(reportedLedger);
       result.report_content = reportContent;
+
+      // 7b. If settler=true, observe post-report settlement
+      if (shouldSettle) {
+        const settleResult = await observeSettle(
+          taskId, cwd, cli,
+          params.timeout_ms ||
+            parseEnvInt("HERDR_DELEGATE_SETTLE_TIMEOUT_MS", 60000),
+        );
+        return {
+          ...settleResult,
+          status: settleResult.status,
+          report_content: reportContent,
+          task_file_path: result.task_file_path,
+          report_file_path: result.report_file_path,
+          ledger_path: result.ledger_path,
+          settled: true,
+        };
+      }
+
       return result;
     } catch (e) {
       const currentLedger = readLedger(cwd, taskId)!;
@@ -687,6 +1291,32 @@ async function actionWait(
 }
 
 // ---------------------------------------------------------------------------
+// Action: settle
+// ---------------------------------------------------------------------------
+
+async function actionSettle(
+  params: {
+    task_id: string;
+    cwd?: string;
+    timeout_ms?: number;
+  },
+  ctx: { cwd: string },
+  cli: HerdrCli,
+): Promise<Record<string, unknown>> {
+  const taskId = validateTaskId(params.task_id);
+  const cwd = resolveCwd(params.cwd, ctx.cwd);
+
+  // Settle timeout precedence:
+  // 1. Explicit timeout_ms parameter
+  // 2. HERDR_DELEGATE_SETTLE_TIMEOUT_MS env var (default 60000)
+  const settleTimeoutMs =
+    params.timeout_ms ||
+    parseEnvInt("HERDR_DELEGATE_SETTLE_TIMEOUT_MS", 60000);
+
+  return observeSettle(taskId, cwd, cli, settleTimeoutMs);
+}
+
+// ---------------------------------------------------------------------------
 // Action: cancel
 // ---------------------------------------------------------------------------
 
@@ -702,6 +1332,96 @@ async function actionCancel(
   const taskId = validateTaskId(params.task_id);
   const cwd = resolveCwd(params.cwd, ctx.cwd);
   const reason = params.reason || "cancelled by orchestrator";
+
+  const existingLedger = readLedger(cwd, taskId);
+
+  // =======================================================================
+  // Warm cancel path: worker_name present in ledger → destructive, never
+  // release back to pool.
+  // =======================================================================
+  if (existingLedger?.schema_version === 2 && existingLedger.worker_name) {
+    const workerName = existingLedger.worker_name;
+    const workspaceId = existingLedger.workspace_id;
+    const pool = readPool(cwd, workspaceId);
+
+    // Close worker tab — resolve by worker_name (not task_id)
+    let closed = false;
+
+    // Try pool entry's tab_id first
+    if (existingLedger.tab_id) {
+      try {
+        await cli.tabClose(existingLedger.tab_id);
+        closed = true;
+      } catch {
+        // Non-fatal
+      }
+    }
+
+    if (!closed) {
+      // Resolve by worker name
+      try {
+        const agent = await cli.agentGet(workerName);
+        if (agent?.tab_id) {
+          try {
+            await cli.tabClose(agent.tab_id);
+            closed = true;
+          } catch {
+            // Non-fatal
+          }
+        } else if (agent?.pane_id) {
+          try {
+            await cli.paneClose(agent.pane_id);
+            closed = true;
+          } catch {
+            // Non-fatal
+          }
+        }
+      } catch {
+        // agentGet failed — non-fatal
+      }
+    }
+
+    // Mark pool entry dead (if pool + worker exist)
+    let poolMarkedDead = false;
+    if (pool) {
+      const mdResult = markWorkerDead(pool, workspaceId, workerName);
+      if (mdResult.ok) {
+        writePool(cwd, workspaceId, mdResult.pool);
+        poolMarkedDead = true;
+      }
+    }
+
+    // Update ledger as cancelled
+    const now = new Date().toISOString();
+    const cancelledLedger: Ledger = {
+      ...existingLedger,
+      status: "cancelled" as TaskStatus,
+      updated_at: now,
+      finished_at: now,
+      failure_reason: reason,
+      events: [
+        ...existingLedger.events,
+        {
+          at: now,
+          status: "cancelled" as TaskStatus,
+          message: `warm cancel: ${reason}`,
+        },
+      ],
+    };
+    writeLedger(cwd, taskId, cancelledLedger);
+
+    return buildResult(cancelledLedger, {
+      agent_existed: true,
+      was_closed: closed,
+      warm: true,
+      worker_name: workerName,
+      pool_marked_dead: poolMarkedDead,
+    });
+  }
+
+  // =======================================================================
+  // Cold cancel path (no worker_name — existing behaviour, unchanged)
+  // =======================================================================
 
   // 1. Try to resolve agent
   let agent: AgentGetResult | null = null;
@@ -733,7 +1453,6 @@ async function actionCancel(
   }
 
   // 3. No agent and no ledger → nothing to cancel
-  const existingLedger = readLedger(cwd, taskId);
   if (!agent && !existingLedger) {
     return {
       status: "not_found",
@@ -861,6 +1580,7 @@ async function actionCleanup(
   params: {
     task_id: string;
     cwd?: string;
+    keep_worker?: boolean;
   },
   ctx: { cwd: string },
   cli: HerdrCli,
@@ -888,6 +1608,202 @@ async function actionCleanup(
       current_status: existingLedger.status,
     };
   }
+
+  // =======================================================================
+  // Warm cleanup path: worker_name present in ledger
+  // =======================================================================
+  if (existingLedger.schema_version === 2 && existingLedger.worker_name) {
+    const keepWorker = params.keep_worker !== false; // default true for warm
+    const workerName = existingLedger.worker_name;
+    const workspaceId = existingLedger.workspace_id;
+    const pool = readPool(cwd, workspaceId);
+
+    if (!pool) {
+      return {
+        status: "no_pool",
+        task_id: taskId,
+        cwd,
+        worker_name: workerName,
+        workspace_id: workspaceId,
+      };
+    }
+
+    const worker = findWorker(pool, workerName);
+    if (!worker) {
+      return {
+        status: "worker_not_found",
+        task_id: taskId,
+        cwd,
+        worker_name: workerName,
+        workspace_id: workspaceId,
+      };
+    }
+
+    // Verify ownership: pool worker must be leased to this exact task
+    if (worker.leased_to_task !== taskId) {
+      return {
+        status: "not_leased_to_task",
+        task_id: taskId,
+        cwd,
+        worker_name: workerName,
+        worker_leased_to: worker.leased_to_task,
+        worker_state: worker.state,
+      };
+    }
+
+    // --- keep_worker=true (default warm): release to reusable, no tabClose ---
+    if (keepWorker) {
+      // Probe worker agent status
+      let agent: AgentGetResult | null = null;
+      try {
+        agent = await cli.agentGet(workerName);
+      } catch {
+        // agentGet failure — treat as missing
+      }
+
+      if (!agent) {
+        // Missing agent — mark dead in pool, return non-cleaned
+        const mdResult = markWorkerDead(pool, workspaceId, workerName);
+        if (mdResult.ok) {
+          writePool(cwd, workspaceId, mdResult.pool);
+        }
+        return {
+          status: "agent_missing",
+          task_id: taskId,
+          cwd,
+          worker_name: workerName,
+          worker_state: worker.state,
+          pool_marked_dead: mdResult.ok,
+          message: "Worker agent not found — marked dead in pool.",
+        };
+      }
+
+      const settlement = decideSettled(agent.agent_status);
+
+      if (settlement.decision === "settling") {
+        return {
+          status: "not_ready_for_cleanup",
+          task_id: taskId,
+          cwd,
+          worker_name: workerName,
+          worker_state: worker.state,
+          agent_status: agent.agent_status,
+        };
+      }
+
+      if (settlement.decision === "not_idle") {
+        return {
+          status: "not_ready_for_cleanup",
+          task_id: taskId,
+          cwd,
+          worker_name: workerName,
+          worker_state: worker.state,
+          agent_status: agent.agent_status,
+        };
+      }
+
+      // settlement.decision === "reusable" — idle/done, proceed with release
+      const relResult = releaseWorker(
+        pool,
+        workspaceId,
+        workerName,
+        worker.version,
+        taskId,
+      );
+      if (!relResult.ok) {
+        return {
+          status: "release_conflict",
+          task_id: taskId,
+          cwd,
+          worker_name: workerName,
+          conflict: relResult.conflict,
+          worker_state: worker.state,
+        };
+      }
+
+      writePool(cwd, workspaceId, relResult.pool);
+
+      const cleanedLedger = updateLedgerStatus(
+        existingLedger,
+        "cleaned",
+        "cleanup: warm worker released to reusable, tab retained",
+      );
+      writeLedger(cwd, taskId, cleanedLedger);
+
+      return {
+        status: "cleaned",
+        task_id: taskId,
+        cwd,
+        workspace_id: workspaceId,
+        worker_name: workerName,
+        worker_state: "reusable",
+        tab_id: worker.tab_id,
+        pane_id: worker.pane_id,
+      };
+    }
+
+    // --- keep_worker=false: close tab, mark dead ---
+    let closed = false;
+    if (worker.tab_id) {
+      try {
+        await cli.tabClose(worker.tab_id);
+        closed = true;
+      } catch {
+        // tab_not_found is idempotent — non-fatal
+      }
+    }
+    if (!closed) {
+      // Resolve by worker name for closing
+      try {
+        const wAgent = await cli.agentGet(workerName);
+        if (wAgent?.tab_id) {
+          try {
+            await cli.tabClose(wAgent.tab_id);
+            closed = true;
+          } catch {
+            // Non-fatal
+          }
+        } else if (wAgent?.pane_id) {
+          try {
+            await cli.paneClose(wAgent.pane_id);
+            closed = true;
+          } catch {
+            // Non-fatal
+          }
+        }
+      } catch {
+        // agentGet failed — non-fatal
+      }
+    }
+
+    // Mark worker dead in pool
+    const mdResult = markWorkerDead(pool, workspaceId, workerName);
+    if (mdResult.ok) {
+      writePool(cwd, workspaceId, mdResult.pool);
+    }
+
+    const cleanedLedger = updateLedgerStatus(
+      existingLedger,
+      "cleaned",
+      "cleanup: keep_worker=false — worker tab closed, pool marked dead",
+    );
+    writeLedger(cwd, taskId, cleanedLedger);
+
+    return {
+      status: "cleaned",
+      task_id: taskId,
+      cwd,
+      workspace_id: workspaceId,
+      worker_name: workerName,
+      worker_state: "dead",
+      pool_marked_dead: mdResult.ok,
+      tab_closed: closed,
+    };
+  }
+
+  // =======================================================================
+  // Cold cleanup path (no worker_name — existing behaviour, unchanged)
+  // =======================================================================
 
   // Close tab if present
   if (existingLedger.tab_id) {
@@ -1004,32 +1920,52 @@ export default function (pi: ExtensionAPI) {
       "Delegate a task to a Herdr-managed child Pi agent. " +
       "Use 'start' to launch a new child task, 'wait' to wait for completion, " +
       "'continue' to reuse an existing child agent for a follow-up step, " +
+      "'settle' to observe an agent until reusable, " +
       "'cancel' to terminate a running task, " +
       "'mark_integrated' to advance a reported task to integrated, " +
-      "'cleanup' to close the task tab and mark as cleaned.",
+      "'cleanup' to close the task tab and mark as cleaned. " +
+      "A started tab retains its root pane (root_pane_id in result) plus the agent child pane; " +
+      "only tabClose (via cancel/cleanup) removes both panes together.",
     promptSnippet:
-      "Delegate a task to a Herdr-managed child agent (start or wait)",
+      "Delegate a task to a Herdr-managed child agent (start, wait, warm_start)",
     promptGuidelines: [
-      "Use herdr_delegate with action='start' to launch a child Pi agent for implementation work. " +
-        "Provide task_id, cwd, role, task_content, and report_file_path.",
+      "Use herdr_delegate with action='start' to launch a child Pi agent for implementation work (cold mode). " +
+        "Provide task_id, cwd, role, task_content, and report_file_path. Optionally set settle:true with wait:true to observe post-report settlement.",
+      "Use herdr_delegate with action='warm_start' to pre-warm a Pi worker in the pool without a task. " +
+        "Provide workspace_id, role, and optionally worker_name. The warm worker will be registered in the pool as 'ready'.",
+      "Use herdr_delegate with action='start' and mode='warm' to lease a warm pool worker for a task. " +
+        "Provide task_id, task_content, role, workspace_id. Optionally set auto_warm:true to warm a worker if none exists.",
+      "Warm pool statuses: 'no_warm_worker' means no eligible worker; 'busy' means CAS lease conflict. " +
+        "Use warm_start to pre-warm workers before leasing them.",
       "Use herdr_delegate with action='wait' to wait for a previously started child to complete and gate on its report.",
-      "Use herdr_delegate with action='continue' to send a follow-up instruction to an existing idle/working child agent.",
-      "Use herdr_delegate with action='cancel' to terminate a running child task (closes tab, marks ledger cancelled).",
+      "Use herdr_delegate with action='continue' to send a follow-up instruction to an existing idle/working child agent. Optionally set settle:true with wait:true to observe post-report settlement.",
+      "Use herdr_delegate with action='settle' to observe an agent until it becomes reusable (idle/done) or the deadline expires. Never sends pane input; pure observation only.",
+      "Use herdr_delegate with action='cancel' to terminate a running child task (closes tab, marks ledger cancelled). " +
+        "For warm tasks, resolves by worker_name and marks the pool entry dead (never releases back to pool).",
       "Use herdr_delegate with action='mark_integrated' to advance a reported task to the integrated state.",
-      "Use herdr_delegate with action='cleanup' to close the task's tab/pane and mark the ledger as cleaned.",
+      "Use herdr_delegate with action='cleanup' to close the task's tab/pane and mark the ledger as cleaned. " +
+        "For warm tasks, use keep_worker:true (default) to release the worker back to the pool without closing its tab; " +
+        "use keep_worker:false to close the worker tab and mark it dead in the pool.",
       "Always check the returned status field: 'reported' means the child wrote a non-empty report; " +
         "'blocked' means the child is stuck; 'failed' means an unrecoverable error occurred; " +
         "'already_running' means the agent exists from a prior start; 'not_found' means no agent with that name exists; " +
         "'busy' means the agent is actively working and cannot accept a continue right now; " +
         "'not_idle' means the agent is blocked/unknown and cannot accept a continue; " +
+        "'reusable' means the agent is idle/done and ready for the next delivery; " +
+        "'settling' means the agent is still working (if deadline_reached:true, timeout occurred); " +
         "'cancelled' means the task was successfully cancelled and its tab closed; " +
-        "'cleaned' means the task's tab/pane has been closed and the task is cleaned; " +
+        "'cleaned' means the task's tab/pane has been closed and the task is cleaned (warm: worker released to reusable with keep_worker:true, or tab closed with keep_worker:false); " +
+        "'agent_missing' means the warm worker agent was not found (marked dead in pool, cleanup incomplete); " +
+        "'release_conflict' means the warm worker could not be released due to version mismatch or other CAS conflict; " +
+        "'no_pool' means no warm pool exists for the workspace; " +
+        "'worker_not_found' means the worker entry was not found in the pool; " +
+        "'not_leased_to_task' means the pool worker is not leased to this task; " +
         "'not_reported' means the task is not in reported state and cannot be integrated; " +
         "'not_ready_for_cleanup' means the task is still started/reported and cannot be cleaned yet.",
     ],
     parameters: Type.Object({
-      action: StringEnum(["start", "wait", "continue", "cancel", "mark_integrated", "cleanup"] as const, {
-        description: "Action to perform: start, wait, continue, cancel, mark_integrated, or cleanup",
+      action: StringEnum(["start", "wait", "continue", "settle", "cancel", "mark_integrated", "cleanup", "warm_start"] as const, {
+        description: "Action to perform: start, wait, continue, settle, cancel, mark_integrated, cleanup, or warm_start",
       }),
       task_id: Type.String({
         description:
@@ -1068,7 +2004,9 @@ export default function (pi: ExtensionAPI) {
       report_file_path: Type.Optional(
         Type.String({
           description:
-            "Relative path where the child must write its report (default: .agent-runs/<task_id>/reports/<role>.md). Must stay under .agent-runs/<task_id>/",
+            "Canonical report path. Omit this field — the extension resolves it to .agent-runs/<task_id>/reports/<role>.md automatically. " +
+            "Only supply a value for backward-compatible callers; it must match the canonical path exactly (same filename, role, and task id). " +
+            "A noncanonical value is rejected with a validation error — the extension never silently polls a path the role will not write.",
         }),
       ),
       timeout_ms: Type.Optional(
@@ -1081,6 +2019,12 @@ export default function (pi: ExtensionAPI) {
         Type.Boolean({
           description:
             "Whether to also wait for completion after start (default: true). Set false for fire-and-forget.",
+        }),
+      ),
+      settle: Type.Optional(
+        Type.Boolean({
+          description:
+            "After wait completes with a fresh report, observe the agent until it becomes reusable (idle/done) or deadline expires. Requires wait:true — rejected otherwise. Settle timeout defaults via HERDR_DELEGATE_SETTLE_TIMEOUT_MS (default 60000ms), overridable with timeout_ms.",
         }),
       ),
       label: Type.Optional(
@@ -1097,6 +2041,29 @@ export default function (pi: ExtensionAPI) {
             "Must be absolute and executable when provided.",
         }),
       ),
+      // --- start mode (cold / warm) ---
+      mode: Type.Optional(
+        StringEnum(["cold", "warm"] as const, {
+          description:
+            "Start mode: 'cold' (default) creates a new tab/agent; 'warm' leases a pre-warmed pool worker. " +
+            "Only valid with action='start'.",
+        }),
+      ),
+      auto_warm: Type.Optional(
+        Type.Boolean({
+          description:
+            "When mode='warm' and no eligible pool worker exists, automatically warm one worker then lease it. " +
+            "Default: false — returns no_warm_worker when no candidate exists.",
+        }),
+      ),
+      // --- warm_start parameters ---
+      worker_name: Type.Optional(
+        Type.String({
+          description:
+            "Warm worker name pattern 'warm-<role>-<NN>'. For warm_start: optional explicit name; " +
+            "otherwise auto-generated. Must pass validateWarmWorkerName.",
+        }),
+      ),
       // --- cancel parameters ---
       reason: Type.Optional(
         Type.String({
@@ -1109,6 +2076,14 @@ export default function (pi: ExtensionAPI) {
         Type.String({
           description:
             "Optional summary of integration (recorded in ledger)",
+        }),
+      ),
+      // --- cleanup parameters ---
+      keep_worker: Type.Optional(
+        Type.Boolean({
+          description:
+            "For warm-ledger cleanup only: when true (default for warm tasks), release the settled worker back to reusable without closing its tab. " +
+            "When false, close the worker tab and mark the pool entry dead. Ignored for cold (non-warm) ledgers.",
         }),
       ),
       // --- wait parameters ---
@@ -1164,8 +2139,24 @@ export default function (pi: ExtensionAPI) {
         };
       }
 
+      if (action === "settle") {
+        const result = await actionSettle(params as Parameters<typeof actionSettle>[0], ctx, cli);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          details: result,
+        };
+      }
+
       if (action === "cleanup") {
         const result = await actionCleanup(params as Parameters<typeof actionCleanup>[0], ctx, cli);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+          details: result,
+        };
+      }
+
+      if (action === "warm_start") {
+        const result = await actionWarmStart(params as Parameters<typeof actionWarmStart>[0], ctx, cli);
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
           details: result,
