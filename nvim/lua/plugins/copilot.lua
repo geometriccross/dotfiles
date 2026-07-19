@@ -4,19 +4,8 @@ return {
 	event = "InsertEnter",
 	config = function()
 		require("copilot").setup({
-			suggestion = {
-				enabled = true,
-				auto_trigger = true,
-				keymap = {
-					accept = false, -- Tabキーはcmp.luaで制御
-					accept_word = false,
-					accept_line = false,
-					next = "<M-]>",
-					prev = "<M-[>",
-					dismiss = "<C-]>",
-				},
-			},
-			panel = { enabled = true },
+			suggestion = { enabled = false },
+			panel = { enabled = false },
 			server_opts_overrides = {
 				trace = "verbose",
 				cmd = {

@@ -11,7 +11,10 @@
     "starship@latest",
     "uv@latest",
     "nodejs@latest",
-    "python3@latest"
+    "python3@latest",
+    "stylua@latest",
+    "prettierd@latest",
+    "opencode@latest"
   ],
   "shell": {
     "init_hook": [

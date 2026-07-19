@@ -8,7 +8,6 @@ vim.opt.breakindent = true
 vim.opt.undofile = true
 vim.opt.splitright = true
 vim.opt.splitbelow = true
-vim.opt.cursorline = true
 vim.opt.scrolloff = 10
 
 -- indent setting

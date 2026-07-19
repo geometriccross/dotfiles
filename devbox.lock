@@ -310,6 +310,92 @@
         }
       }
     },
+    "opencode@latest": {
+      "last_modified": "2026-07-17T09:58:13Z",
+      "resolved": "github:NixOS/nixpkgs/a47c123a609287a012dfc44d281de2dd4ed13394#opencode",
+      "source": "devbox-search",
+      "version": "1.18.3",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/xvr3gf59cvfbpgggz0bcx7l1rdyxqvai-opencode-1.18.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/xvr3gf59cvfbpgggz0bcx7l1rdyxqvai-opencode-1.18.3"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/1970p2qsn4n6shd481ppvw6anjh78rli-opencode-1.18.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/1970p2qsn4n6shd481ppvw6anjh78rli-opencode-1.18.3"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/q8cgdvwwzl3pw1sfr38sdvm0iv55hqxb-opencode-1.18.3",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/q8cgdvwwzl3pw1sfr38sdvm0iv55hqxb-opencode-1.18.3"
+        }
+      }
+    },
+    "prettierd@latest": {
+      "last_modified": "2026-07-08T21:13:06Z",
+      "resolved": "github:NixOS/nixpkgs/389ed85304b281ca7f306cf8a1eb4378651ca44e#prettierd",
+      "source": "devbox-search",
+      "version": "0.27.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/5xmrz2z1wxrkx799pmxv83laf3whf1qc-prettierd-0.27.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/5xmrz2z1wxrkx799pmxv83laf3whf1qc-prettierd-0.27.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/6354i4mj14xj6svrhzasn5029m053h0j-prettierd-0.27.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/6354i4mj14xj6svrhzasn5029m053h0j-prettierd-0.27.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ni4c0g1042f30928qhrw44nwk5r59p1s-prettierd-0.27.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/ni4c0g1042f30928qhrw44nwk5r59p1s-prettierd-0.27.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/hd97vgqmn9zishw5jg9pa6in4fsb8s16-prettierd-0.27.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/hd97vgqmn9zishw5jg9pa6in4fsb8s16-prettierd-0.27.0"
+        }
+      }
+    },
     "python3@latest": {
       "last_modified": "2025-01-06T03:40:18Z",
       "plugin_version": "0.0.5",
@@ -460,6 +546,54 @@
             }
           ],
           "store_path": "/nix/store/0nlqa67n9vibr6kxlp0a6yhgngnp2caw-starship-1.26.0"
+        }
+      }
+    },
+    "stylua@latest": {
+      "last_modified": "2026-07-08T21:13:06Z",
+      "resolved": "github:NixOS/nixpkgs/389ed85304b281ca7f306cf8a1eb4378651ca44e#stylua",
+      "source": "devbox-search",
+      "version": "2.5.2",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/75nvak19w6ya8i3524lj76ais6lavamq-stylua-2.5.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/75nvak19w6ya8i3524lj76ais6lavamq-stylua-2.5.2"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/mvij763axs6zwjg04mbaw1dshqs7zhh3-stylua-2.5.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/mvij763axs6zwjg04mbaw1dshqs7zhh3-stylua-2.5.2"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/0xbr4l6lvpcqcvs8rcm2ww1wwl1izbp3-stylua-2.5.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/0xbr4l6lvpcqcvs8rcm2ww1wwl1izbp3-stylua-2.5.2"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/mmbj1qdi9hq30g298fjj2sf9n4in07j6-stylua-2.5.2",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/mmbj1qdi9hq30g298fjj2sf9n4in07j6-stylua-2.5.2"
         }
       }
     },

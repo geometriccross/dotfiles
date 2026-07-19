@@ -5,14 +5,18 @@ return {
 	dependencies = {
 		{
 			"nvim-tree/nvim-web-devicons",
-			zsh = {
-				icon = "",
-				color = "#428850",
-				cterm_color = "65",
-				name = "Zsh",
+			opts = {
+				override = {
+					zsh = {
+						icon = "",
+						color = "#428850",
+						cterm_color = "65",
+						name = "Zsh",
+					},
+				},
+				color_icons = true,
+				default = true,
 			},
-			color_icons = true,
-			default = true,
 		},
 	},
 	keys = {
@@ -67,21 +71,8 @@ return {
 			end
 		end
 
-		-- 設定と cycle_sort 関数の定義
-		require("nvim-tree").setup({
-			sort_by = sort_by_natural,
-			filters = {
-				git_ignored = false,
-				custom = {
-					"^\\.git$",
-					"^node_modules",
-				},
-			},
-		})
-
-		-- プラグインロード後に api を取得
 		local api = require("nvim-tree.api")
-		local cycle_sort = function()
+		local function cycle_sort()
 			sort_by_name = not sort_by_name
 			api.tree.reload()
 			if sort_by_name then
@@ -91,7 +82,26 @@ return {
 			end
 		end
 
-		vim.keymap.set("n", "T", cycle_sort)
+		local function on_attach(bufnr)
+			api.config.mappings.default_on_attach(bufnr)
+			vim.keymap.set("n", "T", cycle_sort, {
+				buffer = bufnr,
+				desc = "Cycle tree sort",
+			})
+		end
+
+		require("nvim-tree").setup({
+			disable_netrw = true,
+			hijack_netrw = false,
+			on_attach = on_attach,
+			sort = { sorter = sort_by_natural },
+			filters = {
+				git_ignored = false,
+				custom = {
+					"^\\.git$",
+					"^node_modules",
+				},
+			},
+		})
 	end,
 }
-

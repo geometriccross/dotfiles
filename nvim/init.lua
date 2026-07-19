@@ -11,4 +11,4 @@ require("config.keymaps")
 require("config.options")
 require("config.lsp")
 
-vim.cmd [[colorscheme tokyonight]]
+vim.cmd([[colorscheme tokyonight]])

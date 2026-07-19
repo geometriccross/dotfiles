@@ -4,7 +4,7 @@ return {
 		formatters_by_ft = {
 			lua = { "stylua" },
 			python = { "ruff_format" },
-			javascript = { "prettierd", "prettier", stop_after_first = true },
+			javascript = { "prettierd" },
 		},
 		format_on_save = {
 			timeout_ms = 2000,
