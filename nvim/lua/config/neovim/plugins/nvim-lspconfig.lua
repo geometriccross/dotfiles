@@ -1,8 +1,22 @@
--- LSP configuration is handled in lua/config/neovim/lsp.lua
--- Please refer: https://coralpink.github.io/commentary/neovim/lsp/nvim-lspconfig.html
+local servers = {
+	"bashls",
+	"csharp_ls",
+	"lua_ls",
+	"powershell_es",
+	"pyright",
+	"ruff",
+}
+
 return {
-	{ "mason-org/mason.nvim" },
-	{ "mason-org/mason-lspconfig.nvim" },
-	{ "neovim/nvim-lspconfig" },
-	{ "stevearc/conform.nvim" },
+	{
+		"mason-org/mason-lspconfig.nvim",
+		dependencies = {
+			{ "mason-org/mason.nvim", opts = {} },
+			"neovim/nvim-lspconfig",
+		},
+		opts = {
+			ensure_installed = vim.list_extend(vim.deepcopy(servers), { "copilot" }),
+			automatic_enable = servers,
+		},
+	},
 }
