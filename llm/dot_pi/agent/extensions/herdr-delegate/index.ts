@@ -19,6 +19,8 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { StringEnum } from "@earendil-works/pi-ai";
 
+import { isHerdrRuntime } from "./availability.ts";
+
 import {
   readFileSync,
   existsSync,
@@ -1914,11 +1916,13 @@ function buildResult(
 // ---------------------------------------------------------------------------
 
 export default function (pi: ExtensionAPI) {
+  if (!isHerdrRuntime(process.env)) return;
+
   pi.registerTool({
     name: "herdr_delegate",
     label: "Herdr Delegate",
     description:
-      "Delegate a task to a Herdr-managed child Pi agent. " +
+      "Delegate a task to a Herdr-managed child Pi agent after the root AGENTS.md routing policy selects orchestration. " +
       "Use 'start' to launch a new child task, 'wait' to wait for completion, " +
       "'continue' to reuse an existing child agent for a follow-up step, " +
       "'settle' to observe an agent until reusable, " +
@@ -1930,7 +1934,8 @@ export default function (pi: ExtensionAPI) {
     promptSnippet:
       "Delegate a task to a Herdr-managed child agent (start, wait, warm_start)",
     promptGuidelines: [
-      "Use herdr_delegate with action='start' to launch a child Pi agent for implementation work (cold mode). " +
+      "Use herdr_delegate only when the root AGENTS.md routing policy selects orchestration; ordinary work stays in direct execution mode.",
+      "After orchestration is selected, use herdr_delegate with action='start' to launch a child Pi agent (cold mode). " +
         "Provide task_id, cwd, role, task_content, and report_file_path. Optionally set settle:true with wait:true to observe post-report settlement.",
       "Use herdr_delegate with action='warm_start' to pre-warm a Pi worker in the pool without a task. " +
         "Provide workspace_id, role, and optionally worker_name. The warm worker will be registered in the pool as 'ready'.",

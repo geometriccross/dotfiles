@@ -1,7 +1,7 @@
 ---
 name: herdr-scout
 description: Herdr-managed read-only codebase scout that writes a durable discovery report.
-model: github-copilot/claude-haiku-4.5
+model: opencode-go/deepseek-v4-flash
 thinking: medium
 tools: read,grep,find,ls,bash
 ---

@@ -7,6 +7,16 @@
  */
 import { strict as assert } from "node:assert";
 import { existsSync, unlinkSync, readFileSync, writeFileSync, chmodSync, mkdirSync } from "node:fs";
+import { isHerdrRuntime } from "./availability.ts";
+
+// ---------------------------------------------------------------------------
+// Test: extension availability
+// ---------------------------------------------------------------------------
+
+assert.strictEqual(isHerdrRuntime({}), false);
+assert.strictEqual(isHerdrRuntime({ HERDR_ENV: "0" }), false);
+assert.strictEqual(isHerdrRuntime({ HERDR_ENV: "1" }), true);
+console.log("PASS: extension availability follows HERDR_ENV");
 
 // ---------------------------------------------------------------------------
 // Test: validation
