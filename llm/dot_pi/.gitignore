@@ -7,5 +7,7 @@ trust.json
 pi-hermes-memory
 projects-memory
 
+mcp-cache.json
+
 __pycache__
 pi-atlas-cache.json
