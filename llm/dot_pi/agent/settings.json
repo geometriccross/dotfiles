@@ -3,7 +3,7 @@
   "defaultProvider": "openai-codex",
   "defaultThinkingLevel": "high",
   "hideThinkingBlock": false,
-  "lastChangelogVersion": "0.80.6",
+  "lastChangelogVersion": "0.84.4",
   "packages": [
     "git:github.com/elpapi42/pi-observational-memory",
     "npm:pi-caffeinate",
@@ -18,5 +18,11 @@
   "observational-memory": {
     "compactAfterTokensMode": "ratio",
     "compactAfterTokensRatio": 0.85
+  },
+  "llm-wiki": {
+    "taskModel": {
+      "provider": "opencode-go",
+      "id": "deepseek-v4-pro"
+    }
   }
 }
