@@ -280,6 +280,19 @@ ensure_devbox() {
 	"$devbox_bin" global install
 }
 
+ensure_pi() {
+	local pnpm_bin
+	pnpm_bin="$(command -v pnpm 2>/dev/null || true)"
+
+	if [[ -z "$pnpm_bin" ]]; then
+		log_error "pnpm is required to install Pi."
+		return 1
+	fi
+
+	log_info "Installing Pi globally with pnpm..."
+	"$pnpm_bin" add --global @earendil-works/pi-coding-agent
+}
+
 main() {
 	parse_args "$@"
 	if [[ "$HELP_REQUESTED" == "true" ]]; then
@@ -296,6 +309,7 @@ main() {
 	ensure_symlink "$DOTFILES_DIR/zsh" "$XDG_CONFIG_HOME/zsh"
 	ensure_symlink "$DOTFILES_DIR/zsh/.zshenv" "$HOME/.zshenv"
 	ensure_devbox
+	ensure_pi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
