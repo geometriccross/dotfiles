@@ -60,7 +60,9 @@
 | 隔離runtime選定 | bubblewrap系 vs rootless containerの比較検証 | 調査後 |
 | 認証分離 | Pi本体認証と作業toolの分離方式 | 調査後 |
 
-Phase 4はPhase 1〜3と独立。先にPhase 1〜3を完了させ、Phase 4は調査結果を出してから個別に承認を得る。
+Phase 1〜3の文面修正は先行できるが、子agentの安全な実行はPhase 4に依存する。Phase 4は調査結果を出してから個別に承認を得る。
+
+Phase 3では8ロールの文面を修正した。モデル・toolsのfrontmatterは変更していない。`herdr-reviewer`はPhase 2のcode-reviewから参照されるため保持する。`herdr-cracker`には依然としてレポート保存手段がなく、他ロールもruntimeによる制約保証は未実装。文面上のblocker報告は起動前の強制拒否の代替ではない。これらをPhase 4で実装・検証するまで、Herdrの受入条件を達成済みとは扱わない。
 
 ## Phase 5: 検証
 
@@ -86,7 +88,7 @@ Phase 4はPhase 1〜3と独立。先にPhase 1〜3を完了させ、Phase 4は�
 
 ```
 Phase 0 (未コミット整理) → Phase 1 → Phase 2 → Phase 3 → Phase 5(静的)
-Phase 4 は独立。Phase 5(実動作)は Phase 1〜3 完了後、Herdr分は Phase 4 後。
+Phase 5(Executor実動作)は Phase 1〜2 後。Herdr実動作は Phase 3 と Phase 4 の両方に依存する。
 ```
 
 ## 実装開始前に必要な決定
