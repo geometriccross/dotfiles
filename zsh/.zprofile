@@ -1,8 +1,3 @@
-# ================ language =================
-export LANGUAGE=en_US.UTF-8
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-
 # ================ editor setup =================
 if [[ -n $SSH_CONNECTION ]]; then
 	export EDITOR='vim'
