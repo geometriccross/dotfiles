@@ -11,7 +11,9 @@
     "npm:@ollama/pi-web-search",
     "npm:@zosmaai/pi-llm-wiki",
     "npm:pi-hermes-memory",
-    "npm:@mohndoe/pi-atlas"
+    "npm:@mohndoe/pi-atlas",
+    "npm:pi-lsp",
+    "npm:pi-code-quality"
   ],
   "theme": "dark",
   "observational-memory": {
