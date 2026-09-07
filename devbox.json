@@ -14,7 +14,7 @@
     "python3@latest",
     "stylua@latest",
     "prettierd@latest",
-    "opencode@latest"
+    "pi-coding-agent@latest"
   ],
   "shell": {
     "init_hook": [
