@@ -1,300 +1,50 @@
 ---
 name: env-repair
-description: >
-  Diagnoses and repairs broken dependency environments when lockfile-to-runtime,
-  package-manager, registry, OS, architecture, compiler, cache, or path mismatches
-  cause restore/install/build failures. Use for renv, venv, pip, uv, Poetry, Conda,
-  Bundler, Cargo, npm, pnpm, Go modules, Maven, Gradle, Composer, SwiftPM, and other
-  lockfile-based ecosystems. Prefer reproducible restore and minimal changes before
-  upgrading or rebuilding dependencies.
+description: Diagnose and repair dependency install, restore, build, or runtime failures caused by lockfile, toolchain, registry, cache, or environment mismatches. Preserve reproducibility unless the request calls for compatibility updates or modernization.
 ---
 
-# Environment Repair Skill
+# Environment Repair
 
-Use this skill when a dependency environment fails to restore, install, build, or run
-from a lockfile or dependency manifest.
+Start with the failing command and error, the project's dependency manager, and the intended outcome: reproduce the locked environment, support the current runtime, or modernize. If the request is simply to repair, preserve the locked dependencies where practical.
 
-Repair means deciding whether to:
+## Diagnose the relevant layer
 
-1. preserve the lockfile and restore the original environment,
-2. adapt the dependency set to the current runtime,
-3. or intentionally modernize the project.
+Use the evidence to choose checks; do not collect every environment detail before making an obvious local repair.
 
-Do not immediately upgrade everything.
+| Error pattern | Useful check |
+|---------------|--------------|
+| Permission denied / disk full | Install destination, ownership, available space |
+| Checksum mismatch | Artifact source, proxy, or the affected cache entry |
+| Connection failure / 403 / timeout | Registry, network, authentication |
+| Package not found / wrong CLI | Package identity, registry, executable path |
+| Unsupported runtime / compile or ABI error | Locked dependency requirements versus runtime, compiler, OS, architecture |
+| Import or command missing after installation | Active interpreter, environment, and PATH |
 
----
+Read installed CLI help or version-specific documentation when command semantics are uncertain, especially whether an operation updates dependencies, rewrites the lockfile, or removes data. Known project restore commands do not require repeated help lookups.
 
-## Core Principle
+## Choose the repair
 
-Always prefer the smallest safe change.
+- **Compatible environment:** use the project's strict/locked restore command, then rerun the failing operation.
+- **Runtime mismatch:** activate the expected toolchain when reproducing the original environment; when current-runtime support is required, update the incompatible dependency or family and its lockfile together.
+- **Modernization or unavailable dependency graph:** re-resolve more broadly when the request authorizes it. If that changes the intended compatibility or reproducibility, explain the trade-off before proceeding.
 
-First infer the user's goal:
+Do not cycle through all strategies when the evidence already identifies the repair. Check the diff for unintended dependency churn. Prefer targeted cache repair over deleting global caches; use elevated privileges only when the diagnosed system-level repair requires them.
 
-- **Reproducibility**: preserve the lockfile and original runtime as much as possible.
-- **Current-runtime repair**: make the project work on the current machine/runtime.
-- **Modernization**: intentionally update dependencies.
+## Command distinctions
 
-When unclear, assume reproducibility matters and avoid broad updates.
+These are common semantics, not substitutes for version-specific documentation when needed:
 
----
+| Ecosystem | Restore / respect lock | Re-resolve / record changes |
+|-----------|------------------------|----------------------------|
+| npm | `npm ci` | `npm install` may change the lockfile |
+| Composer | `composer install` | `composer update` |
+| renv | `renv::restore()` | `renv::snapshot()` records the current library |
+| Cargo | `cargo build --locked` | `cargo update` |
+| uv | `uv sync --frozen` uses the existing lock without checking freshness | `uv lock --upgrade` |
+| Poetry | `poetry install` | `poetry update` |
 
-## Required First Steps
+## Verify
 
-Before modifying the environment:
+Rerun the original failing command and a relevant import, native-extension load, test, or application path. A successful installation does not by itself prove the application works. Review manifest and lockfile changes as part of the result.
 
-1. Identify the dependency manager and lockfile.
-2. Collect the exact failing command and error.
-3. Check runtime, package-manager version, OS, and architecture.
-4. Confirm the active environment or interpreter.
-5. Inspect rollback state with version control when available.
-6. Inspect the CLI semantics before choosing repair commands.
-
-Do not overwrite lockfiles, delete caches, or update dependencies before these checks.
-
----
-
-## Inspect CLI Semantics Before Repair
-
-Before running repair commands, inspect the CLI actually used by the project.
-
-Do not rely on memory alone. Check one or more of:
-
-```text
-<tool> --help
-<tool> -h
-<tool> help
-<tool> <subcommand> --help
-man <tool>
-project README
-official documentation
-diagnostic commands such as doctor, diagnose, status, env, check, or config
-```
-
-Identify which commands are for:
-
-```text
-strict restore / sync
-dependency installation
-dependency update
-lockfile generation
-lockfile verification
-cache cleanup
-environment diagnostics
-path / interpreter inspection
-test or verification
-```
-
-Prefer the least destructive command that matches the repair goal.
-
-Never choose an update, snapshot, clean, prune, cache-deletion, or lockfile-rewrite
-command merely because it sounds related.
-
----
-
-## Diagnosis Model
-
-Classify the failure before repairing it.
-
-| Error pattern                               |               Likely layer | Typical cause                        |
-| ------------------------------------------- | -------------------------: | ------------------------------------ |
-| `EACCES`, `Permission denied`               |                   L0 Infra | Wrong install path or permissions    |
-| `ENOSPC`, `No space left on device`         |                   L0 Infra | Disk full                            |
-| `checksum mismatch`, `cache corrupt`        |                   L0 Infra | Corrupt cache or proxy artifact      |
-| `Connection refused`, `403`, `timeout`      |                   L0 Infra | Network, VPN, proxy, auth            |
-| `not found in registry`, `404`              | L1 Registry / L4 Namespace | Wrong source or package name         |
-| `requires Python >=...`, `requires R >=...` |                 L2 Runtime | Runtime too old/new for dependency   |
-| `compilation error`, `undefined symbol`     |                 L2 ABI/API | Runtime/compiler/SDK mismatch        |
-| `segfault` during install/load              |                 L2 ABI/API | Binary incompatibility               |
-| `ImportError` after successful install      |                    L3 Path | Installed into different environment |
-| `command not found` after install           |                    L3 Path | Binary path not active               |
-| Tool has wrong subcommands                  |               L4 Namespace | Wrong package/tool installed         |
-
-Rules:
-
-```text
-L0: Fix disk, network, permissions, auth, or cache before touching dependencies.
-L1: Check registry/source fields before changing package versions.
-L2: Compare runtime/compiler/OS/arch with the lockfile expectation.
-L3: Verify package manager and runtime point to the same environment.
-L4: Verify the package name resolves to the intended package/tool.
-```
-
----
-
-## Repair Strategy
-
-Use the strategies in this order.
-
-### Strategy A: Direct Restore
-
-Use when the runtime and package manager are compatible with the lockfile.
-
-Goal:
-
-```text
-restore/sync/install exactly from the lockfile without updating dependency versions
-```
-
-Before running it, inspect the CLI help/docs for strict, frozen, locked, restore,
-sync, or install modes.
-
-If it works, verify and stop.
-
----
-
-### Strategy B: Pin Runtime / Toolchain
-
-Use when reproducibility matters or the lockfile expects an older runtime.
-
-Look for runtime hints in:
-
-```text
-.python-version
-.ruby-version
-.node-version
-.nvmrc
-.tool-versions
-rust-toolchain.toml
-renv.lock
-pyproject.toml
-package.json
-Gemfile
-go.mod
-pom.xml
-build.gradle
-Dockerfile
-devcontainer config
-CI config
-README
-```
-
-Goal:
-
-```text
-activate the runtime/toolchain expected by the project, then retry Direct Restore
-```
-
-Prefer this for published analyses, old projects, production systems, and CI reproduction.
-
----
-
-### Strategy C: Minimal Compatibility Update
-
-Use when the project should run on the current runtime, but broad modernization is not desired.
-
-Goal:
-
-```text
-update only the incompatible package or dependency family, then refresh the lockfile
-```
-
-Before updating, inspect the CLI help/docs for targeted update options.
-
-Do not use a broad update command if a targeted update exists.
-
-Verify before re-locking or snapshotting.
-
----
-
-### Strategy D: Incremental Rebuild
-
-Use when several dependencies are incompatible, but full modernization is still risky.
-
-Goal:
-
-```text
-update one package or dependency family at a time, verifying after each change
-```
-
-If an update breaks another dependency, pin to the highest compatible version.
-
----
-
-### Strategy E: Full Rebuild from Latest
-
-Use only when:
-
-```text
-the user explicitly wants modernization
-the lockfile is too stale to repair incrementally
-minimal updates failed
-the old dependency graph is unavailable
-reproducibility is not important
-```
-
-Goal:
-
-```text
-re-resolve dependencies for the current runtime and intentionally rewrite the lockfile
-```
-
-Record the old lockfile and report major dependency changes.
-
-Do not use this as the default repair path.
-
----
-
-## Semantic Traps
-
-Always verify actual CLI behavior, but keep these common distinctions in mind:
-
-```text
-npm ci restores from package-lock.json.
-npm install may modify package-lock.json.
-
-composer install restores from composer.lock.
-composer update re-resolves and rewrites composer.lock.
-
-renv::restore() restores from renv.lock.
-renv::snapshot() records the current library into renv.lock.
-
-cargo build --locked respects Cargo.lock.
-cargo update modifies Cargo.lock.
-
-uv sync --frozen restores without updating the lockfile.
-uv lock --upgrade updates the lockfile.
-
-poetry install restores from poetry.lock.
-poetry update changes dependency versions and rewrites poetry.lock.
-```
-
----
-
-## Anti-Patterns
-
-Avoid:
-
-```text
-updating everything immediately
-running commands without checking help/docs
-using install when strict restore is available
-using broad update when targeted update is available
-deleting global caches before proving cache corruption
-using sudo for project dependencies
-snapshotting or re-locking before verification
-assuming package name equals tool name
-ignoring non-default registries
-treating ABI/runtime errors as cache errors
-ignoring OS or architecture changes
-```
-
----
-
-## Verification
-
-After every meaningful change, verify at the smallest useful level.
-
-Check one or more of:
-
-```text
-package manager status/check command
-key package import/load
-native extension load
-test suite
-main script/app/analysis
-lockfile or manifest diff
-```
-
-Installation success alone is not enough.
-
-Do not snapshot, re-lock, or declare success until verification passes.
+Lockfile generation may be necessary before verification can run. Treat it as a candidate change, not proof of repair; retain it as the solution only after relevant verification, or clearly report what remains unverified.
