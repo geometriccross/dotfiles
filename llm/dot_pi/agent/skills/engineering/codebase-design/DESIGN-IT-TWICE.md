@@ -13,8 +13,9 @@ Before developing alternatives, explain the chosen candidate from the current co
 - the user or system problem and the desired outcome;
 - relevant constraints, non-goals, and existing decisions;
 - concrete files, symbols, call paths, tests, and current behaviour;
-- dependencies and their categories from [DEEPENING.md](DEEPENING.md); and
-- a rough illustrative code sketch to make the constraints concrete. The sketch is not yet a proposal.
+- relevant dependency constraints; use [DEEPENING.md](DEEPENING.md) if helpful.
+
+Add an illustrative code sketch when it makes the choice clearer.
 
 Separate observed evidence from inference and open questions. Ask for input only when an unresolved decision blocks useful progress.
 
@@ -22,7 +23,7 @@ Separate observed evidence from inference and open questions. Ask for input only
 
 Explore a small set of materially different interface shapes when the decision warrants comparison. A local, low-risk change can have a leading design and a counterfactual or can proceed directly when the shape is obvious. A cross-module change with uncertain ownership may need more designs. Choose the amount of exploration from the uncertainty and cost of being wrong; there is no required number.
 
-Execution follows the Execution Mode of AGENTS.md. Use the standard Herdr CLI only when that policy permits it and independent designers are useful; pass an explicit design prompt and the smallest required Pi tool allowlist. Sequential alternatives are not independent reviews. If child execution fails, compare designs directly unless independent designers are required.
+Delegation follows AGENTS.md and is optional. Sequential alternatives are not independent reviews; use separate contexts only when independent comparison is useful or requested.
 
 For each design, use a technical brief with current file paths, coupling details, dependency category, and what sits behind the seam. For delegated tasks, also supply read scope and stop condition. Choose constraints that expose the relevant trade-offs, such as:
 
@@ -33,7 +34,7 @@ For each design, use a technical brief with current file paths, coupling details
 
 Use project domain terms from `CONTEXT.md` or its equivalent when available, and keep architectural terms consistent with [SKILL.md](SKILL.md). Do not make a missing glossary or an unnecessary delegation step a blocker.
 
-For each design, provide:
+Explain the aspects that distinguish the designs; the following are prompts, not required report fields:
 
 1. **Interface** — types, methods, parameters, invariants, ordering, error modes, configuration, and relevant performance facts.
 2. **Usage** — a representative caller example and what the caller no longer needs to know.
