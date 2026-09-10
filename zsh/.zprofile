@@ -51,6 +51,7 @@ export PATH="$PATH:$HOME/.local/bin"
 if command -v devbox >/dev/null 2>&1; then
 	eval "$(devbox global shellenv)"
 fi
+export PATH="$HOME/.local/share/devbox/global/default/.devbox/nix/profile/default/bin/:$PATH"
 
 # pnpm
 export PNPM_HOME="$HOME/.local/share/pnpm"
