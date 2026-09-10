@@ -1,10 +1,12 @@
 ---
 name: setup-matt-pocock-skills
-description: Configure this repo for the engineering skills — set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills.
+description: Explicitly user-invoked setup for this repo's engineering-skill tracker, triage labels, and domain-doc layout; not a prerequisite for ordinary development.
 disable-model-invocation: true
 ---
 
 # Setup Matt Pocock's Skills
+
+Run this workflow only when the user explicitly asks to configure or change the engineering-skill setup, and change only the requested parts. A tracker-only change does not authorize domain documents or unrelated AGENTS.md edits. Other skills may use supplied context without running setup.
 
 Scaffold the per-repo configuration that the engineering skills assume:
 
@@ -56,7 +58,7 @@ If it is installed, ask exactly one question:
 
 The defaults are the five canonical roles, each label string equal to its name: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. On **yes**, write them as-is. Only if the user says no — usually because their tracker already uses other names (e.g. `bug:triage` for `needs-triage`) — collect the overrides so `triage` applies existing labels instead of creating duplicates.
 
-**Section C — Domain docs.** Default to **single-context** — one `CONTEXT.md` + `docs/adr/` at the repo root. This fits almost every repo; write it without asking.
+**Section C — Domain docs.** Run this section only when domain-document setup is requested. Prefer **single-context** — one `CONTEXT.md` + `docs/adr/` at the repo root — unless the project needs multiple contexts.
 
 Offer **multi-context** — a root `CONTEXT-MAP.md` pointing to per-context `CONTEXT.md` files — only when exploration found monorepo signals. Then confirm which layout they want.
 

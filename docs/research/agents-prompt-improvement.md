@@ -1,5 +1,7 @@
 # AGENTS.md・派生プロンプト改善案
 
+> **Status (2026-09-10):** This document records a superseded Herdr-delegate design. The custom delegate, Herdr role prompts, memory/wiki packages, and related report workflow have since been removed; current behavior is defined by `llm/dot_pi/agent/AGENTS.md`, installed Pi settings, and the remaining skills.
+
 調査日: 2026-09-07。対象: dotfilesの現在の作業ツリーとPiの実行設定。**提案のみ。既存プロンプト・設定は変更していない。**
 
 ## 結論

@@ -1,29 +1,28 @@
 # Engineering
 
-Skills I use daily for code work. These are locally maintained Pi adaptations; see [UPSTREAM.md](UPSTREAM.md) before importing updates. Execution mode is owned by AGENTS.md, not individual skills.
+Locally maintained Pi skills. AGENTS.md owns shared execution policy; skills provide task-specific methods. See [UPSTREAM.md](UPSTREAM.md) before importing updates.
 
-## User-invoked
+## Investigation, design, and verification
 
-Reachable only when you type them (`disable-model-invocation: true`).
+- [codebase-design](codebase-design/SKILL.md): evidence-backed architecture exploration, interface design, trade-offs, and migration. Small refactors do not require a full design process.
+- [code-review](code-review/SKILL.md): requirements, actionable bugs, and regression risks in one prioritized findings list; preserves branch/WIP/staged/path scope.
+- [diagnosing-bugs](diagnosing-bugs/SKILL.md): choose discriminating checks from available evidence; scale investigation to the bug rather than enforcing fixed phases or hypothesis counts.
+- [tdd](tdd/SKILL.md): explicit test-first work using red–green–refactor and useful public-behavior tests.
+- [research](research/SKILL.md): source-backed answers with uncertainty distinguished from verified facts; file output only when requested.
+- [env-repair](env-repair/SKILL.md): diagnose dependency/runtime mismatches and restore reproducibly.
+- [resolving-merge-conflicts](resolving-merge-conflicts/SKILL.md): resolve an in-progress merge or rebase without losing intended changes.
+- [prototype](prototype/SKILL.md): throwaway executable or UI experiments for concrete design questions.
+- [domain-modeling](domain-modeling/SKILL.md): clarify domain language and record relevant architectural decisions.
+- [write-a-skill](write-a-skill/SKILL.md): author task-specific instructions and validate triggers and behavior against representative scenarios.
 
-- **[grill-with-docs](./grill-with-docs/SKILL.md)** — Grilling session that also builds your project's domain model, sharpening terminology and updating `CONTEXT.md` and ADRs inline.
-- **[triage](./triage/SKILL.md)** — Move issues through a state machine of triage roles.
-- **[setup-matt-pocock-skills](./setup-matt-pocock-skills/SKILL.md)** — Configure this repo for the engineering skills (issue tracker, triage labels, domain doc layout). Run once per repo.
-- **[to-spec](./to-spec/SKILL.md)** — Turn the current conversation into a spec and publish it to the issue tracker.
-- **[to-tickets](./to-tickets/SKILL.md)** — Break any plan, spec, or conversation into a set of tracer-bullet tickets, each declaring its blocking edges — text in a local file, or native blocking links on a real tracker.
-- **[wayfinder](./wayfinder/SKILL.md)** — Plan a huge chunk of work — more than one agent session can hold — as a shared map of investigation tickets on the issue tracker, resolved one at a time until the way to the destination is clear.
+## Explicitly invoked workflows
 
-## Model-invoked
+These skills use `disable-model-invocation: true`. They are not prerequisites to ordinary coding work.
 
-Model- or user-reachable (rich trigger phrasing so the model can reach for them).
-
-- **[improve-codebase-architecture](./improve-codebase-architecture/SKILL.md)** — Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick.
-
-- **[prototype](./prototype/SKILL.md)** — Build a throwaway prototype to answer a design question: a runnable terminal app for state/logic, or several toggleable UI variations.
-
-- **[diagnosing-bugs](./diagnosing-bugs/SKILL.md)** — Disciplined diagnosis loop for hard bugs and performance regressions: reproduce → minimise → hypothesise → instrument → fix → regression-test.
-- **[research](./research/SKILL.md)** — Investigate a question against high-trust primary sources and capture the findings as a cited Markdown file in the repo, directly or by policy-permitted delegation.
-- **[tdd](./tdd/SKILL.md)** — Test-driven development with a red-green-refactor loop. Builds features or fixes bugs one vertical slice at a time.
-- **[domain-modeling](./domain-modeling/SKILL.md)** — Actively build and sharpen a project's domain model — challenge terms, stress-test with scenarios, update `CONTEXT.md` and ADRs inline.
-- **[codebase-design](./codebase-design/SKILL.md)** — Shared discipline and vocabulary for designing deep modules: small interfaces, clean seams, testable through the interface.
-- **[code-review](./code-review/SKILL.md)** — Two-axis review of the diff since a fixed point: **Standards** (does it follow the repo's coding standards, plus a Fowler smell baseline?) and **Spec** (does it faithfully implement the originating issue/PRD?), run directly or by policy-permitted delegation. Working-tree reviews include relevant untracked files.
+- [grill-with-docs](grill-with-docs/SKILL.md): stress-test a design through an interview and domain documentation.
+- [zoom-out](zoom-out/SKILL.md): explain broader context.
+- [triage](triage/SKILL.md): classify and investigate requested issues or external PRs.
+- [to-spec](to-spec/SKILL.md): turn an agreed discussion into a requested specification.
+- [to-tickets](to-tickets/SKILL.md): split requested work into dependency-aware tickets.
+- [wayfinder](wayfinder/SKILL.md): organize a large, uncertain effort on a requested tracker.
+- [setup-matt-pocock-skills](setup-matt-pocock-skills/SKILL.md): configure tracker/domain conventions only when setup is requested.

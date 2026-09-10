@@ -1,44 +1,49 @@
 # Design It Twice
 
-When the user wants to explore alternative interfaces for a chosen deepening candidate, compare designs with different constraints. Based on "Design It Twice" (Ousterhout) — your first idea is unlikely to be the best.
+When a selected deepening candidate has meaningful interface or seam choices, compare materially different designs before committing. The point is to expose depth, locality, and migration trade-offs—not to satisfy a fixed count or make a small refactor ceremonial.
 
-Uses the vocabulary in [SKILL.md](SKILL.md) — **module**, **interface**, **seam**, **adapter**, **leverage**.
+Use the vocabulary in [SKILL.md](SKILL.md) — **module**, **interface**, **seam**, **adapter**, **leverage**, and **locality** — where it makes the comparison precise.
 
 ## Process
 
 ### 1. Frame the problem space
 
-Before developing alternatives, write a user-facing explanation of the problem space for the chosen candidate:
+Before developing alternatives, explain the chosen candidate from the current code:
 
-- The constraints any new interface would need to satisfy
-- The dependencies it would rely on, and which category they fall into (see [DEEPENING.md](DEEPENING.md))
-- A rough illustrative code sketch to ground the constraints — not a proposal, just a way to make the constraints concrete
+- the user or system problem and the desired outcome;
+- relevant constraints, non-goals, and existing decisions;
+- concrete files, symbols, call paths, tests, and current behaviour;
+- dependencies and their categories from [DEEPENING.md](DEEPENING.md); and
+- a rough illustrative code sketch to make the constraints concrete. The sketch is not yet a proposal.
 
-Show this to the user, then proceed to Step 2 unless a blocking decision needs their answer.
+Separate observed evidence from inference and open questions. Ask for input only when an unresolved decision blocks useful progress.
 
-### 2. Develop alternatives
+### 2. Develop proportionate alternatives
 
-Develop at least three **radically different** interfaces sequentially by default. Execution follows the Execution Mode of AGENTS.md. Delegate only when that policy permits it and an available role's tools and scope support interface design; do not assume a discovery-only role can design alternatives. Use `herdr_delegate`, not a separate Agent tool. Children must not delegate again. If delegation fails, compare designs directly unless independent designers are required; otherwise report the blocker. Sequential alternatives are not independent reviews.
+Explore a small set of materially different interface shapes when the decision warrants comparison. A local, low-risk change can have a leading design and a counterfactual or can proceed directly when the shape is obvious. A cross-module change with uncertain ownership may need more designs. Choose the amount of exploration from the uncertainty and cost of being wrong; there is no required number.
 
-For each design, use a technical brief with file paths, coupling details, dependency category from [DEEPENING.md](DEEPENING.md), and what sits behind the seam. For delegated tasks, also supply read scope, report destination, and stop condition. Assign different design constraints:
+Execution follows the Execution Mode of AGENTS.md. Use the standard Herdr CLI only when that policy permits it and independent designers are useful; pass an explicit design prompt and the smallest required Pi tool allowlist. Sequential alternatives are not independent reviews. If child execution fails, compare designs directly unless independent designers are required.
 
-- Design 1: "Minimize the interface — aim for 1–3 entry points max. Maximise leverage per entry point."
-- Design 2: "Maximise flexibility — support many use cases and extension."
-- Design 3: "Optimise for the most common caller — make the default case trivial."
-- Design 4 (if applicable): "Design around ports & adapters for cross-seam dependencies."
+For each design, use a technical brief with current file paths, coupling details, dependency category, and what sits behind the seam. For delegated tasks, also supply read scope and stop condition. Choose constraints that expose the relevant trade-offs, such as:
 
-Include both [SKILL.md](SKILL.md) vocabulary and CONTEXT.md vocabulary in the brief so the designs use consistent architecture and domain language.
+- minimize the interface and maximize leverage per entry point;
+- maximize flexibility for real extension points;
+- optimize the common caller so its default path is trivial; or
+- use ports and adapters when a cross-seam dependency genuinely varies.
+
+Use project domain terms from `CONTEXT.md` or its equivalent when available, and keep architectural terms consistent with [SKILL.md](SKILL.md). Do not make a missing glossary or an unnecessary delegation step a blocker.
 
 For each design, provide:
 
-1. Interface (types, methods, params — plus invariants, ordering, error modes)
-2. Usage example showing how callers use it
-3. What the implementation hides behind the seam
-4. Dependency strategy and adapters (see [DEEPENING.md](DEEPENING.md))
-5. Trade-offs — where leverage is high, where it's thin
+1. **Interface** — types, methods, parameters, invariants, ordering, error modes, configuration, and relevant performance facts.
+2. **Usage** — a representative caller example and what the caller no longer needs to know.
+3. **Hidden implementation** — the behaviour and knowledge that move behind the seam.
+4. **Dependencies and adapters** — the category, injected dependencies, production/test adapters, and whether the seam is justified.
+5. **Trade-offs** — depth, leverage, locality, coupling, flexibility, operational cost, and migration risk.
+6. **Migration and verification** — an incremental change order, compatibility considerations, interface tests, adapter/integration checks, and searches or repository checks that establish completion.
 
-### 3. Present and compare
+### 3. Compare and decide
 
-Present designs sequentially so the user can absorb each one, then compare them in prose. Contrast by **depth** (leverage at the interface), **locality** (where change concentrates), and **seam placement**.
+Compare the designs against the current-code evidence. Discuss depth (capability per interface knowledge), locality (where change and verification concentrate), seam placement, caller complexity, dependency cost, and migration risk. Call out assumptions that still need evidence.
 
-After comparing, give your own recommendation: which design you think is strongest and why. If elements from different designs would combine well, propose a hybrid. Be opinionated — the user wants a strong read, not a menu.
+Give a reasoned recommendation, or state why the leading design can proceed without further comparison. If ideas combine cleanly, describe the hybrid and the extra complexity it introduces. Keep the comparison proportional to the decision.

@@ -1,90 +1,101 @@
 ---
 name: code-review
-description: Review changes along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Reviews both axes with isolated context where possible and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to "review since X".
+description: Review a requested change scope for missing requirements, actionable correctness bugs, and regression risks, and return one prioritized evidence-backed findings list. Use when the user asks to review a branch, commit range, pull request, work in progress, staged changes, or changes since a ref.
 ---
 
-Two-axis review of a diff:
+# Code review
 
-- **Standards** — does the code conform to this repo's documented coding standards?
-- **Spec** — does the code faithfully implement the originating issue / PRD / spec?
+Review the behavior of the requested change, not the repository in the abstract. Start from requirements, trace concrete execution paths, and report only findings that someone can act on. A review with no findings is valid. The response is the review artifact; do not create a report file, ledger, or other mandatory side product.
 
-Execution follows the Execution Mode of AGENTS.md. By default, review Standards and Spec sequentially and keep their evidence and findings separate; this does not provide independent contexts. Delegate only when that policy permits it and the required tools are available. Use `herdr_delegate` with `herdr-reviewer` and an explicit axis-specific task contract; correctness-only roles do not cover this skill's standards review. Children must not delegate again. If delegation fails, continue directly only when independent review is not required; otherwise report the blocker. Never describe self-review as independent review.
+## 1. Establish the exact scope
 
-Use `docs/agents/issue-tracker.md` if present. Its absence does not require installing or configuring an issue tracker to review local changes.
+Classify the request before reading the implementation. Preserve an explicit baseline, staged-only request, or path restriction; never broaden it silently.
 
-## Process
+### Branch or fixed-point review
 
-### 1. Pin the review target
+When the user names a commit, branch, tag, `main`, `HEAD~5`, or another fixed point:
 
-Two modes:
+1. Confirm it resolves with `git rev-parse --verify <fixed-point>^{commit}`.
+2. Capture the comparison once as `git diff <fixed-point>...HEAD -- [pathspec...]`. The three dots compare from the merge-base.
+3. Capture `git log <fixed-point>..HEAD --oneline -- [pathspec...]` when commits are useful evidence.
+4. Confirm the scoped diff is non-empty before analyzing it. A bad ref or empty scope is a scope result, not a reason to fall back to a different baseline.
 
-- **Branch review** — the user supplies a fixed point (commit SHA, branch name, tag, `main`, `HEAD~5`). Capture the diff command once: `git diff <fixed-point>...HEAD` (three-dot, so the comparison is against the merge-base). Also note the list of commits via `git log <fixed-point>..HEAD --oneline`. Before going further, confirm the fixed point resolves (`git rev-parse <fixed-point>`) and the diff is non-empty. A bad ref or empty diff should fail here — not inside two isolated review contexts.
-- **Working-tree review** — the user asks to review uncommitted changes (work-in-progress). Run `git status --short`, use `git diff HEAD` for tracked changes (staged and unstaged together), and enumerate untracked files with `git ls-files --others --exclude-standard`. Read relevant untracked files separately: they are not included in `git diff HEAD`. If HEAD does not exist yet, inspect staged additions with `git diff --cached` and unstaged changes with `git diff`, plus untracked files. Do not stage files for review. If there are no changes, say so instead of silently falling back to a branch review.
+A branch review covers committed history only. Do not mix in dirty working-tree changes; mention them as outside the review unless the user explicitly requests a working-tree review too.
 
-If the request does not identify a review mode or baseline, ask only for the missing scope. Preserve any explicit staged-only or path-limited scope. Record the reviewed revision/status and report changes to that state during review rather than implying a stable snapshot.
+### Working-tree review
 
-### 2. Identify the spec source
+For the default WIP/uncommitted scope:
 
-Look for the originating spec, in this order:
+- Run `git status --short --untracked-files=all -- [pathspec...]`.
+- If `HEAD` exists, use `git diff HEAD -- [pathspec...]` for tracked staged and unstaged changes together.
+- Enumerate untracked files separately with `git ls-files --others --exclude-standard -- [pathspec...]`; read each relevant untracked file because it is not in `git diff HEAD`.
+- If `HEAD` does not exist, inspect `git diff --cached -- [pathspec...]`, `git diff -- [pathspec...]`, and the untracked-file list separately.
 
-1. Issue references in the selected commits (`#123`, `Closes #45`, GitLab `!67`, etc.), when reviewing a branch — fetch through the configured tracker if available.
-2. A path the user passed as an argument.
-3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
-4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** axis will skip and report "no spec available".
+For an explicit **staged-only** scope, use `git diff --cached -- [pathspec...]` and include only index contents. An untracked file is not staged and is excluded unless the user explicitly includes untracked files. For an explicit unstaged-only scope, use `git diff -- [pathspec...]`; include untracked files only when the request includes them. Never stage files to make them reviewable.
 
-### 3. Identify the standards sources
+Apply every path restriction after `--`, including status, diff, log, and untracked-file enumeration. Do not report an out-of-scope change. Read an out-of-scope file only as context, and label it as context rather than as reviewed change.
 
-Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`.
+If the request does not identify a review mode or baseline, ask only for that missing scope. If a scoped WIP review has no changes, say so instead of silently reviewing a branch.
 
-On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below — a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
+### Detect drift
 
-- **The repo overrides.** A documented repo standard always wins; where it endorses something the baseline would flag, suppress the smell.
-- **Always a judgement call.** Each smell is a labelled heuristic ("possible Feature Envy"), never a hard violation — and, like any standard here, skip anything tooling already enforces.
+Record the initial mode, pathspec, resolved `HEAD`, status, tracked diff, commit list, and untracked-file list in working notes. Before reporting, recheck the relevant `HEAD`/ref, status, diff, and untracked list. If a file, index entry, ref, or untracked file changed during review, disclose the drift and either review the new state or limit findings to the captured state. Never imply that a moving working tree was a stable snapshot.
 
-Each smell reads *what it is* → *how to fix*; match it against the diff:
+## 2. Build the requirements and evidence base
 
-- **Mysterious Name** — a function, variable, or type whose name doesn't reveal what it does or holds. → rename it; if no honest name comes, the design's murky.
-- **Duplicated Code** — the same logic shape appears in more than one hunk or file in the change. → extract the shared shape, call it from both.
-- **Feature Envy** — a method that reaches into another object's data more than its own. → move the method onto the data it envies.
-- **Data Clumps** — the same few fields or params keep travelling together (a type wanting to be born). → bundle them into one type, pass that.
-- **Primitive Obsession** — a primitive or string standing in for a domain concept that deserves its own type. → give the concept its own small type.
-- **Repeated Switches** — the same `switch`/`if`-cascade on the same type recurs across the change. → replace with polymorphism, or one map both sites share.
-- **Shotgun Surgery** — one logical change forces scattered edits across many files in the diff. → gather what changes together into one module.
-- **Divergent Change** — one file or module is edited for several unrelated reasons. → split so each module changes for one reason.
-- **Speculative Generality** — abstraction, parameters, or hooks added for needs the spec doesn't have. → delete it; inline back until a real need shows.
-- **Message Chains** — long `a.b().c().d()` navigation the caller shouldn't depend on. → hide the walk behind one method on the first object.
-- **Middle Man** — a class or function that mostly just delegates onward. → cut it, call the real target direct.
-- **Refused Bequest** — a subclass or implementer that ignores or overrides most of what it inherits. → drop the inheritance, use composition.
+Use requirements in this order, combining them rather than inventing a second report:
 
-### 4. Run both axes
+1. The current request, including stated acceptance criteria, constraints, and required behavior.
+2. An issue, PRD, spec path, or text supplied by the user.
+3. References in the selected commits and matching local project documentation, tests, callers, and public interfaces.
+4. Existing behavior inferred from code, only when clearly labeled as an existing contract rather than a requested feature.
 
-Run each axis with the briefs below, in isolated contexts when delegating, or sequentially (Standards, then Spec) when working directly.
+An external issue or spec is helpful but not required for a correctness review. If it is absent or inaccessible, review against the current request and observable local contracts; state that requirements basis in the result and do not stop merely because no external document exists. If `docs/agents/issue-tracker.md` exists, follow its configured lookup method; its absence does not justify installing or configuring a tracker.
 
-**Standards axis brief** — include:
+Read the diff and relevant surrounding code, callers, data/configuration boundaries, and tests. For each requirement, check whether the changed path fulfills it for normal, boundary, failure, and compatibility cases. Check regression risks where relevant: changed defaults, state transitions, error handling, persistence, permissions, concurrency, resource limits, performance, and public interfaces. Run the smallest relevant existing tests, type checks, linters, or reproductions when available; do not treat a passing check as proof that untested behavior is correct. Do not add tests or artifacts just to conduct the review.
 
-- The review mode, diff commands, relevant untracked file list, and commit list if applicable.
-- The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the isolated runner has no other access to it.
-- The brief: "Report only actionable, evidence-backed findings; no findings is valid. For documented-standard violations, cite the standard (file + rule). For baseline smells, name the heuristic, quote the hunk, and explain a concrete maintenance cost; omit taste-based changes. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
+Do not use a fixed smell checklist or produce generic style, refactoring, or architecture suggestions. A documented project rule matters when the change violates a behaviorally relevant contract or creates a concrete risk; taste alone is not a finding.
 
-**Spec axis brief** — include:
+## 3. Gate and prioritize findings
 
-- The review mode, diff commands, relevant untracked file list, and commit list if applicable.
-- The path or fetched contents of the spec.
-- The brief: "Report: (a) requirements the spec asked for that are missing or partial; (b) behaviour in the diff that wasn't asked for (scope creep); (c) requirements that look implemented but where the implementation looks wrong. Quote the spec line for each finding. Under 400 words."
+Report a finding only when it is:
 
-If the spec is missing, skip the Spec axis and note this in the final report.
+- within the requested change or a direct consequence of it;
+- a missing, incorrect, or regressed behavior, or a concrete risk of one;
+- supported by a precise code location and evidence from the diff, surrounding code, a requirement, or a check; and
+- actionable, with a specific repair or decision needed.
 
-### 5. Aggregate
+For a risk that is not reproduced, name the triggering condition and likely impact and label it as a risk rather than stating it as a confirmed bug. Do not report hypothetical concerns without a path to failure, missing tests without a concrete unprotected behavior, or duplicate findings for one root cause.
 
-Present the two reports under `## Standards` and `## Spec` headings, verbatim or lightly cleaned. Do **not** merge or rerank findings — the two axes are deliberately separate (see _Why two axes_).
+Prioritize one list by user impact and likelihood:
 
-End with a one-line summary: total findings per axis, and the worst issue _within each axis_ (if any). Don't pick a single winner across axes — that's the reranking the separation exists to prevent.
+- **P0** — release-blocking security, data-loss, or system-wide failure.
+- **P1** — likely serious breakage of a core path or requirement.
+- **P2** — bounded correctness or regression issue with a meaningful impact.
+- **P3** — lower-impact but still concrete and actionable issue.
 
-## Why two axes
+Each item must include a priority, `path:line` anchor (prefer changed lines), concise problem and impact, evidence, and the concrete fix or verification needed. Quote only enough requirement or code to make the claim checkable.
 
-A change can pass one axis and fail the other:
+## 4. Be honest about review independence
 
-- Code that follows every standard but implements the wrong thing → **Standards pass, Spec fail.**
-- Code that does exactly what the issue asked but breaks the project's conventions → **Spec pass, Standards fail.**
+Reviewing changes authored in the same context is self-review. Changing checklists, making sequential passes, or running tests does not make it independent. Use the standard Herdr CLI only when the execution policy permits it, with a bounded read-only task and the smallest useful Pi `--tools` allowlist; delegation is optional, not a prerequisite. If child execution is unavailable, continue directly unless independent review is explicitly required; then say so and distinguish the available self-review. Call a result independent only when a genuinely separate context performed and returned a bounded review; never imply that self-review was independent. Children need not create files or reports and must not delegate again.
 
-Reporting them separately stops one axis from masking the other.
+## Output
+
+Give relevant scope, evidence, and verification limits briefly, followed by one prioritized findings list. Do not split findings by category or axis. Adapt this example to the request rather than filling every field mechanically:
+
+```markdown
+## Review context
+- Scope: <mode, baseline, and paths; include the reviewed revision/status>
+- Requirements: <sources used, or why current request/local contracts were sufficient>
+- Checks: <commands and results, including anything not run>
+- Drift: <none, or what changed and how scope was limited>
+
+## Findings
+1. **[P1] `path/to/file:line` — short title**
+   - **Impact:** ...
+   - **Evidence:** ...
+   - **Fix:** ...
+```
+
+If no issue meets the gate, write `No findings.` under `## Findings`. Do not add a compensating recommendation or claim that unrun checks passed.

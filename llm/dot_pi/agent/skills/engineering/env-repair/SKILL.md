@@ -68,7 +68,7 @@ man <tool>
 project README
 official documentation
 diagnostic commands such as doctor, diagnose, status, env, check, or config
-````
+```
 
 Identify which commands are for:
 
@@ -298,24 +298,3 @@ lockfile or manifest diff
 Installation success alone is not enough.
 
 Do not snapshot, re-lock, or declare success until verification passes.
-
----
-
-## Report Format
-
-When finished, report:
-
-```text
-Root cause:
-Layer:
-Strategy used:
-CLI semantics inspected:
-Files changed:
-Dependencies changed:
-Runtime/toolchain changed:
-Verification performed:
-Remaining risks:
-Suggested next step:
-```
-
-Keep the report factual. Mention uncertainty when verification was partial.

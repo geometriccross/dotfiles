@@ -17,6 +17,6 @@ The local baseline before this Pi adaptation is dotfiles commit `f8229d2`, under
 ## Pi adaptations to preserve
 
 - Research, review, and architecture workflows support direct execution and defer delegation decisions to AGENTS.md.
-- Standards and Spec remain separate review axes; direct passes are not independent contexts. Working-tree review covers tracked and relevant untracked files without staging them.
-- Alternative interface design uses the shared `codebase-design/DESIGN-IT-TWICE.md` workflow.
+- Reviews return one prioritized list of evidence-backed findings, without a mandatory smell inventory. Self-review is not independent review. Working-tree review covers tracked and relevant untracked files without staging them.
+- Design and architecture exploration share `codebase-design/`; alternatives and documentation scale to the decision, without mandatory HTML output.
 - Domain document templates resolve to `domain-modeling/`.

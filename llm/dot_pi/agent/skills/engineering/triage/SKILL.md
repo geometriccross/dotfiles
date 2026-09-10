@@ -1,14 +1,16 @@
 ---
 name: triage
-description: Move issues and external PRs through a state machine of triage roles — categorise, verify, grill if needed, and write agent-ready briefs.
+description: User-invoked triage for issues and external PRs — categorise, verify, grill if needed, and write agent-ready briefs.
 disable-model-invocation: true
 ---
 
 # Triage
 
+This skill is for an explicit request to inspect or update issues or external PRs. It is not a prerequisite for ordinary development.
+
 Move issues on the project issue tracker through a small state machine of triage roles.
 
-If this repo treats external pull requests as a request surface (see the issue-tracker config), triage covers them too: **a PR is an issue with attached code** — same roles, same states, same machine, with a few deltas marked "for a PR" below. Resolve a bare `#42` to an issue or PR per the tracker config.
+Use the tracker, PR policy, and label vocabulary supplied in the request or existing repository context. If this repo treats external pull requests as a request surface, triage covers them too: **a PR is an issue with attached code** — same roles, same states, same machine, with a few deltas marked "for a PR" below. Resolve a bare `#42` using that context. If an external destination or permission is genuinely unknown, ask for that specific detail; do not invoke setup or create configuration as a prerequisite to triage.
 
 Every comment or issue posted to the issue tracker during triage **must** start with this disclaimer:
 
@@ -40,7 +42,7 @@ For a PR, the same states read against the attached code: `ready-for-agent` mean
 
 Every triaged issue should carry exactly one category role and one state role. If state roles conflict, flag it and ask the maintainer before doing anything else.
 
-These are canonical role names — the actual label strings used in the issue tracker may differ. The mapping should have been provided to you - run `/setup-matt-pocock-skills` if not.
+These are canonical role names — the actual label strings used in the issue tracker may differ. Use the mapping supplied in the request or existing context. Do not make setup a prerequisite; if an external destination or permission is genuinely unknown, ask for that detail before writing.
 
 State transitions: an unlabeled issue normally goes to `needs-triage` first; from there it moves to `needs-info`, `ready-for-agent`, `ready-for-human`, or `wontfix`. `needs-info` returns to `needs-triage` once the reporter replies. The maintainer can override at any time — flag transitions that look unusual and ask before proceeding.
 

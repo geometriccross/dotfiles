@@ -1,17 +1,15 @@
 ---
 name: research
-description: Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork done before deciding something.
+description: Investigate a focused question against high-trust primary sources, cite the evidence, and distinguish verified facts from inference. Use when the user wants research, documentation or API facts, or bounded reading before a decision; answer in conversation by default and save Markdown only when requested.
 ---
 
-Investigate the question and capture durable findings.
+Investigate a bounded question and report enough evidence to answer it.
 
-Execution follows the Execution Mode of AGENTS.md, including its environment and permission requirements. Research directly by default; use `herdr_delegate` only when that policy permits it. Children must not delegate again. If delegation fails, continue directly only when independent investigation is not required; otherwise report the blocker. Never reimplement orchestration manually.
+Follow the applicable `AGENTS.md` for routing, environment, permissions, and delegation; this skill does not define a separate orchestration path. Keep research read-only apart from a requested Markdown artifact. Do not change project configuration or global web tooling as part of research.
 
-Before delegating, confirm the selected role's tools and scope support the sources and required report. A local read-only scout is not automatically equipped for web research. Keep source collection read-only; explicitly allow the requested report artifact. Do not change project configuration as part of research.
+The research must:
 
-Whether delegated or direct, the research must:
-
-1. Investigate against **primary sources** — official docs, source code, specs, first-party APIs — not a secondary write-up of them. Follow every claim back to the source that owns it.
-2. Write the findings to a single Markdown file, citing each claim's source.
-3. Save it where the repo already keeps such notes; match the existing convention, and if there is none, put it somewhere sensible and say where.
-4. Separate verified facts, interpretations, and recommendations. Never present an unverified claim as tested.
+1. Set the question's scope and a stopping condition before exploring. Investigate only what is needed to answer it, and stop when the evidence is sufficient; record relevant limits or open questions instead of expanding into adjacent work.
+2. Use **primary sources** — official docs, source code, specs, first-party APIs, or authoritative project artifacts — and follow each material claim back to the source that owns it. Cite sources precisely, using URLs, paths and symbols, versions, commit IDs, or other stable identifiers as available. Use secondary material only to locate primary evidence or when no primary source is available, and label that limitation.
+3. Answer in the conversation by default. Do not create a Markdown report merely because this skill was invoked. When the user or active workflow requests an artifact, write one Markdown file in the repository's existing notes location and convention; if none exists, choose a sensible location and say where. A delegated child also returns findings without creating an artifact unless one is explicitly requested.
+4. Separate **verified facts**, **inferences or interpretations**, **recommendations**, and **unknowns or limitations**. State what was observed versus concluded, and never present an unverified claim or an unrun check as tested.

@@ -1,14 +1,14 @@
 ---
 name: to-tickets
-description: Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker — edges as text in one file per ticket locally, or native blocking links on a real tracker.
+description: User-invoked breakdown of a plan, spec, or conversation into tracer-bullet tickets for the requested or configured tracker, each declaring its blocking edges — text locally or native links on a real tracker.
 disable-model-invocation: true
 ---
 
 # To Tickets
 
-Break a plan, spec, or conversation into a set of **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it.
+Break a plan, spec, or conversation into a set of **tickets** — tracer-bullet vertical slices, each declaring the tickets that **block** it. This skill is for an explicit planning or issue-tracker request, not a prerequisite for ordinary development.
 
-The issue tracker and triage label vocabulary should have been provided to you — run `/setup-matt-pocock-skills` if not.
+Use the tracker, destination, and triage label vocabulary supplied in the request or existing context. Do not invoke setup merely because configuration is absent. If publishing to an external destination is requested but the destination or permission is genuinely unknown, ask only for that missing detail. When local output is requested, use the supplied location or convention; do not invent a local destination as a fallback.
 
 ## Process
 
@@ -55,11 +55,11 @@ Ask the user:
 
 Iterate until the user approves the breakdown.
 
-### 5. Publish the tickets to the configured tracker
+### 5. Publish the tickets to the selected destination
 
-Publish the approved tickets. **How** depends on the tracker `/setup-matt-pocock-skills` configured — the tickets are the same either way, only the shape of the blocking edges changes:
+Publish the approved tickets to the tracker or local destination supplied in the request or existing context. The tickets are the same either way; only the shape of the blocking edges changes. Do not choose a tracker or invent local output because configuration is absent. If the requested external destination or permission is unknown, ask before writing:
 
-- **Local files** → write one file per ticket under `.scratch/<feature-slug>/issues/<NN>-<slug>.md`, numbered from `01` in dependency order (blockers first). Each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below — one ticket per file, never a single combined file.
+- **Local files** → write one file per ticket under the local issue root selected in the request or existing context, using that tracker's feature and issue naming convention. Number from `01` in dependency order (blockers first); each file's "Blocked by" lists the numbers/titles it depends on. Use the per-ticket file template below — one ticket per file, never a single combined file.
 - **A real issue tracker (GitHub, Linear, …)** → publish one issue per ticket in dependency order (blockers first) so each ticket's blocking edges can reference real identifiers. Use the platform's native blocking / sub-issue relationship where it has one; otherwise set each ticket's "Blocked by" to the blocking issues. Apply the `ready-for-agent` triage label unless instructed otherwise — the tickets are agent-grabbable by construction.
 
 Work the **frontier**: any ticket whose blockers are all done. For a purely linear chain that means top to bottom.
@@ -104,4 +104,4 @@ The end-to-end behaviour this ticket makes work, from the user's perspective —
 
 In either form, avoid specific file paths or code snippets — they go stale fast. Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it and note briefly that it came from a prototype. Trim to the decision-rich parts — not a working demo, just the important bits.
 
-Work the frontier one ticket at a time with `/implement`, clearing context between tickets.
+Hand the frontier to the repository's implementation workflow as requested. Independent tickets whose blockers are complete may be implemented in the same session or in parallel when their scope and context make that safe; honor dependency edges, but do not impose a one-ticket-per-session limit.

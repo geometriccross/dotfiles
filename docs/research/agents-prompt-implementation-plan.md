@@ -1,5 +1,7 @@
 # AGENTS.md改善 — 実装計画
 
+> **Status (2026-09-10):** This historical plan is superseded. The custom Herdr delegate, Herdr role prompts, and mandatory report workflow were removed; standard Herdr CLI is used when orchestration is appropriate. The current AGENTS.md and remaining skills are authoritative.
+
 作成日: 2026-09-07。設計合意（[agents-prompt-decisions.md](agents-prompt-decisions.md) Q1〜17）に基づく実装計画。**まだ実装開始承認ではない。**
 
 ## 前提: 未コミット変更の扱い（ユーザー決定必要）
