@@ -1,5 +1,7 @@
 -- leader key has already set in lazy.lua
 
+vim.opt.exrc = true
+
 -- show the line number of cursor
 vim.opt.number = true
 vim.opt.relativenumber = true
