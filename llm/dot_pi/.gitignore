@@ -11,5 +11,6 @@ agent/models-store.json
 run-history.jsonl
 mcp-cache.json
 pi-atlas-cache.json
+mcp-project-approvals.json
 
 .*.sqlite*
