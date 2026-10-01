@@ -6,11 +6,11 @@
   "lastChangelogVersion": "0.85.1",
   "packages": [
     "npm:pi-caffeinate",
-    "npm:pi-goal",
-    "npm:@ollama/pi-web-search",
     "npm:@mohndoe/pi-atlas",
     "npm:pi-lsp",
-    "npm:pi-code-quality"
+    "npm:pi-code-quality",
+    "https://github.com/geometriccross/pi-alter-ego.git",
+    "npm:pi-web-access"
   ],
   "theme": "dark",
   "observational-memory": {
