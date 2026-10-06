@@ -14,7 +14,7 @@
     "python3@latest",
     "stylua@latest",
     "prettierd@latest",
-    "pi-coding-agent@latest",
+    "github:NixOS/nixpkgs/master#pi-coding-agent",
     "herdr@latest"
   ],
   "shell": {
