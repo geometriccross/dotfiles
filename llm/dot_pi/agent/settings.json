@@ -1,9 +1,15 @@
 {
-  "defaultModel": "gpt-6-astra",
-  "defaultProvider": "openai-codex",
-  "defaultThinkingLevel": "low",
+  "defaultModel": "gpt-6.1-sol",
+  "defaultProvider": "openai",
+  "defaultThinkingLevel": "max",
   "hideThinkingBlock": false,
-  "lastChangelogVersion": "0.85.1",
+  "defaultTools": [
+    "+codemode"
+  ],
+  "codemode": {
+    "mode": "on"
+  },
+  "lastChangelogVersion": "0.99.2",
   "packages": [
     "npm:pi-caffeinate",
     "npm:@mohndoe/pi-atlas",
@@ -22,5 +28,6 @@
       "provider": "opencode-go",
       "id": "deepseek-v4-pro"
     }
-  }
+  },
+  "deviceId": "70aa71f5-3f09-4e61-a1e6-d7cb91db6e75"
 }
