@@ -25,6 +25,8 @@ done
 
 
 # ================ other path =================
+export PATH="$HOME/.local/bin:$PATH"
+
 # web browser
 BROWSER_32="/mnt/c/Program Files (x86)/Google/Chrome/Application/chrome.exe"
 BROWSER_64="/mnt/c/Program Files/Google/Chrome/Application/chrome.exe"
