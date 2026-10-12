@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "command(find ~/.gemini -maxdepth 2)"
+    ]
+  },
+  "trustedWorkspaces": [
+    "/home/geometriccross"
+  ]
+}
