@@ -1,0 +1,7 @@
+antigravity-cli/*
+!antigravity-cli/settings.json
+
+
+config/*
+!config/mcp_config.json
+
