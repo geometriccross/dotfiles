@@ -1,5 +1,3 @@
-# Ignore
-./*
 .zsh_sessions/
 .zcompdump*
 .zsh_history
@@ -7,11 +5,3 @@
 .agent-runs/
 .devbox
 .DS_Store
-
-# Allow
-!.zshrc
-!.bashrc
-!.p10k.zsh
-!install.sh
-!/spec
-!/llm/dot_pi/agent/agents
