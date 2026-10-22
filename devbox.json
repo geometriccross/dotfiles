@@ -15,7 +15,8 @@
     "stylua@latest",
     "prettierd@latest",
     "github:NixOS/nixpkgs/master#pi-coding-agent",
-    "herdr@latest"
+    "herdr@latest",
+    "go@latest"
   ],
   "shell": {
     "init_hook": [
