@@ -16,7 +16,9 @@
     "npm:pi-lsp",
     "npm:pi-code-quality",
     "https://github.com/geometriccross/pi-alter-ego.git",
-    "npm:pi-web-access"
+    "npm:pi-web-access",
+    "npm:pi-commandcode-provider",
+    "npm:pi-claude-bridge"
   ],
   "theme": "dark",
   "observational-memory": {

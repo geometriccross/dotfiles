@@ -5,6 +5,7 @@
     ]
   },
   "trustedWorkspaces": [
-    "/home/geometriccross"
+    "/home/geometriccross",
+    "/home/geometriccross/.config/dot_hermes"
   ]
 }

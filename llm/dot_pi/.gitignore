@@ -12,5 +12,10 @@ run-history.jsonl
 mcp-cache.json
 pi-atlas-cache.json
 mcp-project-approvals.json
+pi-web.env
+agent/commandcode-models.json
+agent/pi-web-run
+agent/pi-web-session-index.json
+agent/pi-web-session-state.json
 
 .*.sqlite*

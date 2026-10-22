@@ -88,6 +88,29 @@ symlink_missing_source_fails() {
 	return "$status"
 }
 
+pi_config_creates_symlink() {
+	local tmp
+	local status
+	tmp="$(mktemp -d)"
+	mkdir -p "$tmp/repo/llm/dot_pi"
+	(DOTFILES_DIR="$tmp/repo" HOME="$tmp/home" ensure_pi_config >/dev/null 2>&1)
+	[[ -L "$tmp/home/.pi" ]] && [[ "$(resolve_path "$tmp/home/.pi")" == "$(resolve_path "$tmp/repo/llm/dot_pi")" ]]
+	status=$?
+	rm -rf "$tmp"
+	return "$status"
+}
+
+pi_config_skips_missing_source() {
+	local tmp
+	local status
+	tmp="$(mktemp -d)"
+	(DOTFILES_DIR="$tmp/repo" HOME="$tmp/home" ensure_pi_config >/dev/null 2>&1)
+	[[ ! -e "$tmp/home/.pi" ]]
+	status=$?
+	rm -rf "$tmp"
+	return "$status"
+}
+
 parse_default_mode_selected() {
 	parse_args >/dev/null
 	[[ "$INSTALL_MODE" == "full" ]] && [[ "$HELP_REQUESTED" == "false" ]]
@@ -130,12 +153,14 @@ End
 
 Describe 'main --container'
 	It 'skips full-mode setup steps'
-		When run bash -c 'source ./install.sh; install_common_packages(){ echo full:packages; }; ensure_zinit(){ echo full:zinit; }; ensure_zsh_shell(){ echo full:zsh_shell; }; ensure_dotfiles_repo(){ echo common:repo; }; ensure_symlink(){ echo common:symlink:$1:$2; }; ensure_aqua(){ echo common:aqua; }; main --container'
+		When run bash -c 'source ./install.sh; install_common_packages(){ echo full:packages; }; ensure_zinit(){ echo full:zinit; }; ensure_zsh_shell(){ echo full:zsh_shell; }; ensure_dotfiles_repo(){ echo common:repo; }; ensure_symlink(){ echo common:symlink:$1:$2; }; ensure_pi_config(){ echo common:pi_config; }; ensure_devbox(){ echo common:devbox; }; ensure_pi(){ echo common:pi; }; main --container'
 		The status should be success
 		The stdout should include "common:repo"
 		The stdout should include "common:symlink:"
 		The stdout should include ".zshenv"
-		The stdout should include "common:aqua"
+		The stdout should include "common:pi_config"
+		The stdout should include "common:devbox"
+		The stdout should include "common:pi"
 		The stdout should not include "full:"
 	End
 End
@@ -176,5 +201,17 @@ Describe 'ensure_symlink'
 	It 'returns failure when the source is missing'
 		When call symlink_missing_source_fails
 		The status should be failure
+	End
+End
+
+Describe 'ensure_pi_config'
+	It 'symlinks the repository Pi config to ~/.pi'
+		When call pi_config_creates_symlink
+		The status should be success
+	End
+
+	It 'does nothing when the config directory is missing'
+		When call pi_config_skips_missing_source
+		The status should be success
 	End
 End

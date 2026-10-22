@@ -293,6 +293,16 @@ ensure_pi() {
 	"$pnpm_bin" add --global @earendil-works/pi-coding-agent
 }
 
+ensure_pi_config() {
+	if [[ ! -d "$DOTFILES_DIR/llm/dot_pi" ]]; then
+		log_warn "Pi config directory not found: $DOTFILES_DIR/llm/dot_pi. Skipping Pi symlink."
+		return
+	fi
+
+	log_info "Configuring Pi config symlink..."
+	ensure_symlink "$DOTFILES_DIR/llm/dot_pi" "$HOME/.pi"
+}
+
 main() {
 	parse_args "$@"
 	if [[ "$HELP_REQUESTED" == "true" ]]; then
@@ -308,6 +318,7 @@ main() {
 	ensure_dotfiles_repo
 	ensure_symlink "$DOTFILES_DIR/zsh" "$XDG_CONFIG_HOME/zsh"
 	ensure_symlink "$DOTFILES_DIR/zsh/.zshenv" "$HOME/.zshenv"
+	ensure_pi_config
 	ensure_devbox
 	ensure_pi
 }
