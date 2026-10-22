@@ -8,6 +8,7 @@ __pycache__
 auth.json
 trust.json
 agent/models-store.json
+web-push.json
 run-history.jsonl
 mcp-cache.json
 pi-atlas-cache.json
