@@ -6,6 +6,7 @@
 .env
 .agent-runs/
 .devbox
+.DS_Store
 
 # Allow
 !.zshrc
