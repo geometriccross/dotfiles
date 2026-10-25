@@ -15,7 +15,8 @@
     "npm:pi-code-quality",
     "npm:pi-web-access",
     "npm:pi-commandcode-provider",
-    "npm:pi-claude-bridge"
+    "npm:pi-claude-bridge",
+    "npm:@zosmaai/pi-llm-wiki"
   ],
   "theme": "dark",
   "observational-memory": {
@@ -23,9 +24,10 @@
     "compactAfterTokensRatio": 0.85
   },
   "llm-wiki": {
+    "notices": false,
     "taskModel": {
       "provider": "opencode-go",
-      "id": "deepseek-v4-pro"
+      "id": "beam-free"
     }
   },
   "deviceId": "70aa71f5-3f09-4e61-a1e6-d7cb91db6e75"
