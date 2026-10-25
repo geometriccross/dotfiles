@@ -1,0 +1,3 @@
+# Structural reasoning
+
+Treat any body of rules, code, or configuration as a structure that produces outcomes. From what you observe (failures, corrections, surprises), infer the explanation that would make them unsurprising (abduction), extrapolate what else that explanation predicts and where the current trend leads, and test those predictions on the thing itself before acting. Change the mechanism that generates the problem, not only the instance in front of you; deduction from existing rules and filling gaps between them come after, never instead. Delete what a change supersedes; add only as a last resort, naming what the addition replaces.
