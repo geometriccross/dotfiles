@@ -39,5 +39,5 @@ fi
 # ==================== load my custom files  ====================
 [[ -f "$HOME/.local/bin/env" ]] && . "$HOME/.local/bin/env"
 
-[[ -f "${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}/.alias" ]] && source "${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}/.alias"
-[[ -f "${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}/.zprofile" ]] && source "${ZDOTDIR:-$XDG_CONFIG_HOME/zsh}/.zprofile"
+[[ -f "${ZDOTDIR:-$XDG_CONFIG_HOME/}/.alias" ]] && source "${ZDOTDIR:-$XDG_CONFIG_HOME/}/.alias"
+[[ -f "${ZDOTDIR:-$XDG_CONFIG_HOME/}/.zprofile" ]] && source "${ZDOTDIR:-$XDG_CONFIG_HOME/}/.zprofile"
