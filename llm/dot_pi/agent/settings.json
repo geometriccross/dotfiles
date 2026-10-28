@@ -9,7 +9,7 @@
   "codemode": {
     "mode": "on"
   },
-  "lastChangelogVersion": "1.3.0",
+  "lastChangelogVersion": "1.4.0",
   "packages": [
     "npm:pi-lsp",
     "npm:pi-code-quality",

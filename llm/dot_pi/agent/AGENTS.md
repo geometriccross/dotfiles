@@ -26,8 +26,9 @@
 
 ## 記憶とwikiの運用
 
-- Hermesのmemory（`~/.hermes/memories/MEMORY.md`と`USER.md`）には、好み、禁止事項、環境の事実など、毎回守る小さな方針を置く。必要なときに読み、wikiへコピーしない。
-- wikiには、設計の理由、却下案、プロジェクトの現状、過去の観測など、必要なときに引く知識を置く。`@zosmaai/pi-llm-wiki`の`wiki_recall`で検索する。サーバーで残す知見はプロジェクトwikiへ`wiki_retro`で書き、global wikiへ書くときはMacで行う。
+- 好み・禁止事項・環境の事実など毎回守る小さな方針は、この`AGENTS.md`に置く（全セッションで注入される）。`pi-hermes-memory`の`~/.pi/agent/pi-hermes-memory/MEMORY.md`と`USER.md`は、拡張が有効なセッションでの補助記憶として検索・追記する。`~/.hermes/memories/`は空なので使わない。
+- wikiには、設計の理由、却下案、プロジェクトの現状、過去の観測など、必要なときに引く知識を置く。調査・実装の依頼では、着手前に`wiki_recall`を依頼文の主要語で1回実行し、設計判断・経緯・既知の落とし穴が主題なら返ってきたページを`read`してから方針を決める。サーバーで残す知見はプロジェクトwikiへ`wiki_retro`で書き、global wikiへ書くときはMacで行う。
+- 非自明な判断・発見・制約・完了は`wiki_observe`で1件ずつ残す。作業の締めには`wiki_retro`か`wiki_ensure_page`で、次回同じ作業で再利用できる形（パス・数値・理由・却下案）にまとめる。ユーザーに「覚えている?」と聞かれる前に書く。
 - 現在のコード契約はrepoの`AGENTS.md`、`CONTEXT.md`、testsを最優先にする。古いwikiのページを現行の仕様として扱わない。
 - 同じ事実をmemoryとwikiの両方に書かない。新しい知見はまずwikiへ書き、二回以上使ったものや明示的な訂正があったものだけmemoryへ移す。
 - memoryは10〜15KB程度に保ち、プロジェクト固有の詳細を入れない。コードが変わると古くなる知識はrepoかプロジェクトwikiへ、ユーザーや環境が変わると古くなる知識はmemoryへ置く。
